@@ -4,6 +4,7 @@ import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFi
 import { bindDrag } from "./ordering.js";
 import { epicViewPane } from "./epicView.js";
 import { docsPanes } from "./docsView.js";
+import { setLayout } from "./resize.js";
 
 /* ---------- Render ---------- */
 
@@ -11,6 +12,7 @@ export function render() {
   if (!S.data) return;
   document.documentElement.style.setProperty("--fs", S.font + "px");
   renderTop();
+  setLayout(S.view, S.view === "docs" && S.docs.linkedClosed);
   if (S.view === "docs") { $("#panes").innerHTML = docsPanes(fontCtl()); return; }
   $("#panes").innerHTML = epicPane() + listPane() + detailPane();
   bindDrag();

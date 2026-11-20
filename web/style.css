@@ -57,6 +57,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .gutter::after { content: ""; position: absolute; top: 0; bottom: 0; left: 4px; width: 2px; border-radius: 1px; background: transparent; }
 .gutter:hover::after, .gutter:focus-visible::after, .resizing .gutter::after { background: var(--line); }
 .gutter:focus-visible { outline: none; }
+.right-closed .gutter[data-gutter="right"] { display: none; }
+.pane-close { margin-left: auto; padding: 0 6px; line-height: 1.2; }
+.linked-rail { align-items: stretch; }
+.linked-rail button { flex: 1; writing-mode: vertical-rl; padding: 10px 0; border: 0; border-radius: 0; background: transparent; color: var(--accent); font-family: var(--mono); letter-spacing: .08em; text-transform: uppercase; font-size: 11px; cursor: pointer; }
+.linked-rail button:hover { background: var(--accent-soft); }
 .resizing { cursor: col-resize; user-select: none; }
 .pane { background: var(--panel); border: 1px solid var(--accent); border-radius: 2px; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 .pane-h { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px dashed var(--line); font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); flex-wrap: wrap; }
@@ -173,7 +178,7 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .form .err { color: var(--warn); font-size: 12px; width: 100%; }
 .addbtn { display: block; width: 100%; text-align: left; border: 1px dashed var(--line); background: none; color: var(--muted); font-size: 12px; margin: 6px 0 2px; }
 
-@media (max-width: 1100px) { .gutter { display: none; } .panes { grid-template-columns: 220px minmax(0, 1fr); } .panes > .pane:nth-child(3) { grid-column: 1 / -1; min-height: 360px; } }
+@media (max-width: 1100px) { .gutter { display: none; } .panes { grid-template-columns: 220px minmax(0, 1fr); } .panes > .pane:nth-child(3) { grid-column: 1 / -1; min-height: 360px; } .panes > .linked-rail.pane:nth-child(3) { min-height: 0; } .linked-rail button { writing-mode: horizontal-tb; } }
 @media (max-width: 720px) { .app { height: auto; } .panes { grid-template-columns: minmax(0, 1fr); } .pane { max-height: none; } .pane-b { max-height: 70vh; } .views { margin-left: 0; } .row { grid-template-columns: 14px 20px 8px 58px minmax(0,1fr); } .row .pills { grid-column: 4 / -1; justify-content: flex-start; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 

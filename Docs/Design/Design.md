@@ -59,6 +59,8 @@ Each project's docs folder (design, specs, architecture) is read and edited in p
 - **The document** is rendered with the epic view's renderer plus tables. Above it: its path and who changed it last, from git (author and date of the last commit that touched it; "not committed" when none).
 - **Edit** swaps the rendered page for a plain text box with the file's text; **Done** writes the file and shows it rendered again. Text size A− / A+ applies, as in the Detail pane.
 - **Linked** lists the project's open tasks whose description or done-when names the document's file name (`Design.md`); clicking one opens it on the Board.
+- **Linked can be closed** with × in its header; it folds to a thin rail at the right edge, which opens it again. Closed or open is kept per browser.
+- **Column widths** are dragged as on the Board, but kept apart from the Board's: each view remembers its own.
 - Paths are always inside the docs folder: a path with `..`, an absolute path, or one into a hidden folder is refused. Only `.md` files are read or written.
 - Docs are read and written in the project folder, not in an epic's worktree.
 - Pictures in a document are not shown yet; the Confluence import epic (EPIC-009) brings them.
@@ -107,3 +109,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20: the Doit logo, in the top bar, as the tab icon and as the launcher icon (section Look).
 - 2026-11-20, EPIC-007: an epic with a worktree has its files read and written there (section Epics).
 - 2026-11-20, EPIC-003: the Docs view: tree, rendered document with edit, and Linked tasks (section Docs). The Confluence import moves to EPIC-009.
+- 2026-11-20: the Docs view keeps its own column widths, apart from the Board's, and its Linked pane can be closed to a rail and opened again (section Docs).

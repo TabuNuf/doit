@@ -42,6 +42,12 @@ export function docsClick(d) {
   if ("docEdit" in d) { D.editing = true; D.draft = D.doc.text; redraw(); document.querySelector("#doc-text")?.focus(); return true; }
   if ("docDone" in d) { saveDoc(); return true; }
   if (d.linked) { openTask(d.linked); return true; }
+  if ("linkedToggle" in d) {
+    D.linkedClosed = !D.linkedClosed;
+    try { localStorage.setItem("doit.docs.linked", D.linkedClosed ? "closed" : "open"); } catch { /* storage off */ }
+    redraw();
+    return true;
+  }
   return false;
 }
 
@@ -101,7 +107,17 @@ export function docsPanes(tools) {
       <button data-${D.editing ? "doc-done" : "doc-edit"}>${D.editing ? "Done" : "Edit"}</button>` : "Document";
   return `<section class="pane" aria-label="Documents"><div class="pane-h">Documents</div><div class="pane-b tree">${note}${treeHtml(D.tree)}</div></section>
     <section class="pane" aria-label="Document"><div class="pane-h">${head}${tools}</div><div class="pane-b">${docBody()}</div></section>
-    <section class="pane" aria-label="Linked"><div class="pane-h">Linked</div><div class="pane-b">${linkedHtml()}</div></section>`;
+    ${linkedPane()}`;
+}
+
+/** The Linked pane, or a thin rail with a button that opens it again. */
+function linkedPane() {
+  const D = S.docs;
+  if (D.linkedClosed) {
+    const n = D.doc ? ` (${D.linked.length})` : "";
+    return `<section class="pane linked-rail" aria-label="Linked, closed"><button data-linked-toggle aria-expanded="false" title="Open Linked">Linked${n}</button></section>`;
+  }
+  return `<section class="pane" aria-label="Linked"><div class="pane-h">Linked<button class="pane-close" data-linked-toggle aria-expanded="true" title="Close Linked" aria-label="Close Linked">×</button></div><div class="pane-b">${linkedHtml()}</div></section>`;
 }
 
 function linkedHtml() {
