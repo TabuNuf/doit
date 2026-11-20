@@ -42,8 +42,8 @@ In a game's copy, three more files belong to the game and are never overwritten 
 ## Placeholders
 
 - `<Game>`: the root namespace and assembly prefix (`BoxTrainer`). In `Core/` it stands for any project.
-- `<Docs>/`: the docs folder at the repo root (`Docs/` in Box Trainer, `ClobberBopDocs/` in ClobberBop). A new game names it after itself.
-  Why: each game's docs open as their own Obsidian vault, and a vault takes its name from the folder.
+- `<Docs>/`: the docs folder at the repo root, `Docs/` in every project. A project that still has its own name (`BB-Docs/`) renames it when no work is in progress in it.
+  Why: one name lets every file, tool and the Doit board point at `Docs/` the same way. Obsidian no longer needs each vault's folder named apart.
 - `<Designer>`: the person who owns design decisions and edits the UI in UI Builder.
 - `<Builder>`: whoever writes the code (Claude, or a programmer).
 
