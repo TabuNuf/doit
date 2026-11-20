@@ -25,7 +25,7 @@ export class ActivityLog {
     else this.file.replace([...kept, ...added]);
   }
 
-  /** Entries {at, ref, what}, newest first; lines written in the same minute keep their order, so a block reads top down. `project` keeps that project's tasks and lines not about a task. */
+  /** Entries {at, ref, what}, newest first. A block (lines in one minute under one ref that is not a task, like the morning report) keeps its order, so it reads top down. `project` keeps that project's tasks and lines not about a task. */
   recent({ project = "all", limit = 200 } = {}) {
     const groups = [];
     for (const line of this.file.lines()) {
@@ -33,7 +33,7 @@ export class ActivityLog {
       if (!m || (project !== "all" && m[2].includes("/") && !m[2].startsWith(project + "/"))) continue;
       const e = { at: m[1], ref: m[2], what: m[3] };
       const last = groups[groups.length - 1];
-      if (last && last[0].at === e.at) last.push(e); else groups.push([e]);
+      if (last && last[0].at === e.at && last[0].ref === e.ref && !e.ref.includes("/")) last.push(e); else groups.push([e]);
     }
     return groups.reverse().flat().slice(0, limit);
   }

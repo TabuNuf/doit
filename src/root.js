@@ -5,6 +5,7 @@ import path from "node:path";
 import { Board } from "./domain/board.js";
 import { ActivityLog } from "./domain/activity.js";
 import { DocsLibrary } from "./domain/docs.js";
+import { ClaudeView } from "./domain/claude.js";
 import { DocsFiles } from "./store/docsFolder.js";
 import { FileSource } from "./store/source.js";
 import { ActivityFile } from "./store/activityFile.js";
@@ -21,9 +22,8 @@ export function makeActivity({ home = dataDir(), now } = {}) {
   return new ActivityLog(new ActivityFile(home), now);
 }
 
-/** The board, telling the activity log in `home` every change it makes. */
-export function makeBoard({ home = dataDir(), now } = {}) {
-  const log = makeActivity({ home, now });
+/** The board, telling the activity log `log` (by default the one in `home`) every change it makes. */
+export function makeBoard({ home = dataDir(), now, log = makeActivity({ home, now }) } = {}) {
   return new Board(new FileSource(new SettingsFile(home), new EpicWorktrees()), now, (ref, what) => log.record({ ref, what }));
 }
 
@@ -37,6 +37,7 @@ export function makeCli(options = {}) {
 
 export function makeServer(options = {}) {
   const webDir = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "web");
-  const board = makeBoard(options);
-  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home: options.home, board }));
+  const log = makeActivity(options);
+  const board = makeBoard({ ...options, log });
+  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home: options.home, board }), new ClaudeView(board, log));
 }

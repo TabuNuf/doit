@@ -69,7 +69,7 @@ test("recent lists newest first, keeps a block's order and filters by project", 
   clock.t = new Date("2026-11-20T08:15:00");
   log.record({ ref: "game/T-1.1", what: "comment by ai" });
   log.record({ ref: "other/T-2.1", what: "state todo → progress" });
-  assert.deepEqual(log.recent().map(e => e.what), ["comment by ai", "state todo → progress", "Morning report", "Swept: none"]);
+  assert.deepEqual(log.recent().map(e => e.what), ["state todo → progress", "comment by ai", "Morning report", "Swept: none"]);
   assert.deepEqual(log.recent({ project: "game" }).map(e => e.ref), ["game/T-1.1", "morning", "morning"]);
   assert.equal(log.recent({ limit: 1 }).length, 1);
 });

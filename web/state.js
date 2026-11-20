@@ -8,7 +8,7 @@ export const FUNNEL = '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z
 export const S = {
   project: "all", epic: null, tab: "open", q: "", owner: "all",
   f: { task: true, bug: true, due: "any" }, fOpen: false,
-  view: "board", docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
+  view: "board", claude: null, docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
   sel: null, font: 15, newProj: false, newTask: false, newEpic: null, epicView: null, archivedOpen: {}, data: null, npErr: "",
 };
 try { S.font = Number(localStorage.getItem("doit.font")) || 15; S.project = localStorage.getItem("doit.project") || "all"; S.docs.linkedClosed = localStorage.getItem("doit.docs.linked") === "closed"; } catch { /* storage off */ }
@@ -47,6 +47,13 @@ export async function load() {
 
 export async function act(fn) {
   try { await fn(); await load(); } catch (e) { toast(e.message); }
+}
+
+/** Back to the Board with the task selected, in its own project when one project is shown. */
+export function openOnBoard(key) {
+  S.view = "board"; S.epic = null; S.epicView = null; S.sel = key; S.tab = "open";
+  if (S.project !== "all" && S.project !== key.split("/")[0]) S.project = key.split("/")[0];
+  load();
 }
 
 export const patch = (t, changes) => act(() => api("PATCH", `/api/tasks/${t.project}/${t.id}`, changes));

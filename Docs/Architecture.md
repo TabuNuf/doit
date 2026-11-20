@@ -8,7 +8,7 @@ Doit is built from modules wired in one composition root. The general rules are 
 |---|---|---|---|
 | Domain | `src/domain/` | itself only | `node:fs`, `node:http`, the store, the CLI, the server |
 | Adapters | `src/store/` | the domain, `node:fs`, `node:path`, `node:os`, `node:child_process` (git, for who last changed a document) | the CLI, the server |
-| Interface | `src/cli/`, `src/server/`, `web/` | the domain (the `Board` and `DocsLibrary` facades and their value types) | the store, each other; `web/` only talks HTTP |
+| Interface | `src/cli/`, `src/server/`, `web/` | the domain (the `Board`, `DocsLibrary` and `ClaudeView` facades and their value types) | the store, each other; `web/` only talks HTTP |
 | Composition root | `src/root.js`, `bin/` | everything | |
 
 Module order, low to high: domain → store → cli, server → root.
@@ -30,13 +30,14 @@ Module order, low to high: domain → store → cli, server → root.
 - `store/settings.js`: `SettingsFile`, the project list and settings in the app's data folder.
 - `store/worktrees.js`: `EpicWorktrees`, finds the worktrees on `epic/<nnn>-…` branches by reading `.git/worktrees`, no git process.
 - `store/source.js`: `FileSource`, the port implementation the board is given; joins the settings file and each project's files, and reads and writes an epic's file and task files in its worktree when `EpicWorktrees` finds one.
+- `domain/claude.js`: `ClaudeView`, the Claude view's facade: from the board's tasks and the activity log, the panes Working on now, Blocked on you (human To-do tasks with `blocks`) and Up next, each card with its last logged change. The pane filters (`workingOn`, `blockedOnYou`, `upNext`, `dueSoon`) are pure functions. Given the `Board` and the `ActivityLog`.
 - `domain/docs.js`: `DocsLibrary`, the docs facade: tree, read, save and the tasks linked to a document, over a `DocsSource` port and the `Board`; `checkDocPath` keeps paths inside the docs folder (`.md` only, no `..`, no hidden names). Pure.
 - `store/docsFolder.js`: `DocsFiles`, the `DocsSource` port on disk: the docs tree (leaving out `Archive/`, `Epics/Tasks/`, `Standard/`, folding `Epics/Completed/`), read, write, and the last change from `git log`.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board` and an output stream.
-- `server/server.js`: `HttpServer`, the JSON API (including `GET /api/version`, the start commit) and the static page. Given a `Board`, the web folder, the commit and the `DocsLibrary` (the `/api/docs/` routes); `bin/server.js` reads the commit with `git rev-parse HEAD`.
+- `server/server.js`: `HttpServer`, the JSON API (including `GET /api/version`, the start commit) and the static page. Given a `Board`, the web folder, the commit, the `DocsLibrary` (the `/api/docs/` routes) and the `ClaudeView` (`GET /api/claude`); `bin/server.js` reads the commit with `git rev-parse HEAD`.
 - `launcher/`: `Doit.applescript` (the app), `start-server.sh`, `check-server.sh` (running server on the checked-out commit? exit 0, 1 none, 3 other) and `stop-server.sh`.
-- `web/`: the board page, plain HTML, CSS and JS as ES modules, none over 300 lines: `state.js` (page state, helpers, API calls), `render.js` (views), `epicView.js` (the epic document view and its Close epic button), `epicList.js` (the left pane's epic buttons and the Closed and Archived sections), `docsView.js` (the Docs view: tree, document, linked tasks), `markdown.js` (markdown to HTML, no packages), `ordering.js` (drag and keyboard moves), `resize.js` (column widths), `events.js` (listeners and the reload), `app.js` (wires them).
-- `root.js`: builds the activity log and points the board's `record` at it, the settings file, the worktree finder, the source, the board, the docs files and library, and hands the board to the CLI or the server.
+- `web/`: the board page, plain HTML, CSS and JS as ES modules, none over 300 lines: `state.js` (page state, helpers, API calls), `render.js` (views), `epicView.js` (the epic document view and its Close epic button), `epicList.js` (the left pane's epic buttons and the Closed and Archived sections), `docsView.js` (the Docs view: tree, document, linked tasks), `claudeView.js` (the Claude view: its three panes; a card opens the task on the Board), `markdown.js` (markdown to HTML, no packages), `ordering.js` (drag and keyboard moves), `resize.js` (column widths), `events.js` (listeners and the reload), `app.js` (wires them).
+- `root.js`: builds the activity log and points the board's `record` at it, the Claude view over both, the settings file, the worktree finder, the source, the board, the docs files and library, and hands the board to the CLI or the server.
 
 ## Class diagram
 
@@ -55,6 +56,7 @@ classDiagram
     +closeEpic(project, epic)
     +epicDocument(project, epic)
   }
+  class ClaudeView { +panes(project) }
   class ActivityLog { +record(entries) +recent(project, limit) }
   class ActivityFile { +lines() +append(lines) +replace(lines) }
   class DocsLibrary { +tree(project) +read(project, path) +save(project, path, text) +linked(project, path) }
@@ -76,6 +78,9 @@ classDiagram
   Cli --> Board
   HttpServer --> Board
   HttpServer --> DocsLibrary
+  HttpServer --> ClaudeView
+  ClaudeView --> Board
+  ClaudeView --> ActivityLog
   DocsLibrary --> Board
   DocsLibrary --> DocsFiles : port
   DocsFiles --> SettingsFile
