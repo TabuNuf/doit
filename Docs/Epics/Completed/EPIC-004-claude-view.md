@@ -1,6 +1,7 @@
 # EPIC-004: Claude view and morning run
 
-Status: Active
+Status: Done
+Closed: 2026-11-20
 Goal: One page shows what Claude is working on, what it is blocked on, and what changed; a scheduled morning run sweeps and reports.
 Design: Design.md, section Claude view. Wireframe: Docs/Design/wireframe.html, Claude view.
 
@@ -48,4 +49,10 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+- `src/domain/activity.js`: its own `oneLine` copied `task.js`'s (a helper written twice). Fix now, done in the close commit.
+- `src/domain/claude.js` `dueSoon` and `web/state.js` `dueWithinWeek` hold the same 7-day rule. Deliberate: `web/` only talks HTTP and the badge counts the loaded tasks; the domain copy feeds the morning report.
+- Boundaries, class diagram, file sizes (largest `board.js`, 245 lines): nothing found. Development 75 of 75, Audit 76 of 76 on the branch with main merged.
+
 ## For the standard
+
+Nothing. The one candidate (keep a scheduled Claude run's logic in a tested CLI command, the prompt only calls it) is one data point so far; it goes in if a second project does the same.

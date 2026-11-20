@@ -4,6 +4,7 @@
 // The port (the store's activity file) provides: lines() -> string[], append(lines), replace(lines).
 
 import { daysBetween, stamp } from "./rules.js";
+import { oneLine } from "./task.js";
 
 export const KEEP_DAYS = 30;
 const LINE = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2})  (\S+)  (.*)$/;
@@ -57,8 +58,4 @@ export function describeChanges(before, after) {
   if (was("doneWhen") !== now("doneWhen")) parts.push("done-when changed");
   if (was("description") !== now("description")) parts.push("description changed");
   return parts.join(", ");
-}
-
-function oneLine(s) {
-  return String(s ?? "").replace(/\s+/g, " ").trim();
 }
