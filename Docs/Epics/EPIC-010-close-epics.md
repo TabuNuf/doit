@@ -33,6 +33,8 @@ Design: Design.md, section Epics.
 
 Decisions and deviations, newest first.
 
+- 2026-11-20: an epic closed in its worktree counts as closed before the merge: the source reads open/closed from the copy it reads (worktree or main), so it leaves the open list and shows under Closed at once.
+
 - T-010.3 and T-010.4 share one commit: both edit events.js, state.js and web.test.js, and the pieces were not separable without interactive staging.
 - Closed epics come from `source.closedEpics`, a new port method, because `load` reads Completed/ only when tasks are loaded with the archive. `view` returns them as `closedEpics`, newest first, each with `closed` and `archived`.
 - Not handled: an epic closed inside its worktree stays in the open list (read from main) until the branch merges; `closedEpics` reads the main checkout only.
