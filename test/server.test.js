@@ -62,3 +62,21 @@ test("POST /api/epics/<project>/<id>/close closes an open epic and refuses a sec
   assert.equal(second.status, 400);
   assert.match(second.body.error, /No open epic/);
 });
+
+test("POST /api/epics/<project>/<id>/move parks and reopens an epic; an unknown target is a 400", async t => {
+  const s = setup(); t.after(s.cleanup);
+  const server = new HttpServer(s.board, path.join(import.meta.dirname, "..", "web"));
+  const port = await server.listen(0);
+  t.after(() => server.close());
+  const move = (id, to) => fetch(`http://127.0.0.1:${port}/api/epics/game/${id}/move`, { method: "POST", body: JSON.stringify({ to }) }).then(async r => ({ status: r.status, body: await r.json() }));
+  const view = () => fetch(`http://127.0.0.1:${port}/api/board?project=game`).then(r => r.json());
+  assert.equal((await move("EPIC-016", "open")).status, 200);
+  assert.ok((await view()).epics.some(e => e.id === "EPIC-016"));
+  assert.equal((await move("EPIC-016", "parked")).body.moved, true);
+  const v = await view();
+  assert.ok(v.parkedEpics.some(e => e.id === "EPIC-016") && !v.epics.some(e => e.id === "EPIC-016"));
+  assert.equal((await move("EPIC-016", "nowhere")).status, 400);
+  const refused = await move("EPIC-014", "parked");
+  assert.equal(refused.status, 400);
+  assert.match(refused.body.error, /Planned/);
+});
