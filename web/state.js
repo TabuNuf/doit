@@ -9,7 +9,7 @@ export const S = {
   project: "all", epic: null, tab: "open", q: "", owner: "all",
   f: { task: true, bug: true, due: "any" }, fOpen: false,
   view: "board", docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
-  sel: null, font: 15, newProj: false, newTask: false, newEpic: null, epicView: null, archivedOpen: {}, data: null, npErr: "",
+  sel: null, font: 15, newProj: false, newTask: false, newEpic: null, epicView: null, epicFold: {}, data: null, npErr: "",
 };
 try { S.font = Number(localStorage.getItem("doit.font")) || 15; S.project = localStorage.getItem("doit.project") || "all"; S.docs.linkedClosed = localStorage.getItem("doit.docs.linked") === "closed"; } catch { /* storage off */ }
 

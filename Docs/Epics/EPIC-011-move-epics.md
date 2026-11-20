@@ -18,8 +18,8 @@ Design: Design.md, section Epics.
 - [x] T-011.1 Store: park, reopen and archive-on-close for an epic file (done when: a test parks a Planned epic and finds it in `Parked/` with status Parked; reopens it into `Epics/` as Planned; closes one with the archived flag and reads `Closed:` and `Archived:` lines; reopens it with both lines gone; an epic in a worktree is moved there, not in main) `7e298db`
 - [x] T-011.2 Domain: `board.moveEpic(project, id, to)` for to = open, parked, completed, archived; the view returns parked epics apart from open ones, and an `Archived:` line makes a closed epic archived (done when: domain tests cover each move, the Active-to-Parked refusal, a same-place move doing nothing, and a reopen restoring a ticked task as done and an open one as todo while a task archived for another reason stays archived) `72d8a1d`
 - [x] T-011.3 Server: `POST /api/epics/<project>/<EPIC-nnn>/move` with `{to}` (done when: a server test parks and reopens an epic through the API; an unknown `to` is a 400) `32ca003`
-- [ ] T-011.4 Web: Parked, Completed and Archived sections, all folded, below the open epics (done when: a web test renders the three sections from view data, folded, and unfolds each by its header; parked epics are not in the open list)
-- [ ] T-011.5 Web: drag an epic button onto a section header or the open epics to move it; Completed and Archived ask for confirmation; a refusal shows its message (done when: a web test drives the drop handler for each target and finds the right API call; in play, each move lands in the right section)
+- [x] T-011.4 Web: Parked, Completed and Archived sections, all folded, below the open epics (done when: a web test renders the three sections from view data, folded, and unfolds each by its header; parked epics are not in the open list) `HASH`
+- [x] T-011.5 Web: drag an epic button onto a section header or the open epics to move it; Completed and Archived ask for confirmation; a refusal shows its message (done when: a web test drives the drop handler for each target and finds the right API call; in play, each move lands in the right section) `HASH`
 
 ## Test plan
 
@@ -44,3 +44,4 @@ Decisions and deviations, newest first.
 ## Close audit
 
 ## For the standard
+- 2026-11-20: Batch B. T-011.4 and .5 share one commit: the section headers are the drop targets and the buttons carry the drag attributes in the same markup. Folded section bodies stay in the DOM with `hidden` (not left out), so a header can unfold on drag-over without a re-render that would end the drag. Drag code is in `web/epicMove.js`; `dropEpic(key, to)` is the testable handler. Browser drag not run.

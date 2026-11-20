@@ -73,6 +73,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .sub-h { display: flex; align-items: center; gap: 6px; width: 100%; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 10px 4px 4px; padding: 0; background: none; border: 0; text-align: left; }
 .sub-h .c { font-family: var(--mono); }
 .sub-h.fold { cursor: pointer; }
+.sec-body[hidden] { display: none; }
+.open-zone { min-height: 14px; border-radius: 2px; }
+.sub-h.over, .open-zone.over { background: var(--accent-soft); outline: 1px dashed var(--accent); }
+.epic.dragging { opacity: .5; }
 .epic { display: block; width: 100%; text-align: left; border: 1px solid transparent; border-radius: 2px; padding: 7px 8px; background: none; }
 .epic:hover { border-color: var(--line); }
 .epic[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }

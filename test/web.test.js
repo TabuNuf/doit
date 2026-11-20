@@ -77,19 +77,44 @@ test("the epic header has Close epic on an open epic and not on a completed one"
   assert.doesNotMatch(epicViewPane(""), /Close epic/);
 });
 
-test("the epic pane lists Closed epics and a folded Archived section that opens on click", async () => {
+test("the epic pane has Parked, Completed and Archived sections, folded until their header is clicked", async () => {
   const { S } = await import("../web/state.js");
-  const { closedSections } = await import("../web/epicList.js");
-  const e = (id, closed, archived) => ({ project: "p", id, name: "Name " + id, status: "Done", done: 1, total: 1, closed, archived });
-  S.data = { closedEpics: [e("EPIC-003", "2026-11-19", false), e("EPIC-001", null, true), e("EPIC-002", "2026-10-01", true)] };
-  S.archivedOpen = {};
-  const folded = closedSections("p");
-  assert.match(folded, /Closed<span class="c">1<\/span>[\s\S]*data-open-epic="p\/EPIC-003"/);
-  assert.match(folded, /data-toggle-archived="p"[^>]*aria-expanded="false"[^>]*>[^<]*Archived<span class="c">2/);
-  assert.doesNotMatch(folded, /data-open-epic="p\/EPIC-001"/);
-  S.archivedOpen = { p: true };
-  const open = closedSections("p");
-  assert.match(open, /data-open-epic="p\/EPIC-001"/);
-  assert.match(open, /data-open-epic="p\/EPIC-002"/);
-  assert.equal(closedSections("other"), "");
+  const { epicSections, toggleFold } = await import("../web/epicList.js");
+  const e = (id, extra) => ({ project: "p", id, name: "Name " + id, status: "Done", done: 1, total: 1, ...extra });
+  S.data = { epics: [e("EPIC-010", { status: "Active" })], parkedEpics: [e("EPIC-009", { status: "Parked" })],
+    closedEpics: [e("EPIC-003", { closed: "2026-11-19", archived: false }), e("EPIC-001", { archived: true }), e("EPIC-002", { archived: true })] };
+  S.epicFold = {};
+  const body = (html, sec) => html.split(`data-drop-epic="${sec}"`)[1].split('class="sec-body"')[1];
+  const folded = epicSections("p");
+  const heads = [...folded.matchAll(/data-drop-epic="(\w+)"[^>]*aria-expanded="(\w+)">[^<]*? (\w+)<span class="c">(\d+)/g)].map(m => m.slice(1).join(","));
+  assert.deepEqual(heads, ["parked,false,Parked,1", "completed,false,Completed,1", "archived,false,Archived,2"]);
+  for (const sec of ["parked", "completed", "archived"]) assert.match(body(folded, sec), /^ hidden>/);
+  assert.doesNotMatch(folded, /EPIC-010/);
+  toggleFold("p", "parked");
+  assert.match(body(epicSections("p"), "parked"), /^>[\s\S]*draggable="true"[\s\S]*data-open-epic="p\/EPIC-009"/);
+  toggleFold("p", "completed"); toggleFold("p", "archived");
+  const open = epicSections("p");
+  assert.match(body(open, "completed"), /^>[\s\S]*EPIC-003/);
+  assert.match(body(open, "archived"), /^>[\s\S]*EPIC-001[\s\S]*EPIC-002/);
+  assert.match(epicSections("other"), /Parked<span class="c">0/);
+});
+
+test("dropping an epic calls the move API, and asks first for Completed and Archived", async () => {
+  const { S } = await import("../web/state.js");
+  const { dropEpic } = await import("../web/epicMove.js");
+  const calls = [], asked = [];
+  globalThis.document = { querySelector: () => ({ textContent: "", hidden: true }) };
+  globalThis.fetch = async (path, o) => { calls.push([o.method, path, o.body]); return { ok: true, json: async () => ({ moved: true, projects: [], tasks: [], epics: [] }) }; };
+  S.project = "all"; S.tab = "open";
+  let answer = true;
+  globalThis.confirm = m => { asked.push(m); return answer; };
+  for (const to of ["parked", "open", "completed", "archived"]) await dropEpic("p/EPIC-007", to);
+  const moves = calls.filter(c => c[0] === "POST");
+  assert.deepEqual(moves.map(c => [c[1], c[2]]), ["parked", "open", "completed", "archived"].map(to => ["/api/epics/p/EPIC-007/move", JSON.stringify({ to })]));
+  assert.equal(asked.length, 2);
+  assert.match(asked[0], /EPIC-007.*Completed/);
+  assert.match(asked[1], /EPIC-007.*Archived/);
+  answer = false; calls.length = 0;
+  await dropEpic("p/EPIC-007", "archived");
+  assert.equal(calls.length, 0);
 });
