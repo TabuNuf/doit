@@ -103,7 +103,7 @@ When sitting down for outreach the order is festivals first, then people, then c
    - Sending: one template per pitch (game, hook, trailer, Steam link, the ask), plus one or two personal lines per contact that Claude drafts from the contact's research. Claude only writes drafts; Tabu approves each mail before Doit sends it. A copy lands in Marketing.
    - Sending and reply detection come first; reading full mail (attachments, HTML) after.
 4. **Festivals and conferences.** Contacts of type festival or conference with dates, application deadline, cost, criteria (genre, required stage such as a demo or unreleased game) and a watching state, so they come and go without being deleted. Only those matching a game profile show. Sources: Steam, Epic, GOG and itch event pages and howtomarketagame.com/festivals, gathered by a scheduled Claude task rather than code in the app.
-5. **Campaigns.** A campaign is an epic in the game's project, optionally tied to a festival or a release (Bunny Bunker at Next Fest). Its tasks point at contacts.
+5. **Campaigns.** A campaign is an epic in the Polyspice Marketing project with a `Game:` line naming its profile, optionally tied to a festival or a release (Bunny Bunker at Next Fest). Its tasks point at contacts.
 
 Left out: following people on social media to answer their posts. The platforms' APIs are closed or unstable; a recurring "check these people" task stands in for it.
 
@@ -165,3 +165,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20: the Marketing section, designed but not built: game profiles, contacts with fit decided by Claude, mail through the Workspace account, festivals, campaigns; build order and open questions (section Marketing).
 - 2026-11-20: contacts are stored in SQLite (`marketing.db`, built-in `node:sqlite`); the sheet's BB1 and BB2 columns are not imported (section Marketing).
 - 2026-11-20, EPIC-012: game profiles all live in the Polyspice Marketing project, not in each game's project (section Marketing).
+- 2026-11-20, EPIC-015: campaign epics also live in the Polyspice Marketing project; EPIC-013 to EPIC-015 planned, EPIC-016 parked (section Marketing).
