@@ -96,7 +96,8 @@ When sitting down for outreach the order is festivals first, then people, then c
    - **Fit** links a contact to a game profile with a one-line reason. Claude decides fit, by researching the contact (what they play, how recently they post, their size) in batches of 20 to 30, largest reach first. Tabu corrects it.
    - **Touches** replace the sheet's Replied and Posted Video columns: a log per contact of mails sent, replies and videos posted, each dated and tied to a game.
    - **Next contact** is a date on the contact; when it comes, the contact shows as due, for the games it fits.
-   - First import: the Google Sheet `Marketing Contact List`, tab New Streamers (227 contacts, mostly YouTube).
+   - First import: the Google Sheet `Marketing Contact List`, tab New Streamers (227 contacts, mostly YouTube). Its BB1 and BB2 columns were old campaigns and are not imported.
+   - **Storage:** SQLite, one file `marketing.db` in the app's data folder, through Node's built-in `node:sqlite` (Node 22 or newer, so no dependency). Contacts are personal data shared across projects and are queried more than read, so they are not files in a project's git. Tables: contacts, channels, fit (contact, game, reason), touches (contact, game, date, kind), later mail. Game profiles stay Markdown and are referred to by project id. The page and the CLI are the only ways in; Claude asks the CLI for a slice, as with tasks.
 3. **Mail.** Doit uses Tabu's Google Workspace account over IMAP and SMTP, with an app password kept in the macOS Keychain.
    - Doit only reads one label, **Marketing**. Mail from an address on the contact list is moved there from Inbox and logged as a touch; other mail is never opened.
    - Sending: one template per pitch (game, hook, trailer, Steam link, the ask), plus one or two personal lines per contact that Claude drafts from the contact's research. Claude only writes drafts; Tabu approves each mail before Doit sends it. A copy lands in Marketing.
@@ -107,10 +108,8 @@ When sitting down for outreach the order is festivals first, then people, then c
 Left out: following people on social media to answer their posts. The platforms' APIs are closed or unstable; a recurring "check these people" task stands in for it.
 
 **Open questions.**
-- What the sheet's BB1 and BB2 columns mean (Bunny Bunker, two campaigns or two versions).
 - Which two categories contacts are split into after research.
 - Each game's stage and its next festival or release date, which decides which profile comes first.
-- Where contacts are stored. Proposed: the app's data folder, not a project's git, since they are personal data shared across projects.
 
 ## Look
 
@@ -164,3 +163,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20, EPIC-011: a folded Parked section joins Completed (was Closed) and Archived, all folded; epics move between open, Parked, Completed and Archived by dragging, and a closed epic reopens with its tasks (section Epics).
 - 2026-11-20: the top bar shows only starred projects; every project, its star and + New project sit in a Projects menu.
 - 2026-11-20: the Marketing section, designed but not built: game profiles, contacts with fit decided by Claude, mail through the Workspace account, festivals, campaigns; build order and open questions (section Marketing).
+- 2026-11-20: contacts are stored in SQLite (`marketing.db`, built-in `node:sqlite`); the sheet's BB1 and BB2 columns are not imported (section Marketing).
