@@ -43,7 +43,7 @@ export function renderMarkdown(md) {
     }
     const para = [];
     for (; i < rows.length && rows[i].trim() && !/^(#{1,6}\s|```|\s*([-*]|\d+\.)\s)/.test(rows[i]); i++) para.push(rows[i].trim());
-    out.push(`<p>${inline(para.join(" "))}</p>`);
+    out.push(`<p>${para.map(inline).join("<br>")}</p>`);
   }
   return out.join("\n");
 }

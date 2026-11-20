@@ -33,3 +33,8 @@ test("the markdown renderer shows headings, lists and checkboxes, and escapes te
   assert.match(html, /<pre>&lt;script&gt;<\/pre>/);
   assert.doesNotMatch(html, /<script>|<b>/);
 });
+
+test("single newlines inside a paragraph become line breaks", async () => {
+  const { renderMarkdown } = await import("../web/markdown.js");
+  assert.equal(renderMarkdown("Status: Active\nGoal: x\n\nNext"), "<p>Status: Active<br>Goal: x</p>\n<p>Next</p>");
+});

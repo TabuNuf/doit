@@ -11,7 +11,7 @@ export const openEpic = key => act(async () => {
 
 export function epicViewPane() {
   const e = S.epicView;
-  return `<section class="pane epic-view" style="grid-column: span 2" aria-label="Epic ${esc(e.id)}">
+  return `<section class="pane epic-view" aria-label="Epic ${esc(e.id)}">
     <div class="pane-h"><span>${esc(e.id)} · ${esc(e.status)}${e.completed ? " · completed" : ""}</span><button data-close-epic style="margin-left:auto;text-transform:none">Close</button></div>
     <div class="pane-b doc">${renderMarkdown(e.text)}</div></section>`;
 }

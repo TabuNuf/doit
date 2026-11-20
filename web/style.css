@@ -184,3 +184,6 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .doc li.check input { margin-right: 6px; }
 .doc code, .doc pre { font-family: var(--mono); font-size: .9em; background: var(--fill); border-radius: 3px; padding: 1px 4px; }
 .doc pre { padding: 8px 10px; overflow: auto; }
+.panes > .epic-view { grid-column: 2 / -1; grid-row: 1; min-height: 0; }
+@media (max-width: 1100px) { .panes > .epic-view { grid-row: 1 / span 2; min-height: 0; } }
+@media (max-width: 720px) { .panes > .epic-view { grid-column: 1 / -1; grid-row: auto; } }
