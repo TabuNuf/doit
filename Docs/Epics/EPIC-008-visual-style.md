@@ -1,6 +1,6 @@
 # EPIC-008: Visual style
 
-Status: Planned
+Status: Active
 Goal: The board looks like a drafting sheet (Blueprint) in light and dark, with every colour from a token.
 Design: Design.md, section Look
 
