@@ -5,6 +5,7 @@ import path from "node:path";
 import { Board } from "./domain/board.js";
 import { FileSource } from "./store/source.js";
 import { SettingsFile } from "./store/settings.js";
+import { EpicWorktrees } from "./store/worktrees.js";
 import { Cli } from "./cli/cli.js";
 import { HttpServer } from "./server/server.js";
 
@@ -13,7 +14,7 @@ export function dataDir() {
 }
 
 export function makeBoard({ home = dataDir(), now } = {}) {
-  return new Board(new FileSource(new SettingsFile(home)), now);
+  return new Board(new FileSource(new SettingsFile(home), new EpicWorktrees()), now);
 }
 
 export function makeCli(options = {}) {

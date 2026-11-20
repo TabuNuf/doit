@@ -25,6 +25,7 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 - The left pane lists the project's epics from `Epics/` and `Epics/Parked/` with done/total counts and a progress bar.
 - **Clicking an epic** filters the task list to its tasks and shows its document in the Detail pane: goal and status, tasks (checklist), test plan, notes, close audit and standard section. It works for any epic in the list, parked ones too. The markdown is shown with headings, lists, checkboxes, bold and code; nothing in it is editable. Selecting a task shows the task in the Detail pane, and clicking the epic again brings its document back. Clicking the epic while its document shows, or **Show all**, clears the filter.
 - Epics in `Epics/Completed/` are not shown and not read, except by an explicit archive request.
+- **An epic with a worktree** on its branch `epic/<nnn>-<short-name>` has its epic file and task files read and written in that worktree, by the page and the CLI alike, so a tick made during the epic lands on its branch and the main checkout stays clean. When the worktree is removed, they are read from the project folder again.
 - **+ New epic** creates the next number with the standard template, status `Planned`.
 
 ## Tasks
@@ -90,3 +91,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20: the three columns are resized by dragging the gaps between them.
 - 2026-11-20, EPIC-008: the Blueprint look replaces the greyscale wireframe look (section Look), chosen from five candidate styles.
 - 2026-11-20: the Doit logo, in the top bar, as the tab icon and as the launcher icon (section Look).
+- 2026-11-20, EPIC-007: an epic with a worktree has its files read and written there (section Epics).
