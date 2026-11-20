@@ -32,3 +32,16 @@ test("the literal-colour check catches a planted literal", () => {
   assert.equal(colourLiterals(planted).length, 3);
   assert.deepEqual(colourLiterals(".x { color: var(--ink); background: transparent; fill: currentColor; }"), []);
 });
+
+test("project colours are tokens, each defined for light and dark", () => {
+  const css = fs.readFileSync(CSS, "utf8");
+  const state = fs.readFileSync(path.join(import.meta.dirname, "..", "web", "state.js"), "utf8");
+  const colors = JSON.parse(/export const COLORS = (\[[^\]]*\])/.exec(state)[1]);
+  const roots = [...css.matchAll(/:root[^{}]*\{[^{}]*\}/g)].map(m => m[0]);
+  assert.equal(roots.length, 3, "one light and two dark :root blocks");
+  for (const c of colors) {
+    const token = /^var\((--p\d+)\)$/.exec(c);
+    assert.ok(token, `${c} is not a project colour token`);
+    for (const root of roots) assert.match(root, new RegExp(`${token[1]}:`), `${token[1]} missing in ${root.slice(0, 40)}`);
+  }
+});

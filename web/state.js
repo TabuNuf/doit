@@ -1,6 +1,6 @@
 // Page state, small helpers, and the API calls. Every other web module reads and changes the page through this.
 
-export const COLORS = ["var(--p1)", "var(--p2)", "var(--p3)", "var(--p4)", "#7a8a3a", "#3a7a8a", "#8a3a6a"];
+export const COLORS = ["var(--p1)", "var(--p2)", "var(--p3)", "var(--p4)", "var(--p5)", "var(--p6)", "var(--p7)"];
 export const TABS = [["open", "Open"], ["done", "Completed"], ["archived", "Archive"]];
 export const STATES = [["todo", "To-do"], ["progress", "In progress"], ["backlog", "Backlog"], ["done", "Completed"], ["archived", "Archived"]];
 export const FUNNEL = '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>';
