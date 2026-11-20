@@ -1,7 +1,7 @@
 // Markdown to HTML for reading epic documents: headings, lists, checkboxes, bold, code, links
 // and fenced blocks. Text is escaped first, so nothing in a document can inject markup.
 
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+import { esc } from "./state.js";
 
 function inline(text) {
   return esc(text)

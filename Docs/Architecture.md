@@ -21,7 +21,7 @@ Module order, low to high: domain → store → cli, server → root.
 
 - `domain/task.js`: the task value, its states, sections and defaults for a task without a file. Pure.
 - `domain/rules.js`: the sweep (deadline and retention archiving) and rank between neighbours (the only place ranks are computed; the page asks `Board.move`). Pure, takes today's date.
-- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, comments, sweeps. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) and a clock.
+- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves, comments, sweeps, closes an epic's tasks and serves an epic's document. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) and a clock.
 - `store/markdown.js`: parses and writes epic files and task files. Pure text in and out.
 - `store/projectFiles.js`: `ProjectFiles`, reads and writes one project's docs folder: epics, task files, archive moves, new epic, project scaffold.
 - `store/settings.js`: `SettingsFile`, the project list and settings in the app's data folder.
