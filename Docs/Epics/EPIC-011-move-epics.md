@@ -1,6 +1,6 @@
 # EPIC-011: Move epics
 
-Status: Planned
+Status: Active
 Goal: Tabu drags an epic between the open list, Parked, Completed and Archived, each a folded section below the open epics, and a closed epic reopens with its tasks.
 Design: Design.md, section Epics.
 
