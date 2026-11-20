@@ -4,7 +4,8 @@
 --
 -- This is the source. Build the app with launcher/build.sh, which fills in
 -- __PROJECT_DIR__ below with the project folder's path. The real work is in
--- launcher/start-server.sh, so changing that needs no rebuild.
+-- launcher/start-server.sh and the other scripts there, so changing those needs
+-- no rebuild; changing this file does.
 
 global projectDir, boardURL, logFile, serverPID
 
@@ -18,12 +19,19 @@ on run
 	setup()
 	set serverPID to ""
 
-	-- Already running (another launcher, or npm start in a terminal):
-	-- just open the page, and don't own a server we didn't start.
-	if serverAnswers() then
+	-- Already running on the current code (another launcher, or npm start in a
+	-- terminal): just open the page, and don't own a server we didn't start.
+	-- Running on another commit: stop it and start the current code below.
+	set check to serverCode()
+	if check is 0 then
 		open location boardURL
 		quit
 		return
+	end if
+	if check is 3 then
+		try
+			do shell script quoted form of (projectDir & "/launcher/stop-server.sh")
+		end try
 	end if
 
 	try
@@ -69,6 +77,16 @@ on quit
 	stopServer()
 	continue quit
 end quit
+
+-- launcher/check-server.sh: 0 current code, 1 nothing answers, 3 another commit.
+on serverCode()
+	try
+		do shell script quoted form of (projectDir & "/launcher/check-server.sh")
+		return 0
+	on error number n
+		return n
+	end try
+end serverCode
 
 on serverAnswers()
 	try

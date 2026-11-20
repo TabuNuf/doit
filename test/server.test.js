@@ -38,3 +38,12 @@ test("the API reads and changes tasks, and serves the page", async t => {
   assert.match(await page.text(), /<title>Doit<\/title>/);
   assert.equal((await fetch(`http://127.0.0.1:${port}/../package.json`)).status, 404);
 });
+
+test("GET /api/version reports the commit the server started from", async t => {
+  const s = setup(); t.after(s.cleanup);
+  const server = new HttpServer(s.board, path.join(import.meta.dirname, "..", "web"), "abc123");
+  const port = await server.listen(0);
+  t.after(() => server.close());
+  const r = await fetch(`http://127.0.0.1:${port}/api/version`);
+  assert.deepEqual(await r.json(), { commit: "abc123" });
+});

@@ -58,7 +58,7 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 
 ## Running it
 
-`launcher/Doit.app` (built by `launcher/build.sh`) is a stay-open applet: double-click starts the server and opens `http://localhost:4317`; quitting it stops the server. If a server is already running, it only opens the page. No terminal is needed.
+`launcher/Doit.app` (built by `launcher/build.sh`) is a stay-open applet: double-click starts the server and opens `http://localhost:4317`; quitting it stops the server. If a server is already running on the checked-out commit, it only opens the page; one on another commit (`GET /api/version`) is stopped and the current code started. No terminal is needed.
 
 ## Data
 

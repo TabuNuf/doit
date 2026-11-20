@@ -28,7 +28,8 @@ Module order, low to high: domain → store → cli, server → root.
 - `store/settings.js`: `SettingsFile`, the project list and settings in the app's data folder.
 - `store/source.js`: `FileSource`, the port implementation the board is given; joins the two above.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board` and an output stream.
-- `server/server.js`: `HttpServer`, the JSON API and the static page. Given a `Board` and the web folder.
+- `server/server.js`: `HttpServer`, the JSON API (including `GET /api/version`, the start commit) and the static page. Given a `Board`, the web folder and the commit; `bin/server.js` reads the commit with `git rev-parse HEAD`.
+- `launcher/`: `Doit.applescript` (the app), `start-server.sh`, `check-server.sh` (running server on the checked-out commit? exit 0, 1 none, 3 other) and `stop-server.sh`.
 - `web/`: the board page, plain HTML, CSS and JS as ES modules, none over 300 lines: `state.js` (page state, helpers, API calls), `render.js` (views), `epicView.js` (the epic document view), `markdown.js` (markdown to HTML, no packages), `ordering.js` (drag and keyboard moves), `resize.js` (column widths), `events.js` (listeners and the reload), `app.js` (wires them).
 - `root.js`: builds the settings file, the source, the board, and hands the board to the CLI or the server.
 
@@ -54,7 +55,7 @@ classDiagram
   class ProjectFiles
   class SettingsFile
   class Cli
-  class HttpServer
+  class HttpServer { +commit }
   Board --> TaskMover
   Board --> FileSource : port
   FileSource --> ProjectFiles

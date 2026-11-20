@@ -22,5 +22,5 @@ export function makeCli(options = {}) {
 
 export function makeServer(options = {}) {
   const webDir = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "web");
-  return new HttpServer(makeBoard(options), webDir);
+  return new HttpServer(makeBoard(options), webDir, options.commit ?? null);
 }
