@@ -1,6 +1,6 @@
 # EPIC-003: Docs view
 
-Status: Active
+Status: Done
 Goal: Each project's docs folder (design, specs, architecture) is readable and editable in Doit, beside the board.
 Design: Design.md, section Docs. Wireframe: Docs/Design/wireframe.html, Docs view.
 
@@ -29,10 +29,13 @@ Design: Design.md, section Docs. Wireframe: Docs/Design/wireframe.html, Docs vie
 
 - T-003.2: open Design.md and Architecture.md; headings, lists and tables read well at text size 15 and 20.
 - T-003.3: edit a line, press Done, see it in the file.
+- Checked by Claude on a throwaway project at 1400 px and the stacked layout: tree with Epics/Completed folded, Design.md and Architecture.md rendered with the Layers table, last change from git, Edit then Done wrote the file (git diff showed it), the draft survived the 10-second reload, a Linked card opened its task on the Board. Text size 20 not checked.
 
 ## Notes
 
 Decisions and deviations, newest first.
+
+- 2026-11-20: close. A saved document keeps the text box's ending as typed; no newline is added at the end of the file.
 
 - 2026-11-20: the library's save and linked, the store's write and the PUT and linked routes went in with the page's Docs view (T-003.1 and .2), so T-003.3 and .4 add their tests and tick; the page's Edit/Done and Linked pane are unchecked in a browser.
 - 2026-11-20: activated. Proposed scope taken as Decided. T-003.5 (Confluence import) moved to EPIC-009: the export format is decided once the app is set up for it; pictures come along.
@@ -40,4 +43,10 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+- `src/store/docsFolder.js` `#inside`: a path in a missing folder was resolved against the docs root's parent and refused as "outside the docs folder" instead of 404. Fix now: fixed at the close, with a test.
+- `web/docsView.js`: the 10-second reload redraws the Docs panes, so a click landing during a redraw can miss. The Board view does the same. Deliberate: no change unless it shows in use.
+- Nothing else: the boundaries test passes, `DocsLibrary` and `DocsFiles` are in the class diagram and the Layers table, and no web file is over 300 lines.
+
 ## For the standard
+
+- `App/README.md`, Pages over local files: the two-step path check, the reload that never redraws an open edit box, and Performance tests in their own folder and script. One `CHANGELOG.md` line.
