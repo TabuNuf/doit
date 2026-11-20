@@ -13,8 +13,8 @@ Design: Design.md, section Epics.
 
 ## Tasks
 
-- [ ] T-010.1 Closing writes the `Closed:` date, and the board view returns closed epics with their date and whether they are archived (done when: a domain test closes an epic and sees it as closed, then as archived 15 days later; an epic in Completed/ without the line comes back archived)
-- [ ] T-010.2 `POST /api/epics/<project>/<EPIC-nnn>/close` closes an epic (done when: a server test closes an epic through the API and a second call is refused)
+- [x] T-010.1 (dc4239c) Closing writes the `Closed:` date, and the board view returns closed epics with their date and whether they are archived (done when: a domain test closes an epic and sees it as closed, then as archived 15 days later; an epic in Completed/ without the line comes back archived)
+- [x] T-010.2 `POST /api/epics/<project>/<EPIC-nnn>/close` closes an epic (done when: a server test closes an epic through the API and a second call is refused)
 - [ ] T-010.3 Close epic button in the epic document's header, with a confirmation, open epics only (done when: a web test finds the button on an open epic and not on a closed one; in play, closing an epic moves it to Closed)
 - [ ] T-010.4 Closed and Archived sections under each project's open epics, Archived folded until clicked (done when: a web test renders both sections from view data; in play, an archived epic opens its document)
 
