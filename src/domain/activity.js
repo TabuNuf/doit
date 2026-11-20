@@ -51,6 +51,7 @@ export function describeChanges(before, after) {
   if (was("state") !== now("state")) parts.push(`state ${before.state} → ${after.state}`);
   for (const k of ["owner", "type"]) if (was(k) !== now(k)) parts.push(`${k} ${after[k]}`);
   if (was("deadline") !== now("deadline")) parts.push(after.deadline ? `deadline ${after.deadline}` : "deadline cleared");
+  if (was("blocks") !== now("blocks")) parts.push(after.blocks ? `blocks ${after.blocks}` : "blocks cleared");
   if (was("rank") !== now("rank")) parts.push("moved");
   if (was("title") !== now("title")) parts.push("title changed");
   if (was("doneWhen") !== now("doneWhen")) parts.push("done-when changed");

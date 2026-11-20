@@ -94,6 +94,7 @@ document.addEventListener("change", ev => {
     return patch(t, { deadline: ev.target.checked ? d.toISOString().slice(0, 10) : "" });
   }
   if (id === "dl") return patch(t, { deadline: ev.target.value });
+  if (id === "blk") return patch(t, { blocks: ev.target.value.trim() });
 });
 
 // Description saves when the field loses focus.

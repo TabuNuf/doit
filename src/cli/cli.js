@@ -11,7 +11,7 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit show <project>/<T-id> [--json]
   doit add <project> <EPIC-nnn> <title> [--owner ai|human] [--type task|bug] [--done-when text]
            [--deadline YYYY-MM-DD] [--state todo|progress|backlog] [--description text]
-  doit set <project>/<T-id> key=value ...         keys: state owner type deadline rank title done-when description
+  doit set <project>/<T-id> key=value ...         keys: state owner type deadline rank title done-when description blocks
   doit comment <project>/<T-id> <text> [--as ai|human]   (default author: ai)
   doit keep <days>                                days a completed task stays before it is archived
   doit sweep                                      archive what is past its deadline or retention
@@ -86,6 +86,7 @@ const COMMANDS = {
     this.print(`epic ${t.epic} (${t.epicName}) · ${t.state} · ${t.owner} · ${t.type} · rank ${t.rank}${t.deadline ? " · due " + t.deadline : ""}`);
     if (t.archived && t.state === "archived") this.print(`archived: ${t.archived}`);
     if (t.source) this.print(`source: ${t.source}`);
+    if (t.blocks) this.print(`blocks: ${t.blocks}`);
     this.print(`created ${t.created || "-"} · updated ${t.updated || "-"}${t.completed ? " · completed " + t.completed : ""}`);
     if (t.doneWhen) this.print(`\nDone when: ${t.doneWhen}`);
     if (t.description) this.print(`\n${t.description}`);

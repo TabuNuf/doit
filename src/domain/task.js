@@ -56,6 +56,7 @@ export function defaultsFor(epic, line) {
     updated: null,
     completed: null,
     source: null,
+    blocks: null,
     archived: line.ticked ? "Finished before Doit tracked it" : null,
     description: "",
     comments: [],

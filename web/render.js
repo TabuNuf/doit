@@ -138,6 +138,7 @@ function detailPane() {
       <dt>Type</dt><dd><div class="seg">${[["task", "Task"], ["bug", "Bug"]].map(([v, l]) => `<button aria-pressed="${t.type === v}" data-type="${v}">${l}</button>`).join("")}</div></dd>
       <dt>Deadline</dt><dd><label class="toggle"><input type="checkbox" id="dlon" ${t.deadline ? "checked" : ""}> Archive when passed</label>
         ${t.deadline ? `<div><input type="date" id="dl" value="${t.deadline}" aria-label="Deadline"> <span class="muted">${dl < 0 ? "passed" : dl + " days left"}</span></div>` : ""}</dd>
+      <dt>Blocks</dt><dd><input id="blk" value="${esc(t.blocks || "")}" placeholder="T-014.3" pattern="T-\d+\.\d+" size="10" aria-label="The task this one holds up"> <span class="muted">the task this holds up</span></dd>
       <dt>Created</dt><dd class="mono">${t.created || "-"}</dd>
       <dt>Updated</dt><dd class="mono">${t.updated || "-"}</dd>
       ${t.completed ? `<dt>Completed</dt><dd class="mono">${t.completed}</dd>` : ""}

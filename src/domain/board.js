@@ -150,6 +150,10 @@ export class Board {
           if (!Number.isFinite(Number(value))) throw new Error("Rank must be a number");
           task.rank = Number(value);
           break;
+        case "blocks":
+          if (value && !/^T-\d+\.\d+$/.test(value)) throw new Error("Blocks must name a task, like T-014.3");
+          task.blocks = value || null;
+          break;
         case "title": if (!String(value).trim()) throw new Error("A task needs a title"); task.title = oneLine(value); break;
         case "doneWhen": task.doneWhen = oneLine(value); break;
         case "description": task.description = String(value); break;

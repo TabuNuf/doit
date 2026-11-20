@@ -36,7 +36,7 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
   - state: unticked in an `Active` epic is To-do; unticked in a `Planned` or `Parked` epic is Backlog; ticked is Archived (it was finished before Doit existed);
   - owner: AI; type: Bug when the epic's name contains "bug", else Task;
   - rank: the epic number times 1000 plus the task number.
-- Fields: state, owner (`ai` or `human`), type (`task` or `bug`), rank, deadline (optional date), created, updated, completed (timestamps).
+- Fields: state, owner (`ai` or `human`), type (`task` or `bug`), rank, deadline (optional date), blocks (optional, the task this one holds up, `T-<id>`), created, updated, completed (timestamps).
 - States: To-do, In progress, Backlog, Completed, Archived.
 - **Open tab:** one column in two sections. Active (To-do and In progress) on top, ranked; Backlog below. A pill on each Active row shows To-do or In progress; clicking it switches. Rows are reordered and moved between sections only by dragging the dotted handle (Alt + arrow keys from the keyboard).
 - **Completed tab:** completed tasks, newest first, each with Reopen. A completed task moves to Archived after **14 days** (setting, 1 to 90).
