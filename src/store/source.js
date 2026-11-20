@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { ProjectFiles } from "./projectFiles.js";
 import { taskParts } from "../domain/task.js";
-import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile, setStatus, setClosed } from "./markdown.js";
+import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile, setStatus, setClosed, setArchived } from "./markdown.js";
 
 export class FileSource {
   constructor(settingsFile, worktrees) {
@@ -91,37 +91,61 @@ export class FileSource {
   closedEpics(projectId) {
     const { main, branches } = this.#layout(projectId);
     return this.#epics(main, branches, true).filter(e => e.completed)
-      .map(e => ({ id: e.id, name: e.name, status: e.status, closed: e.closed, done: e.lines.filter(l => l.ticked).length, total: e.lines.length }));
+      .map(e => ({ id: e.id, name: e.name, status: e.status, closed: e.closed, archivedOn: e.archivedOn, done: e.lines.filter(l => l.ticked).length, total: e.lines.length }));
   }
 
-  /** The epics the main checkout lists, each read from its worktree when it has one; completed
-   *  follows the copy that was read, so an epic closed in its worktree counts as closed before the merge. */
+  /** The epics the main checkout lists, each read from its worktree when it has one; completed and parked
+   *  follow the copy that was read, so an epic closed in its worktree counts as closed before the merge. */
   #epics(main, branches) {
     const out = [];
-    for (const { file, completed } of main.epicFiles({ archived: true })) {
-      let epic = parseEpic(main.read(file)), done = completed;
+    for (const { file, completed, parked } of main.epicFiles({ archived: true })) {
+      let epic = parseEpic(main.read(file)), done = completed, shelved = parked;
       if (!epic) continue;
       const branch = branches.get(epic.id);
       if (branch) {
         const own = branch.epicFile(epic.id, { archived: true });
         epic = parseEpic(branch.read(own));
         done = own.includes(`${path.sep}Completed${path.sep}`);
+        shelved = own.includes(`${path.sep}Parked${path.sep}`);
       }
-      if (epic) out.push({ ...epic, completed: done });
+      if (epic) out.push({ ...epic, completed: done, parked: shelved });
     }
     return out;
   }
 
-  /** Sets the epic Done, writes `Closed: <date>` under its status and moves its file to Epics/Completed/. */
-  completeEpic(projectId, epicId, closed) {
-    const files = this.#files(projectId, epicId);
-    const file = files.epicFile(epicId);
-    if (!file) throw new Error(`No epic file for ${epicId}`);
-    files.moveToCompleted(file, setClosed(setStatus(files.read(file), "Done"), closed));
+  /** Sets the epic Done, writes `Closed: <date>` (and `Archived: <date>` when archived is given) under its status and files it in Epics/Completed/. */
+  completeEpic(projectId, epicId, closed, archived = null) {
+    const { files, file } = this.#epicFile(projectId, epicId);
+    files.moveToFolder(file, "Completed", setArchived(setClosed(setStatus(files.read(file), "Done"), closed), archived));
+  }
+
+  /** Sets or, with a null date, removes the `Archived:` line of an epic already in Completed/. */
+  setEpicArchived(projectId, epicId, date) {
+    const { files, file } = this.#epicFile(projectId, epicId, true);
+    files.write(file, setArchived(files.read(file), date));
+  }
+
+  /** Sets the epic Parked and files it in Epics/Parked/. */
+  parkEpic(projectId, epicId) {
+    const { files, file } = this.#epicFile(projectId, epicId);
+    files.moveToFolder(file, "Parked", setStatus(files.read(file), "Parked"));
+  }
+
+  /** Sets the epic Planned, drops its `Closed:` and `Archived:` lines and files it in Epics/ from Parked/ or Completed/. */
+  reopenEpic(projectId, epicId) {
+    const { files, file } = this.#epicFile(projectId, epicId, true);
+    files.moveToFolder(file, "", setArchived(setClosed(setStatus(files.read(file), "Planned"), null), null));
   }
 
   createEpic(projectId, name, status) {
     return this.#files(projectId).createEpic(name, status);
+  }
+
+  #epicFile(projectId, epicId, anywhere = false) {
+    const files = this.#files(projectId, epicId);
+    const file = files.epicFile(epicId, { archived: anywhere });
+    if (!file) throw new Error(`No epic file for ${epicId}`);
+    return { files, file };
   }
 
   /** The project's files, or the epic worktree's when epicId has one. */
