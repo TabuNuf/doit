@@ -20,10 +20,12 @@ document.addEventListener("click", ev => {
   if (d.cyc) { const t = task(d.cyc); S.sel = d.cyc; return patch(t, { state: t.state === "todo" ? "progress" : "todo" }); }
   if (d.reopen) { S.sel = d.reopen; return patch(task(d.reopen), { state: "todo" }); }
   if (d.p) { S.project = d.p; S.epic = null; S.epicView = null; S.newTask = false; try { localStorage.setItem("doit.project", d.p); } catch { /* */ } return load(); }
-  if (d.openEpic) return openEpic(d.openEpic);
-  if ("closeEpic" in d) { S.epicView = null; return render(); }
-  if (d.e) { S.epic = S.epic === d.e ? null : d.e; return render(); }
-  if ("clearEpic" in d) { S.epic = null; return render(); }
+  if (d.openEpic) {
+    // A second click on the epic already shown clears it; with a task open, it brings the epic back.
+    if (S.epic === d.openEpic && S.epicView && !S.sel) { S.epic = null; S.epicView = null; return render(); }
+    return openEpic(d.openEpic);
+  }
+  if ("clearEpic" in d) { S.epic = null; S.epicView = null; return render(); }
   if (d.t) { const reload = d.t === "archived" || S.tab === "archived"; S.tab = d.t; return reload ? load() : render(); }
   if (d.o) { S.owner = d.o; return render(); }
   if ("fopen" in d) { S.fOpen = !S.fOpen; return render(); }
@@ -63,7 +65,7 @@ document.addEventListener("keydown", ev => {
   const r = ev.target.closest && ev.target.closest(".row");
   if (r && (ev.key === "Enter" || ev.key === " ") && ev.target === r) { ev.preventDefault(); S.sel = r.dataset.id; render(); }
   if (r && ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && r.draggable) { ev.preventDefault(); nudge(r.dataset.id, ev.key === "ArrowUp" ? -1 : 1); }
-  if (ev.key === "Escape") { S.epicView = null; S.fOpen = false; S.newProj = false; S.newTask = false; S.newEpic = null; render(); }
+  if (ev.key === "Escape") { S.fOpen = false; S.newProj = false; S.newTask = false; S.newEpic = null; render(); }
 });
 
 document.addEventListener("input", ev => {

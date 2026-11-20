@@ -10,7 +10,7 @@ export function render() {
   if (!S.data) return;
   document.documentElement.style.setProperty("--fs", S.font + "px");
   renderTop();
-  $("#panes").innerHTML = epicPane() + (S.epicView ? epicViewPane() : listPane() + detailPane());
+  $("#panes").innerHTML = epicPane() + listPane() + detailPane();
   bindDrag();
 }
 
@@ -30,12 +30,10 @@ function renderTop() {
 function epicBtn(e) {
   const key = `${e.project}/${e.id}`;
   const pct = e.total ? Math.round(e.done / e.total * 100) : 0;
-  const open = S.epicView && `${S.epicView.project}/${S.epicView.id}` === key;
-  return `<div class="epic-row"><button class="epic" aria-pressed="${open}" data-open-epic="${esc(key)}" title="Read this epic">
+  return `<button class="epic" aria-pressed="${S.epic === key}" data-open-epic="${esc(key)}" title="Show this epic and its tasks">
     <div class="t"><span>${esc(e.name)}</span><span class="n">${e.done}/${e.total}</span></div>
     <div class="t"><span class="n">${e.id}</span><span class="estate">${esc(e.status)}</span></div>
-    <div class="bar"><i style="width:${pct}%"></i></div></button>
-    <button class="efilter" aria-pressed="${S.epic === key}" data-e="${esc(key)}" title="Show only this epic's tasks">Filter</button></div>`;
+    <div class="bar"><i style="width:${pct}%"></i></div></button>`;
 }
 
 function epicPane() {
@@ -129,6 +127,7 @@ function fontCtl() {
 
 function detailPane() {
   const t = S.sel && task(S.sel);
+  if (!t && S.epicView) return epicViewPane(fontCtl());
   if (!t) return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b"><div class="empty">Select a task.</div></div></section>`;
   const dl = t.deadline ? daysLeft(t.deadline) : null;
   const where = t.state === "archived" ? "Archive/Tasks" : "Epics/Tasks";

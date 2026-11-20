@@ -22,8 +22,8 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 ## Epics
 
 - Epic files follow `Docs/Standard/Core/01-Tasks.md`: `<docs>/Epics/EPIC-<nnn>-<short-name>.md`, status `Parked | Planned | Active | Done`, a `## Tasks` checklist.
-- The left pane lists the project's epics from `Epics/` and `Epics/Parked/` with done/total counts and a progress bar. A small **Filter** button on each epic filters the task list to it; pressing it again clears the filter.
-- **Epic view:** clicking an epic opens its document in place of the task list and detail panes, so the designer can read what an epic contains: its goal and status, tasks (checklist), test plan, notes, close audit and standard section. It works for any epic in the list, parked ones too. The markdown is shown with headings, lists, checkboxes, bold and code; nothing in it is editable. **Close** (or Escape) returns to the board.
+- The left pane lists the project's epics from `Epics/` and `Epics/Parked/` with done/total counts and a progress bar.
+- **Clicking an epic** filters the task list to its tasks and shows its document in the Detail pane: goal and status, tasks (checklist), test plan, notes, close audit and standard section. It works for any epic in the list, parked ones too. The markdown is shown with headings, lists, checkboxes, bold and code; nothing in it is editable. Selecting a task shows the task in the Detail pane, and clicking the epic again brings its document back. Clicking the epic while its document shows, or **Show all**, clears the filter.
 - Epics in `Epics/Completed/` are not shown and not read, except by an explicit archive request.
 - **+ New epic** creates the next number with the standard template, status `Planned`.
 
@@ -68,3 +68,4 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 
 - 2026-11-20, EPIC-001: first version, from the interview (`Brief.md`) and the wireframe.
 - 2026-11-20, EPIC-005: clicking an epic opens a read-only view of its document; the task filter moves to a Filter button on each epic. `epic close` is added to the CLI.
+- 2026-11-20: clicking an epic both filters the list and shows the epic's document in the Detail pane; the separate Filter button and the full-width epic view are gone.
