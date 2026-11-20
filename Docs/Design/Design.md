@@ -48,6 +48,21 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 - **Column widths:** dragging the gap between two columns resizes them; the middle column takes what is left. Double-click a gap to reset it. Focused, a gap moves 20 px with the arrow keys. Widths are kept per browser. Below 1100 px wide the layout stacks and the gaps do not drag.
 - The board reloads from disk every 10 seconds, so changes Claude makes through the CLI show without a refresh.
 
+## Look
+
+Blueprint: the board reads as a drafting sheet. It replaces the greyscale wireframe look; there is one style, no picker. Light and dark follow the system setting.
+
+- **Colour.** Light: pale blue sheet (`#e6eef8`), near-white panes, navy ink (`#0f2a4a`), one technical blue for selection and lines (`#0b61d6`). Dark: navy sheet (`#0b2545`), deeper navy panes, pale blue ink, sky blue accent (`#7cc4ff`). Warning orange and success green stay semantic, apart from the accent.
+- **Type.** IBM Plex Sans for text, IBM Plex Mono for numbers, ids, dates and labels.
+- **Sheet.** A faint 20 px grid behind the panes, in the accent at about 8 % opacity.
+- **Panes.** 2 px corners, outlined in the accent. Pane headers in mono capitals, accent coloured, with a small square bullet, over a dashed rule.
+- **Rows and selection.** Rows divided by dashed rules, square corners. The selected row or epic gets an accent outline on a light accent fill. The active tab is underlined in the accent.
+- **Progress.** Epic bars are segmented like a scale rule, filled in the accent.
+- **Detail.** The field block has a dashed outline instead of a grey fill.
+- Every colour comes from a token defined for light and dark; no literal colour in a component rule.
+
+The comparison of the five candidate styles, with this one as "Blueprint", is the private artifact `Doit Style Options` (claude.ai/artifact/L8qjksrvdhpyhEDjTd4unB).
+
 ## The CLI
 
 `node bin/doit.js <command>`. Every command sweeps first (deadline and retention archiving). Output is one line per task, or JSON with `--json`.
@@ -71,3 +86,4 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 - 2026-11-20, EPIC-005: clicking an epic opens a read-only view of its document; the task filter moves to a Filter button on each epic. `epic close` is added to the CLI.
 - 2026-11-20: clicking an epic both filters the list and shows the epic's document in the Detail pane; the separate Filter button and the full-width epic view are gone.
 - 2026-11-20: the three columns are resized by dragging the gaps between them.
+- 2026-11-20, EPIC-008: the Blueprint look replaces the greyscale wireframe look (section Look), chosen from five candidate styles.
