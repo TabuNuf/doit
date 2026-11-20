@@ -6,7 +6,7 @@ Design: Architecture.md; Design.md, section Epics
 
 ## Tasks
 
-- [ ] T-007.1 CLI task writes during an epic no longer collide with the epic branch at merge (done when: ticking a task with doit set while its epic is Active leaves the main checkout clean or the merge conflict-free; a test covers it)
+- [x] T-007.1 CLI task writes during an epic no longer collide with the epic branch at merge (done when: ticking a task with doit set while its epic is Active leaves the main checkout clean or the merge conflict-free; a test covers it)
 - [ ] T-007.2 Project colours five to seven come from tokens with dark values, not literals in web/state.js (done when: web/state.js COLORS holds only var(--p…) tokens, each defined for light and dark in style.css)
 
 ## Test plan
