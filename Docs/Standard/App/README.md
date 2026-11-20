@@ -21,4 +21,17 @@ Each item becomes a rule here, with its why, or a line in that project's `Deviat
 5. **Release and deploy.** How a version is built, checked and shipped (`Core/02-Working.md`, Versions and releases, holds the version rules).
 6. **A Starter.** The files the next app copies on day one, once there are any worth copying.
 
+## Decided so far
+
+From the first app project. Items 3 and 5 above are still open.
+
+- **Boundaries (item 1):** one folder per tier under `src/`, and a Development test that reads every `import` and fails on a tier the architecture's table forbids, `node:` built-ins included (a pure domain may import none).
+  Why: a test needs no linter set-up, runs in milliseconds, and its own test proves it catches a forbidden import.
+- **Test categories (item 2):** the runtime's own test runner, no packages. Development is the unit and API tests; Audit adds a folder of whole-flow tests that start the real entry points (the CLI and the server) as processes.
+  Why: with no dependencies the Development run took under half a second, and the whole-flow test is the one that proves two entry points share the same files.
+- **Build agent (item 4):** `batch-builder` with Read, Edit, Write, Bash, Grep and Glob only, on the cheaper model, told the test command and never to start the server in the foreground.
+  Why: an app has no editor bridge, so the agent needs no MCP tools.
+- **Local apps the designer starts (item 6, Starter candidate):** no terminal. A stay-open AppleScript applet, built by a script that writes the project path into it, runs a start script: fast-forward pull when the tree is clean, start the server in the background, print its pid; the applet opens the page, stops the server on quit, and only opens the page when a server already answers.
+  Why: the designer asked for a double-click start; the same applet worked unchanged across two local tools apart from names, port and paths.
+
 Split this layer (into `Web/`, `Mac/` and so on) only when two kinds of app need rules that contradict each other.

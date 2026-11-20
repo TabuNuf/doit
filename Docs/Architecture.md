@@ -45,7 +45,7 @@ classDiagram
     +addProject(...)
     +sweep()
   }
-  class FileSource { +projects() +load(id) +writeTask() +moveTask() +writeEpicLine() }
+  class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() }
   class ProjectFiles
   class SettingsFile
   class Cli
@@ -61,6 +61,7 @@ classDiagram
 
 | Where | What | Why | Until |
 |---|---|---|---|
+| `Board.view`, `Board.list` | A read sweeps first: it archives tasks past their deadline or retention, which writes files | Archiving is by date and nothing else runs on a schedule; without it a read would show tasks that should be gone | EPIC-004's morning run sweeps on a schedule, if reads are then fast enough without it |
 
 ## Design hooks
 
