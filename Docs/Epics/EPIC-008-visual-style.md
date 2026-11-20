@@ -7,7 +7,7 @@ Design: Design.md, section Look
 ## Tasks
 
 - [x] T-008.1 Blueprint tokens and fonts replace the base palette, light and dark (done when: the board opens in the Blueprint colours and IBM Plex type in light and dark, and the style.css header comment names Blueprint instead of greyscale lo-fi (Check in play))
-- [ ] T-008.2 Blueprint component shapes: grid sheet, pane outlines and headers, dashed rows, selection, segmented bars, tabs, field block (done when: the board matches the Blueprint tab of the style comparison page in both themes (Check in play))
+- [x] T-008.2 Blueprint component shapes: grid sheet, pane outlines and headers, dashed rows, selection, segmented bars, tabs, field block (done when: the board matches the Blueprint tab of the style comparison page in both themes (Check in play))
 - [ ] T-008.3 Every colour in style.css comes from a token (done when: a development test fails on any literal colour outside the token blocks of web/style.css, and passes)
 
 ## Test plan
