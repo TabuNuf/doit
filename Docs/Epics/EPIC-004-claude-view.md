@@ -1,6 +1,6 @@
 # EPIC-004: Claude view and morning run
 
-Status: Planned
+Status: Active
 Goal: One page shows what Claude is working on, what it is blocked on, and what changed; a scheduled morning run sweeps and reports.
 Design: Design.md, section Claude view. Wireframe: Docs/Design/wireframe.html, Claude view.
 
