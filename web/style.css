@@ -162,7 +162,14 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .score i { display: inline-block; height: 6px; background: var(--accent); }
 .card { border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin-bottom: 8px; }
 .card .h { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.log { list-style: none; padding-left: 0; margin: 0; font-size: 12px; }
 .log li { margin-bottom: 6px; }
+.claude-card { display: block; width: 100%; text-align: left; background: var(--panel); }
+.claude-card:hover { background: var(--fill); border-color: var(--accent); }
+.claude-card .card-title { display: block; margin: 4px 0 2px; }
+.claude-card .card-note { font-size: 11px; }
+.pane-h .c { color: var(--muted); }
+.claude-sub { width: auto; margin-top: 14px; }
 .added { color: var(--ok); font-size: 12px; }
 .mk-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 

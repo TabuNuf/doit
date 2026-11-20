@@ -93,3 +93,34 @@ test("the epic pane lists Closed epics and a folded Archived section that opens 
   assert.match(open, /data-open-epic="p\/EPIC-002"/);
   assert.equal(closedSections("other"), "");
 });
+
+test("the Claude badge counts what the Board's due-within-7-days filter shows on 🧑 tasks", async () => {
+  const { S, visible, dueSoonCount, tabOf } = await import("../web/state.js");
+  const day = n => { const d = new Date(); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+  const t = (id, owner, state, deadline, type = "task") => ({ project: "game", id, epic: "EPIC-1", owner, state, deadline, type, title: id, description: "" });
+  S.data = { tasks: [
+    t("T-1.1", "human", "todo", day(0)), t("T-1.2", "human", "progress", day(7)), t("T-1.3", "human", "backlog", day(3), "bug"),
+    t("T-1.4", "human", "todo", day(8)), t("T-1.5", "human", "todo", null), t("T-1.6", "ai", "todo", day(1)),
+    t("T-1.7", "human", "done", day(2)), t("T-1.8", "human", "archived", day(2)),
+  ] };
+  Object.assign(S, { epic: null, q: "", owner: "human", f: { task: true, bug: true, due: "week" } });
+  const onBoard = visible().filter(x => tabOf(x.state) === "open").map(x => x.id);
+  assert.deepEqual(onBoard, ["T-1.1", "T-1.2", "T-1.3"]);
+  assert.equal(dueSoonCount(), onBoard.length);
+  S.data = null;
+  assert.equal(dueSoonCount(), 0, "no badge before the board loads");
+});
+
+test("switching to the Claude view loads the selected project", async () => {
+  const urls = [];
+  globalThis.fetch = async url => { urls.push(url); return { ok: true, json: async () => ({ working: [], blocked: [], upNext: [], log: [] }) }; };
+  try {
+    const { S } = await import("../web/state.js");
+    const { refreshClaude } = await import("../web/claudeView.js");
+    S.project = "game";
+    S.view = "claude";
+    await refreshClaude();
+    assert.deepEqual(urls, ["/api/claude?project=game"]);
+    assert.equal(S.project, "game");
+  } finally { delete globalThis.fetch; }
+});

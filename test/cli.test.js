@@ -51,3 +51,16 @@ test("epic close moves the epic's task files to the archive", t => {
   assert.equal(run(b, "epic", "close", "game", "EPIC-099").code, 1);
   assert.match(run(b, "help").out, /doit epic close/);
 });
+
+test("set blocks= round-trips through the task file, and an empty value clears it", t => {
+  const s = setup(); t.after(s.cleanup);
+  s.board.addTask({ project: "game", epic: "EPIC-014", title: "Decide the region list", owner: "human" });
+  assert.equal(run(s.board, "set", "game/T-014.4", "blocks=T-014.2").code, 0);
+  assert.match(s.read("Epics/Tasks/T-014.4.md"), /^blocks: T-014.2$/m);
+  assert.equal(s.board.get("game/T-014.4").blocks, "T-014.2");
+  assert.match(run(s.board, "show", "game/T-014.4").out, /^blocks: T-014.2$/m);
+  assert.match(run(s.board, "set", "game/T-014.4", "blocks=lobby").err, /Blocks must name a task/);
+  run(s.board, "set", "game/T-014.4", "blocks=");
+  assert.equal(s.board.get("game/T-014.4").blocks, null);
+  assert.match(s.read("Epics/Tasks/T-014.4.md"), /^blocks: $/m);
+});

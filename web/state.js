@@ -8,7 +8,7 @@ export const FUNNEL = '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z
 export const S = {
   project: "all", epic: null, tab: "open", q: "", owner: "all",
   f: { task: true, bug: true, due: "any" }, fOpen: false,
-  view: "board", docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
+  view: "board", claude: null, docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
   sel: null, font: 15, newProj: false, newTask: false, newEpic: null, epicView: null, archivedOpen: {}, data: null, npErr: "",
 };
 try { S.font = Number(localStorage.getItem("doit.font")) || 15; S.project = localStorage.getItem("doit.project") || "all"; S.docs.linkedClosed = localStorage.getItem("doit.docs.linked") === "closed"; } catch { /* storage off */ }
@@ -49,6 +49,13 @@ export async function act(fn) {
   try { await fn(); await load(); } catch (e) { toast(e.message); }
 }
 
+/** Back to the Board with the task selected, in its own project when one project is shown. */
+export function openOnBoard(key) {
+  S.view = "board"; S.epic = null; S.epicView = null; S.sel = key; S.tab = "open";
+  if (S.project !== "all" && S.project !== key.split("/")[0]) S.project = key.split("/")[0];
+  load();
+}
+
 export const patch = (t, changes) => act(() => api("PATCH", `/api/tasks/${t.project}/${t.id}`, changes));
 
 export function toast(msg) {
@@ -64,9 +71,15 @@ export const proj = id => projects().find(p => p.id === id) || { id, name: id };
 export const color = id => COLORS[Math.max(0, projects().findIndex(p => p.id === id)) % COLORS.length];
 export const task = key => S.data && S.data.tasks.find(t => keyOf(t) === key);
 
+/** The "due within 7 days" test, shared by the Board's filter and the Claude view's badge. */
+export const dueWithinWeek = t => Boolean(t.deadline) && daysLeft(t.deadline) <= 7;
+
+/** Tabu's open tasks due within 7 days in the loaded project(s): the count on the Claude view's badge. */
+export const dueSoonCount = () => S.data ? S.data.tasks.filter(t => t.owner === "human" && tabOf(t.state) === "open" && dueWithinWeek(t)).length : 0;
+
 export function visible() {
   const q = S.q.trim().toLowerCase();
-  const dueOk = t => S.f.due === "any" || (S.f.due === "has" && t.deadline) || (S.f.due === "none" && !t.deadline) || (S.f.due === "week" && t.deadline && daysLeft(t.deadline) <= 7);
+  const dueOk = t => S.f.due === "any" || (S.f.due === "has" && t.deadline) || (S.f.due === "none" && !t.deadline) || (S.f.due === "week" && dueWithinWeek(t));
   return S.data.tasks.filter(t =>
     (!S.epic || `${t.project}/${t.epic}` === S.epic) && (S.owner === "all" || t.owner === S.owner) && S.f[t.type] && dueOk(t) &&
     (!q || t.id.toLowerCase().includes(q) || t.title.toLowerCase().includes(q) || (t.description || "").toLowerCase().includes(q)));

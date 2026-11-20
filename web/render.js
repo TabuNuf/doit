@@ -1,10 +1,11 @@
 // The views: top bar, epic pane, task list and detail pane, as HTML strings.
 
-import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFilter, projects, proj, color, task, visible, sectionLists } from "./state.js";
+import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFilter, projects, proj, color, task, visible, sectionLists, dueSoonCount } from "./state.js";
 import { bindDrag } from "./ordering.js";
 import { epicViewPane } from "./epicView.js";
 import { epicBtn, closedSections } from "./epicList.js";
 import { docsPanes } from "./docsView.js";
+import { claudePanes } from "./claudeView.js";
 import { setLayout } from "./resize.js";
 
 /* ---------- Render ---------- */
@@ -15,12 +16,16 @@ export function render() {
   renderTop();
   setLayout(S.view, S.view === "docs" && S.docs.linkedClosed);
   if (S.view === "docs") { $("#panes").innerHTML = docsPanes(fontCtl()); return; }
+  if (S.view === "claude") { $("#panes").innerHTML = claudePanes(); return; }
   $("#panes").innerHTML = epicPane() + listPane() + detailPane();
   bindDrag();
 }
 
 function renderTop() {
-  $("#views").innerHTML = [["board", "Board"], ["docs", "Docs"]].map(([v, l]) => `<button aria-pressed="${S.view === v}" data-view="${v}">${l}</button>`).join("");
+  const due = dueSoonCount();
+  const badge = due ? `<span class="badge" title="Your tasks due within 7 days">${due}</span>` : "";
+  $("#views").innerHTML = [["board", "Board", ""], ["docs", "Docs", ""], ["claude", "Claude", badge]]
+    .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${due} of your tasks due within 7 days"` : ""}>${l}${b}</button>`).join("");
   const all = [{ id: "all", name: "All projects" }, ...projects()];
   $("#projects").innerHTML = all.map(p => `<button class="chip" aria-pressed="${S.project === p.id}" data-p="${esc(p.id)}">${p.id !== "all" ? `<span class="dot" style="background:${color(p.id)}"></span>` : ""}${esc(p.name)}</button>`).join("")
     + `<button class="chip" data-newproj style="border-style:dashed">+ Project</button>`;
@@ -138,6 +143,7 @@ function detailPane() {
       <dt>Type</dt><dd><div class="seg">${[["task", "Task"], ["bug", "Bug"]].map(([v, l]) => `<button aria-pressed="${t.type === v}" data-type="${v}">${l}</button>`).join("")}</div></dd>
       <dt>Deadline</dt><dd><label class="toggle"><input type="checkbox" id="dlon" ${t.deadline ? "checked" : ""}> Archive when passed</label>
         ${t.deadline ? `<div><input type="date" id="dl" value="${t.deadline}" aria-label="Deadline"> <span class="muted">${dl < 0 ? "passed" : dl + " days left"}</span></div>` : ""}</dd>
+      <dt>Blocks</dt><dd><input id="blk" value="${esc(t.blocks || "")}" placeholder="T-014.3" pattern="T-\\d+\\.\\d+" size="10" aria-label="The task this one holds up"> <span class="muted">the task this holds up</span></dd>
       <dt>Created</dt><dd class="mono">${t.created || "-"}</dd>
       <dt>Updated</dt><dd class="mono">${t.updated || "-"}</dd>
       ${t.completed ? `<dt>Completed</dt><dd class="mono">${t.completed}</dd>` : ""}

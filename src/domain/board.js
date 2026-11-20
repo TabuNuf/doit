@@ -7,15 +7,18 @@
 //   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status) -> epicId,
 //   closedEpics(projectId) -> [{id, name, status, closed, done, total}] for Epics/Completed/, closed "YYYY-MM-DD" or null,
 //   completeEpic(projectId, epicId, closed) sets the epic Done, writes its close date and files it as completed
+// `record(ref, what)` is told every change to a task in words (the activity log); the root hands it in.
 
-import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask } from "./task.js";
+import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask, matchesState, check, oneLine } from "./task.js";
 import { archiveReason, epicArchived, byRank, stamp, DEFAULT_KEEP_DAYS } from "./rules.js";
 import { TaskMover } from "./mover.js";
+import { describeChanges } from "./activity.js";
 
 export class Board {
-  constructor(source, now = () => new Date()) {
+  constructor(source, now = () => new Date(), record = () => {}) {
     this.source = source;
     this.now = now;
+    this.record = record;
     this.mover = new TaskMover();
   }
 
@@ -36,19 +39,22 @@ export class Board {
   }
 
   /** Archives what is past its deadline or past the completed retention. Returns how many. */
-  sweep(projectIds = this.projects().map(p => p.id)) {
+  sweep(projectIds) { return this.sweepTasks(projectIds).length; }
+
+  /** The sweep, returning the refs it archived. */
+  sweepTasks(projectIds = this.projects().map(p => p.id)) {
     const today = stamp(this.now()).slice(0, 10);
     const keep = this.settings().keepCompletedDays;
-    let count = 0;
+    const swept = [];
     for (const id of projectIds) {
       for (const task of this.#load(id, false).tasks) {
         const reason = archiveReason(task, today, keep);
         if (!reason) continue;
         this.#archive(task, reason);
-        count++;
+        swept.push(`${id}/${task.id}`);
       }
     }
-    return count;
+    return swept;
   }
 
   /** One epic's document as text, for reading. Any epic, parked and completed ones too. */
@@ -126,12 +132,13 @@ export class Board {
       state, owner, type, deadline: deadline || null, description, source,
       rank: (ranks.length ? Math.max(...ranks) : 0) + 1000, created: now, updated: now,
     });
-    this.#write(task);
+    this.#write(task, `added (${owner}, ${state})`);
     return task;
   }
 
   update(ref, changes) {
     const task = this.get(ref);
+    const before = { ...task };
     const now = stamp(this.now());
     for (const [key, value] of Object.entries(changes)) {
       switch (key) {
@@ -146,6 +153,10 @@ export class Board {
           if (!Number.isFinite(Number(value))) throw new Error("Rank must be a number");
           task.rank = Number(value);
           break;
+        case "blocks":
+          if (value && !/^T-\d+\.\d+$/.test(value)) throw new Error("Blocks must name a task, like T-014.3");
+          task.blocks = value || null;
+          break;
         case "title": if (!String(value).trim()) throw new Error("A task needs a title"); task.title = oneLine(value); break;
         case "doneWhen": task.doneWhen = oneLine(value); break;
         case "description": task.description = String(value); break;
@@ -154,7 +165,7 @@ export class Board {
     }
     task.updated = now;
     task.created ||= now;
-    this.#write(task);
+    this.#write(task, describeChanges(before, task));
     return task;
   }
 
@@ -173,7 +184,7 @@ export class Board {
     task.comments = [...task.comments, { at: now, who, text: String(text).trim() }];
     task.updated = now;
     task.created ||= now;
-    this.#write(task);
+    this.#write(task, `comment by ${who}`);
     return task;
   }
 
@@ -196,10 +207,14 @@ export class Board {
   #archive(task, reason) {
     task.state = "archived";
     task.archived = reason;
-    this.#write(task);
+    this.#write(task, `archived: ${reason}`);
   }
 
-  #write(task) { this.source.writeTask(task.project, task); }
+  /** Writes the task file and tells the activity log what changed, when anything did. */
+  #write(task, what) {
+    this.source.writeTask(task.project, task);
+    if (what) this.record(`${task.project}/${task.id}`, what);
+  }
 
   #load(projectId, archived) {
     const { epics, files, archivedIds } = this.source.load(projectId, { archived });
@@ -227,18 +242,4 @@ export class Board {
   #requireProject(id) {
     if (!this.projects().some(p => p.id === id)) throw new Error(`No project ${id}`);
   }
-}
-
-function matchesState(actual, wanted) {
-  if (wanted === "open") return tabOf(actual) === "open";
-  if (wanted === "active") return actual === "todo" || actual === "progress";
-  return actual === wanted;
-}
-
-function check(allowed, value, name) {
-  if (!allowed.includes(value)) throw new Error(`${name} must be one of: ${allowed.join(", ")}`);
-}
-
-function oneLine(s) {
-  return String(s || "").replace(/\s+/g, " ").trim();
 }
