@@ -87,3 +87,16 @@ test("a document saved through the API changes the file on disk, and a refused p
   assert.equal((await s.api(s.file("Design.md"), s.send("PUT", {}))).status, 400);
   assert.ok(!fs.existsSync(path.join(s.game, "escape.md")) && !fs.existsSync(path.join(s.dir, "x.txt")) && !fs.existsSync(path.join(s.dir, "NoFolder")));
 });
+
+test("Linked lists open tasks that name the document, not other documents, not done tasks", async t => {
+  const s = await docsSetup(t);
+  s.board.update("game/T-014.2", { description: "Follow Design.md for the host rules." });
+  s.board.update("game/T-014.3", { description: "See Other.md." });
+  s.board.addTask({ project: "game", epic: "EPIC-014", title: "Cites in done-when", doneWhen: "matches Design.md" });
+  s.board.update("game/T-014.1", { description: "Written up in Design.md" });
+  const ids = p => s.api(`/api/docs/linked?project=game&path=${encodeURIComponent(p)}`).then(r => r.body.map(x => x.id));
+  assert.deepEqual((await ids("Design.md")).sort(), ["T-014.2", "T-014.4"]);
+  assert.deepEqual(await ids("Other.md"), ["T-014.3"]);
+  assert.deepEqual(await ids("Specs/Net.md"), []);
+  assert.equal((await s.api("/api/docs/linked?project=game&path=..%2Fx.md")).status, 400);
+});
