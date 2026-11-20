@@ -55,7 +55,8 @@ Blueprint: the board reads as a drafting sheet. It replaces the greyscale wirefr
 - **Colour.** Light: pale blue sheet (`#e6eef8`), near-white panes, navy ink (`#0f2a4a`), one technical blue for selection and lines (`#0b61d6`). Dark: navy sheet (`#0b2545`), deeper navy panes, pale blue ink, sky blue accent (`#7cc4ff`). Warning orange and success green stay semantic, apart from the accent.
 - **Type.** IBM Plex Sans for text, IBM Plex Mono for numbers, ids, dates and labels.
 - **Sheet.** A faint 20 px grid behind the panes, in the accent at about 8 % opacity.
-- **Panes.** 2 px corners, outlined in the accent. Pane headers in mono capitals, accent coloured, with a small square bullet, over a dashed rule.
+- **Corners.** Panes, buttons, chips and pills have 2 px corners. Things that float or pass (popups, empty states, cards, forms, the error toast) keep 6 px corners, and the count badge is round, so they read as apart from the sheet.
+- **Panes.** Outlined in the accent. Pane headers in mono capitals, accent coloured, with a small square bullet, over a dashed rule.
 - **Rows and selection.** Rows divided by dashed rules, square corners. The selected row or epic gets an accent outline on a light accent fill. The active tab is underlined in the accent.
 - **Progress.** Epic bars are segmented like a scale rule, filled in the accent.
 - **Detail.** The field block has a dashed outline instead of a grey fill.

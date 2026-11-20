@@ -34,7 +34,7 @@ Decisions and deviations, newest first.
 Diff `main...HEAD`: web/style.css, web/index.html, test/style.test.js and the epic's docs. No module, class, import or boundary changed; style.css is 197 lines. Development and Audit pass, 40 of 40, with main merged in (main had not moved).
 
 - `web/state.js` `COLORS` gives projects five to seven literal colours with no dark value, against Design.md Look ("no literal colour"). Fix before release: a task in EPIC-007.
-- The six-px corners on popups, empty states, cards, forms and the toast, and the round badge, stay from the preview while panes have 2 px corners. Deliberate: they mark floating or transient things. Kept as built; Design.md Look is silent on them.
+- The six-px corners on popups, empty states, cards, forms and the toast, and the round badge, stay from the preview while panes have 2 px corners. Deliberate: they mark floating or transient things. Tabu kept it 2026-11-20; Design.md Look, Corners, now says so.
 
 ## For the standard
 
