@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { ProjectFiles } from "./projectFiles.js";
 import { taskParts } from "../domain/task.js";
-import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile, setStatus } from "./markdown.js";
+import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile, setStatus, setClosed } from "./markdown.js";
 
 export class FileSource {
   constructor(settingsFile, worktrees) {
@@ -94,12 +94,23 @@ export class FileSource {
     files.write(file, appendLine(files.read(file), line));
   }
 
-  /** Sets the epic Done and moves its file to Epics/Completed/. */
-  completeEpic(projectId, epicId) {
+  /** The epics in Epics/Completed/, with their `Closed:` date (null when none). */
+  closedEpics(projectId) {
+    const { main } = this.#layout(projectId);
+    const out = [];
+    for (const { file, completed } of main.epicFiles({ archived: true })) {
+      const epic = completed && parseEpic(main.read(file));
+      if (epic) out.push({ id: epic.id, name: epic.name, status: epic.status, closed: epic.closed, done: epic.lines.filter(l => l.ticked).length, total: epic.lines.length });
+    }
+    return out;
+  }
+
+  /** Sets the epic Done, writes `Closed: <date>` under its status and moves its file to Epics/Completed/. */
+  completeEpic(projectId, epicId, closed) {
     const files = this.#files(projectId, epicId);
     const file = files.epicFile(epicId);
     if (!file) throw new Error(`No epic file for ${epicId}`);
-    files.moveToCompleted(file, setStatus(files.read(file), "Done"));
+    files.moveToCompleted(file, setClosed(setStatus(files.read(file), "Done"), closed));
   }
 
   createEpic(projectId, name, status) {

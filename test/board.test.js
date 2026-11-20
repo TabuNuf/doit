@@ -108,3 +108,17 @@ test("move places a task between neighbours, across sections and at the top", t 
   assert.throws(() => s.board.move("game/T-014.2", { section: "done" }), /section must be/);
   assert.throws(() => s.board.move("game/T-014.2", { section: "active", before: "game/T-099.1" }), /No task|not in/);
 });
+
+test("closing an epic writes the date; it is closed, then archived after the kept days; no date means archived", t => {
+  const s = setup(); t.after(s.cleanup);
+  s.board.closeEpic("game", "EPIC-014");
+  assert.match(s.read("Epics/Completed/EPIC-014-online-lobby.md"), /^Status: Done\nClosed: 2026-11-20\n/m);
+  const find = (id) => s.board.view({ project: "game" }).closedEpics.find(e => e.id === id);
+  assert.deepEqual([find("EPIC-014").closed, find("EPIC-014").archived], ["2026-11-20", false]);
+  assert.equal(find("EPIC-014").total, 3);
+  assert.equal(find("EPIC-013").closed, null);
+  assert.equal(find("EPIC-013").archived, true);
+  assert.ok(!s.board.view({ project: "game" }).epics.some(e => e.id === "EPIC-014"));
+  s.clock.t = new Date("2026-12-05T09:00:00");
+  assert.equal(find("EPIC-014").archived, true);
+});

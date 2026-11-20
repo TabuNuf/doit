@@ -13,7 +13,14 @@ export function parseEpic(text) {
     if (!m) continue;
     lines.push({ id: m[2], n: Number(m[2].split(".")[1]), title: m[3].trim(), doneWhen: (m[4] || "").trim(), ticked: m[1] !== " " });
   }
-  return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", lines };
+  const closed = /^Closed:\s*(\d{4}-\d{2}-\d{2})/m.exec(text);
+  return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", closed: closed ? closed[1] : null, lines };
+}
+
+/** Writes `Closed: <date>` on the line under Status, replacing an earlier one. */
+export function setClosed(text, date) {
+  const rest = text.replace(/^Closed:.*\n?/m, "");
+  return rest.replace(/^(Status:.*)$/m, `$1\nClosed: ${date}`);
 }
 
 /** Sets the epic's Status line, adding one under the title when it has none. */
