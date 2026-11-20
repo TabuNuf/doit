@@ -8,7 +8,7 @@ Design: Design.md, section Look
 
 - [x] T-008.1 Blueprint tokens and fonts replace the base palette, light and dark (done when: the board opens in the Blueprint colours and IBM Plex type in light and dark, and the style.css header comment names Blueprint instead of greyscale lo-fi (Check in play))
 - [x] T-008.2 Blueprint component shapes: grid sheet, pane outlines and headers, dashed rows, selection, segmented bars, tabs, field block (done when: the board matches the Blueprint tab of the style comparison page in both themes (Check in play))
-- [ ] T-008.3 Every colour in style.css comes from a token (done when: a development test fails on any literal colour outside the token blocks of web/style.css, and passes)
+- [x] T-008.3 Every colour in style.css comes from a token (done when: a development test fails on any literal colour outside the token blocks of web/style.css, and passes)
 
 ## Test plan
 
@@ -25,6 +25,7 @@ Design: Design.md, section Look
 
 Decisions and deviations, newest first.
 
+- 2026-11-20, batch A: the project-colour tokens --p1..--p4 get lighter dark-theme values for contrast on navy. Tokens added for the literals: --on-warn, --bug, --task, --shadow (light and dark). web/state.js still has literal colours in its COLORS list (JS, outside the style.css test). The overlay's 6 px corners on .pop, .empty, .card, .form, .toast and the 999px .badge stay as in the preview.
 - Decided 2026-11-20: Blueprint was chosen from five candidates (Paper, Terminal, Studio, Blueprint, Poster) shown on the private artifact Doit Style Options, claude.ai/artifact/L8qjksrvdhpyhEDjTd4unB. Its published styles.css, block 4, is the starting CSS: fold its tokens into the base :root blocks of style.css and its component rules in without the data-style scoping.
 - Decided 2026-11-20: one style replaces the old look; no style picker.
 
