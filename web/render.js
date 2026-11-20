@@ -3,6 +3,7 @@
 import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFilter, projects, proj, color, task, visible, sectionLists } from "./state.js";
 import { bindDrag } from "./ordering.js";
 import { epicViewPane } from "./epicView.js";
+import { docsPanes } from "./docsView.js";
 
 /* ---------- Render ---------- */
 
@@ -10,11 +11,13 @@ export function render() {
   if (!S.data) return;
   document.documentElement.style.setProperty("--fs", S.font + "px");
   renderTop();
+  if (S.view === "docs") { $("#panes").innerHTML = docsPanes(fontCtl()); return; }
   $("#panes").innerHTML = epicPane() + listPane() + detailPane();
   bindDrag();
 }
 
 function renderTop() {
+  $("#views").innerHTML = [["board", "Board"], ["docs", "Docs"]].map(([v, l]) => `<button aria-pressed="${S.view === v}" data-view="${v}">${l}</button>`).join("");
   const all = [{ id: "all", name: "All projects" }, ...projects()];
   $("#projects").innerHTML = all.map(p => `<button class="chip" aria-pressed="${S.project === p.id}" data-p="${esc(p.id)}">${p.id !== "all" ? `<span class="dot" style="background:${color(p.id)}"></span>` : ""}${esc(p.name)}</button>`).join("")
     + `<button class="chip" data-newproj style="border-style:dashed">+ Project</button>`;

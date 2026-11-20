@@ -46,3 +46,14 @@ test("single newlines inside a paragraph become line breaks", async () => {
   const { renderMarkdown } = await import("../web/markdown.js");
   assert.equal(renderMarkdown("Status: Active\nGoal: x\n\nNext"), "<p>Status: Active<br>Goal: x</p>\n<p>Next</p>");
 });
+
+test("a pipe table renders as a table with header and body cells, keeping inline formatting and escaping", async () => {
+  const { renderMarkdown } = await import("../web/markdown.js");
+  const html = renderMarkdown("Intro\n| Tier | Modules |\n|---|:--:|\n| Domain | `src/domain/` and **more** |\n| <b> | a \\| b |\n\nAfter");
+  assert.match(html, /<p>Intro<\/p>\n<table><thead><tr><th>Tier<\/th><th>Modules<\/th><\/tr><\/thead>/);
+  assert.match(html, /<td>Domain<\/td><td><code>src\/domain\/<\/code> and <strong>more<\/strong><\/td>/);
+  assert.match(html, /<td>&lt;b&gt;<\/td><td>a \| b<\/td>/);
+  assert.match(html, /<\/table>\n<p>After<\/p>/);
+  assert.doesNotMatch(html, /<b>/);
+  assert.equal(renderMarkdown("a | b\n\ntext"), "<p>a | b</p>\n<p>text</p>");
+});
