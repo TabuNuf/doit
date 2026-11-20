@@ -6,7 +6,7 @@ What the app is now. The source of truth for what gets built. When code and this
 
 ## Purpose
 
-One local board where Tabu and Claude share every project's epics, tasks and bugs, so Jira and Confluence can be cancelled. Claude reaches it through a CLI that returns only the slice it asks for. Left out for now: the Docs view, the Marketing view (events, Reddit, influencers), the Claude view and the morning run; each is a later epic. The wireframe for all of them is `Docs/Design/wireframe.html`.
+One local board where Tabu and Claude share every project's epics, tasks and bugs, so Jira and Confluence can be cancelled. Claude reaches it through a CLI that returns only the slice it asks for. Left out for now: the Confluence import, the Marketing view (events, Reddit, influencers), the Claude view and the morning run; each is a later epic. The wireframe for all of them is `Docs/Design/wireframe.html`.
 
 ## Users and their jobs
 
@@ -48,6 +48,20 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 - **Detail pane:** number, epic, title, type, owner, project; state, owner and deadline editable; created and updated times; the description (editable); done when; comments with author and time, and a box to add one. Text size A− / A+, 12 to 22 px, starting at 15.
 - **Column widths:** dragging the gap between two columns resizes them; the middle column takes what is left. Double-click a gap to reset it. Focused, a gap moves 20 px with the arrow keys. Widths are kept per browser. Below 1100 px wide the layout stacks and the gaps do not drag.
 - The board reloads from disk every 10 seconds, so changes Claude makes through the CLI show without a refresh.
+
+## Docs
+
+Each project's docs folder (design, specs, architecture) is read and edited in place in a Docs view beside the Board. Doit keeps no copy. Claude edits docs as files, as it does today; the view is for Tabu.
+
+- **Board / Docs** in the top bar switches the view. The Docs view shows the selected project; in All projects it shows the first project and says so.
+- Three panes: **Documents** (the folder tree), the **document**, and **Linked**.
+- **The tree** lists the Markdown files of the docs folder, folders first, by name. `Archive/`, `Epics/Tasks/` and `Standard/` are left out. `Epics/Completed/` is listed but folded until clicked.
+- **The document** is rendered with the epic view's renderer plus tables. Above it: its path and who changed it last, from git (author and date of the last commit that touched it; "not committed" when none).
+- **Edit** swaps the rendered page for a plain text box with the file's text; **Done** writes the file and shows it rendered again. Text size A− / A+ applies, as in the Detail pane.
+- **Linked** lists the project's open tasks whose description or done-when names the document's file name (`Design.md`); clicking one opens it on the Board.
+- Paths are always inside the docs folder: a path with `..`, an absolute path, or one into a hidden folder is refused. Only `.md` files are read or written.
+- Docs are read and written in the project folder, not in an epic's worktree.
+- Pictures in a document are not shown yet; the Confluence import epic (EPIC-009) brings them.
 
 ## Look
 
@@ -92,3 +106,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20, EPIC-008: the Blueprint look replaces the greyscale wireframe look (section Look), chosen from five candidate styles.
 - 2026-11-20: the Doit logo, in the top bar, as the tab icon and as the launcher icon (section Look).
 - 2026-11-20, EPIC-007: an epic with a worktree has its files read and written there (section Epics).
+- 2026-11-20, EPIC-003: the Docs view: tree, rendered document with edit, and Linked tasks (section Docs). The Confluence import moves to EPIC-009.
