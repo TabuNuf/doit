@@ -1,7 +1,7 @@
 // Epic files and task files as text. Pure: text in, values out, and back.
 
 const LINE = /^- \[( |x|X)\] (T-\d+\.\d+) (.*?)(?: \(done when: (.*)\))?\s*$/;
-const FIELDS = ["state", "owner", "type", "rank", "deadline", "created", "updated", "completed", "source", "archived"];
+const FIELDS = ["state", "owner", "type", "rank", "deadline", "created", "updated", "completed", "source", "archived", "blocks"];
 
 export function parseEpic(text) {
   const head = /^# (EPIC-\d+):\s*(.*)$/m.exec(text);

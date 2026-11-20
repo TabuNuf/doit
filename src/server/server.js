@@ -8,8 +8,9 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; ch
 
 export class HttpServer {
   /** `commit` is the git commit the process started from (null when unknown); GET /api/version reports it. */
-  constructor(board, webDir, commit = null, docs = null) {
+  constructor(board, webDir, commit = null, docs = null, claude = null) {
     this.board = board;
+    this.claude = claude;
     this.docs = docs;
     this.commit = commit;
     this.webDir = path.resolve(webDir);
@@ -30,6 +31,7 @@ export class HttpServer {
       ["GET", /^\/api\/docs\/file$/, q => this.docs.read(q.get("project"), q.get("path"))],
       ["PUT", /^\/api\/docs\/file$/, (q, b) => this.docs.save(q.get("project"), q.get("path"), b.text)],
       ["GET", /^\/api\/docs\/linked$/, q => this.docs.linked(q.get("project"), q.get("path"))],
+      ["GET", /^\/api\/claude$/, q => this.claude.panes(q.get("project") || "all")],
       ["PUT", /^\/api\/settings$/, (q, b) => { this.board.setKeepDays(b.keepCompletedDays); return this.board.settings(); }],
     ];
   }

@@ -4,16 +4,18 @@
 import { epicArchived, stamp } from "./rules.js";
 
 export class EpicMoves {
-  constructor(source, now) {
+  /** `write(task, what)` writes a task and tells the activity log; the Board hands it in. */
+  constructor(source, now, write) {
     this.source = source;
     this.now = now;
+    this.write = write;
   }
 
   /** Archives every task of an epic not archived yet (the sweep's path), then completes the epic. Returns how many tasks. */
   close(project, epicId, archived, { epics, tasks }) {
     if (!epics.some(e => e.id === epicId && !e.completed)) throw new Error(`No open epic ${epicId} in ${project}`);
     const open = tasks.filter(t => t.epic === epicId && t.state !== "archived");
-    for (const task of open) this.source.writeTask(project, { ...task, state: "archived", archived: `Epic ${epicId} closed` });
+    for (const task of open) this.write({ ...task, state: "archived", archived: `Epic ${epicId} closed` }, `archived: Epic ${epicId} closed`);
     const today = this.#today();
     this.source.completeEpic(project, epicId, today, archived ? today : null);
     return open.length;
@@ -31,7 +33,7 @@ export class EpicMoves {
       case "park": this.source.parkEpic(project, epicId); break;
       case "reopen":
         this.source.reopenEpic(project, epicId);
-        for (const task of restore) this.source.writeTask(project, task);
+        for (const task of restore) this.write(task, `reopened with ${epicId}: state archived → ${task.state}`);
         break;
       case "close": result.archivedTasks = closed(false); break;
       case "closeArchived": result.archivedTasks = closed(true); break;

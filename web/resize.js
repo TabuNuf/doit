@@ -1,10 +1,10 @@
 // Column widths: drag the gaps between the three panes (or focus one and use the arrow keys).
-// Each view (Board, Docs) has its own widths, kept in two CSS variables and remembered in this browser.
+// Each view (Board, Docs, Claude) has its own widths, kept in two CSS variables and remembered in this browser.
 
 export const DEFAULTS = { left: 250, right: 360 };
-export const VIEW_DEFAULTS = { board: DEFAULTS, docs: { left: 250, right: 300 } };
+export const VIEW_DEFAULTS = { board: DEFAULTS, docs: { left: 250, right: 300 }, claude: { left: 300, right: 380 } };
 const MIN = { left: 160, right: 260, middle: 320 };
-const KEYS = { board: "doit.columns", docs: "doit.columns.docs" };
+const KEYS = { board: "doit.columns", docs: "doit.columns.docs", claude: "doit.columns.claude" };
 const RAIL = 34;
 
 /** Keeps both side columns at their minimum or more and leaves the middle one room. */

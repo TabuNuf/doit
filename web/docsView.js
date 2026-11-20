@@ -1,6 +1,6 @@
 // The Docs view: the folder tree, one document (rendered or in a text box) and the tasks linked to it.
 
-import { S, esc, api, load, redraw, toast, projects, proj, fmtDate, keyOf } from "./state.js";
+import { S, esc, api, redraw, toast, projects, proj, fmtDate, keyOf, openOnBoard } from "./state.js";
 import { renderMarkdown } from "./markdown.js";
 
 const q = (project, path) => `project=${encodeURIComponent(project)}${path ? `&path=${encodeURIComponent(path)}` : ""}`;
@@ -31,7 +31,6 @@ async function readDoc(path) {
 /** Handles a click on a Docs control; true when the click was one. */
 export function docsClick(d) {
   const D = S.docs;
-  if (d.view) { S.view = d.view; if (S.view === "docs") refreshDocs(); else redraw(); return true; }
   if (d.fold) { D.open[d.fold] = !(d.fold in D.open ? D.open[d.fold] : d.folded !== "true"); redraw(); return true; }
   if (d.doc) {
     if (D.editing && D.draft !== D.doc.text && !confirm("Discard your changes to this document?")) return true;
@@ -41,7 +40,7 @@ export function docsClick(d) {
   }
   if ("docEdit" in d) { D.editing = true; D.draft = D.doc.text; redraw(); document.querySelector("#doc-text")?.focus(); return true; }
   if ("docDone" in d) { saveDoc(); return true; }
-  if (d.linked) { openTask(d.linked); return true; }
+  if (d.linked) { openOnBoard(d.linked); return true; }
   if ("linkedToggle" in d) {
     D.linkedClosed = !D.linkedClosed;
     try { localStorage.setItem("doit.docs.linked", D.linkedClosed ? "closed" : "open"); } catch { /* storage off */ }
@@ -66,14 +65,6 @@ async function saveDoc() {
     D.linked = await api("GET", `/api/docs/linked?${q(D.project, D.path)}`);
     redraw();
   } catch (e) { toast(e.message); }
-}
-
-/** Back to the Board with the task selected. */
-function openTask(key) {
-  S.view = "board"; S.epic = null; S.epicView = null; S.sel = key;
-  S.tab = "open";
-  if (S.project !== "all" && S.project !== key.split("/")[0]) S.project = key.split("/")[0];
-  load();
 }
 
 function treeHtml(nodes, depth = 0) {
