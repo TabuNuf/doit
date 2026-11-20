@@ -14,9 +14,9 @@ Design: Design.md, section Epics.
 ## Tasks
 
 - [x] T-010.1 (dc4239c) Closing writes the `Closed:` date, and the board view returns closed epics with their date and whether they are archived (done when: a domain test closes an epic and sees it as closed, then as archived 15 days later; an epic in Completed/ without the line comes back archived)
-- [x] T-010.2 `POST /api/epics/<project>/<EPIC-nnn>/close` closes an epic (done when: a server test closes an epic through the API and a second call is refused)
-- [ ] T-010.3 Close epic button in the epic document's header, with a confirmation, open epics only (done when: a web test finds the button on an open epic and not on a closed one; in play, closing an epic moves it to Closed)
-- [ ] T-010.4 Closed and Archived sections under each project's open epics, Archived folded until clicked (done when: a web test renders both sections from view data; in play, an archived epic opens its document)
+- [x] T-010.2 (497a5d8) `POST /api/epics/<project>/<EPIC-nnn>/close` closes an epic (done when: a server test closes an epic through the API and a second call is refused)
+- [x] T-010.3 (see T-010.4 commit) Close epic button in the epic document's header, with a confirmation, open epics only (done when: a web test finds the button on an open epic and not on a closed one; in play, closing an epic moves it to Closed)
+- [x] T-010.4 Closed and Archived sections under each project's open epics, Archived folded until clicked (done when: a web test renders both sections from view data; in play, an archived epic opens its document)
 
 ## Test plan
 
@@ -32,6 +32,10 @@ Design: Design.md, section Epics.
 ## Notes
 
 Decisions and deviations, newest first.
+
+- T-010.3 and T-010.4 share one commit: both edit events.js, state.js and web.test.js, and the pieces were not separable without interactive staging.
+- Closed epics come from `source.closedEpics`, a new port method, because `load` reads Completed/ only when tasks are loaded with the archive. `view` returns them as `closedEpics`, newest first, each with `closed` and `archived`.
+- Not handled: an epic closed inside its worktree stays in the open list (read from main) until the branch merges; `closedEpics` reads the main checkout only.
 
 ## Close audit
 

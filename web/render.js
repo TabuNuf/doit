@@ -3,6 +3,7 @@
 import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFilter, projects, proj, color, task, visible, sectionLists } from "./state.js";
 import { bindDrag } from "./ordering.js";
 import { epicViewPane } from "./epicView.js";
+import { epicBtn, closedSections } from "./epicList.js";
 import { docsPanes } from "./docsView.js";
 import { setLayout } from "./resize.js";
 
@@ -32,22 +33,13 @@ function renderTop() {
     ${S.npErr ? `<div class="err">${esc(S.npErr)}</div>` : ""}</form>` : "";
 }
 
-function epicBtn(e) {
-  const key = `${e.project}/${e.id}`;
-  const pct = e.total ? Math.round(e.done / e.total * 100) : 0;
-  return `<button class="epic" aria-pressed="${S.epic === key}" data-open-epic="${esc(key)}" title="Show this epic and its tasks">
-    <div class="t"><span>${esc(e.name)}</span><span class="n">${e.done}/${e.total}</span></div>
-    <div class="t"><span class="n">${e.id}</span><span class="estate">${esc(e.status)}</span></div>
-    <div class="bar"><i style="width:${pct}%"></i></div></button>`;
-}
-
 function epicPane() {
   const ps = S.project === "all" ? projects() : [proj(S.project)];
   const groups = ps.map(p => {
     const adding = S.newEpic === p.id
       ? `<form class="inline-add" data-epicform="${esc(p.id)}"><input id="ne-name" placeholder="Epic name" aria-label="Epic name"><button type="submit">Add</button></form>`
       : `<button class="addbtn" data-newepic="${esc(p.id)}">+ New epic</button>`;
-    return `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}</div>${S.data.epics.filter(e => e.project === p.id).map(epicBtn).join("")}${adding}`;
+    return `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}</div>${S.data.epics.filter(e => e.project === p.id).map(epicBtn).join("")}${adding}${closedSections(p.id)}`;
   }).join("");
   return `<section class="pane"><div class="pane-h">Epics${S.epic ? `<button class="fsz" data-clear-epic style="text-transform:none">Show all</button>` : ""}</div>
     <div class="pane-b">${groups || `<div class="empty">No projects yet. Add one with + Project.</div>`}</div></section>`;

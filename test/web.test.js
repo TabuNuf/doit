@@ -67,3 +67,29 @@ test("a pipe table renders as a table with header and body cells, keeping inline
   assert.doesNotMatch(html, /<b>/);
   assert.equal(renderMarkdown("a | b\n\ntext"), "<p>a | b</p>\n<p>text</p>");
 });
+
+test("the epic header has Close epic on an open epic and not on a completed one", async () => {
+  const { S } = await import("../web/state.js");
+  const { epicViewPane } = await import("../web/epicView.js");
+  S.epicView = { project: "p", id: "EPIC-001", status: "Active", completed: false, text: "# EPIC-001: A" };
+  assert.match(epicViewPane(""), /data-close-epic="p\/EPIC-001"[^>]*>Close epic</);
+  S.epicView = { ...S.epicView, status: "Done", completed: true };
+  assert.doesNotMatch(epicViewPane(""), /Close epic/);
+});
+
+test("the epic pane lists Closed epics and a folded Archived section that opens on click", async () => {
+  const { S } = await import("../web/state.js");
+  const { closedSections } = await import("../web/epicList.js");
+  const e = (id, closed, archived) => ({ project: "p", id, name: "Name " + id, status: "Done", done: 1, total: 1, closed, archived });
+  S.data = { closedEpics: [e("EPIC-003", "2026-11-19", false), e("EPIC-001", null, true), e("EPIC-002", "2026-10-01", true)] };
+  S.archivedOpen = {};
+  const folded = closedSections("p");
+  assert.match(folded, /Closed<span class="c">1<\/span>[\s\S]*data-open-epic="p\/EPIC-003"/);
+  assert.match(folded, /data-toggle-archived="p"[^>]*aria-expanded="false"[^>]*>[^<]*Archived<span class="c">2/);
+  assert.doesNotMatch(folded, /data-open-epic="p\/EPIC-001"/);
+  S.archivedOpen = { p: true };
+  const open = closedSections("p");
+  assert.match(open, /data-open-epic="p\/EPIC-001"/);
+  assert.match(open, /data-open-epic="p\/EPIC-002"/);
+  assert.equal(closedSections("other"), "");
+});
