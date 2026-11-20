@@ -60,6 +60,7 @@ Blueprint: the board reads as a drafting sheet. It replaces the greyscale wirefr
 - **Rows and selection.** Rows divided by dashed rules, square corners. The selected row or epic gets an accent outline on a light accent fill. The active tab is underlined in the accent.
 - **Progress.** Epic bars are segmented like a scale rule, filled in the accent.
 - **Detail.** The field block has a dashed outline instead of a grey fill.
+- **Logo.** A checkmark in a circle over a drafting frame, cyan with orange crop marks. The board shows the transparent mark (`web/logo.svg`) before the name in the top bar and as the tab icon; the launcher uses the navy icon (`launcher/icon.svg`), which `launcher/build.sh` turns into the app icon. The logo keeps its own colours and is not themed.
 - Every colour comes from a token defined for light and dark; no literal colour in a component rule.
 
 The comparison of the five candidate styles, with this one as "Blueprint", is the private artifact `Doit Style Options` (claude.ai/artifact/L8qjksrvdhpyhEDjTd4unB).
@@ -88,3 +89,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20: clicking an epic both filters the list and shows the epic's document in the Detail pane; the separate Filter button and the full-width epic view are gone.
 - 2026-11-20: the three columns are resized by dragging the gaps between them.
 - 2026-11-20, EPIC-008: the Blueprint look replaces the greyscale wireframe look (section Look), chosen from five candidate styles.
+- 2026-11-20: the Doit logo, in the top bar, as the tab icon and as the launcher icon (section Look).

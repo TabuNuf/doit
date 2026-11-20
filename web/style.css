@@ -36,7 +36,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 /* Top bar */
 .top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--accent); border-radius: 2px; padding: 8px 10px; }
-.logo { font-family: var(--mono); font-weight: 600; text-transform: uppercase; letter-spacing: .2em; color: var(--accent); padding-right: 8px; border-right: 1px solid var(--accent); }
+.logo { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-weight: 600; text-transform: uppercase; letter-spacing: .2em; color: var(--accent); padding-right: 8px; border-right: 1px solid var(--accent); }
+.logo img { display: block; }
 .projects { display: flex; gap: 4px; flex-wrap: wrap; }
 .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel); border-radius: 2px; padding: 3px 10px; font-size: 13px; }
 .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }

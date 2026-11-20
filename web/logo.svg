@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="200 190 644 664" width="644" height="664">
+  <title>Doit</title>
+  <!-- The mark alone on a transparent background; a mask hides the frame inside the circle. -->
+  <defs>
+    <mask id="ring">
+      <rect x="0" y="0" width="1024" height="1024" fill="#fff"/>
+      <circle cx="512" cy="500" r="152" fill="#000"/>
+    </mask>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="8" dy="10" stdDeviation="6" flood-color="#08111e" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <g fill="none" stroke-linecap="square" filter="url(#shadow)">
+    <g stroke="#e8a04a" stroke-width="10">
+      <path d="M265 238V315M245 258H318"/>
+      <path d="M759 238V315M706 258H779"/>
+      <path d="M265 709V786M245 766H318"/>
+      <path d="M759 709V786M706 766H779"/>
+    </g>
+    <path d="M512 222V246M512 778V802" stroke="#2bb5ee" stroke-width="10"/>
+    <g stroke="#2bb5ee" stroke-linejoin="miter">
+      <g mask="url(#ring)">
+        <rect x="362" y="350" width="300" height="300" stroke-width="10"/>
+        <path d="M512 285L365 432H248L512 728L776 432H659Z" stroke-width="14"/>
+        <path d="M292 446L512 700L732 446" stroke-width="8"/>
+        <path d="M486 674H538" stroke-width="10"/>
+      </g>
+      <circle cx="512" cy="500" r="152" stroke-width="14"/>
+      <path d="M452 490L500 540L590 450" stroke-width="26"/>
+    </g>
+  </g>
+</svg>
