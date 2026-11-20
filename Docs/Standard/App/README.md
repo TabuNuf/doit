@@ -28,6 +28,11 @@ Why: three Core rules read literally would fight most app frameworks. Decided by
 - The version source is the ecosystem's package file (`package.json`, `pyproject.toml`, `Cargo.toml`), in its own format, usually three parts. No `VERSION.txt` beside it. Minor releases lead to the next major as `Core/02-Working.md`, Versions and releases, says; the third number is for a release that only fixes.
   Why: the ecosystem's build and publish tools read the version from the package file, so a second file would be the drift the Core rule is there to stop.
 
+## Styling
+
+- **Every colour in a stylesheet is a token, defined for light and for dark; a test fails on a literal colour outside the token blocks.** Component rules use `var(--name)` only, and a script that sets colours picks from the same tokens.
+  Why: a literal colour in a component rule looks right in the theme it was written in and wrong in the other, and nothing fails. Doit's restyle found seven such literals, among them the bug and task dots and the white text on warnings; a 30-line test reading the stylesheet now catches the next one.
+
 ## What the first app project decides
 
 Each item becomes a rule here, with its why, or a line in that project's `Deviations.md`:
