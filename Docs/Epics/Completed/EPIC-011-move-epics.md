@@ -50,7 +50,7 @@ Decisions and deviations, newest first.
 
 - Main merged in (EPIC-004 had landed): conflicts in `web/state.js`, `src/domain/board.js` and `Architecture.md` resolved. EPIC-004's activity log records task changes in `Board.#write`, and `EpicMoves` wrote tasks to the source directly, so a close or reopen would have gone unlogged. Fixed now: `EpicMoves` takes the Board's logged write, with a test that a close and a reopen log one line per task. Development 85/85, Audit 86/86.
 - `src/domain/board.js`, Core/03-Design.md (size): 247 lines against the structure test's cap of 250, after moving epic moves out to `EpicMoves`. Fix before release: split it before the next feature lands in it (already noted at EPIC-010; no conformance epic is open, so it is recorded here).
-- Two routes close an epic: `POST .../close` (the Close epic button) and `POST .../move` with `to: completed`. Deliberate for now, both reach `EpicMoves.close`; the button could use move and the close route go. Question for Tabu at the next pass, recommendation: drop the close route.
+- Two routes close an epic: `POST .../close` (the Close epic button) and `POST .../move` with `to: completed`. Deliberate for now, both reach `EpicMoves.close`; the button could use move and the close route go. Question for Tabu at the next pass, recommendation: drop the close route. Tabu agreed on 2026-11-20: the close route is gone and Close epic uses move.
 - Boundaries test passes; the class diagram and module list match the code. Store, domain and server each keep one job; the web part sits in its own `epicMove.js`.
 
 ## For the standard

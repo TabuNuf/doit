@@ -48,19 +48,20 @@ test("GET /api/version reports the commit the server started from", async t => {
   assert.deepEqual(await r.json(), { commit: "abc123" });
 });
 
-test("POST /api/epics/<project>/<id>/close closes an open epic and refuses a second call", async t => {
+test("POST /api/epics/<project>/<id>/move to completed closes an open epic; a second call moves nothing; the old close route is gone", async t => {
   const s = setup(); t.after(s.cleanup);
   const server = new HttpServer(s.board, path.join(import.meta.dirname, "..", "web"));
   const port = await server.listen(0);
   t.after(() => server.close());
-  const post = p => fetch(`http://127.0.0.1:${port}${p}`, { method: "POST" }).then(async r => ({ status: r.status, body: await r.json() }));
-  const first = await post("/api/epics/game/EPIC-014/close");
+  const post = (p, body) => fetch(`http://127.0.0.1:${port}${p}`, { method: "POST", body: JSON.stringify(body) }).then(async r => ({ status: r.status, body: await r.json() }));
+  const first = await post("/api/epics/game/EPIC-014/move", { to: "completed" });
   assert.equal(first.status, 200);
   assert.equal(first.body.archivedTasks, 2);
   assert.ok(s.exists("Epics/Completed/EPIC-014-online-lobby.md"));
-  const second = await post("/api/epics/game/EPIC-014/close");
-  assert.equal(second.status, 400);
-  assert.match(second.body.error, /No open epic/);
+  const second = await post("/api/epics/game/EPIC-014/move", { to: "completed" });
+  assert.equal(second.status, 200);
+  assert.equal(second.body.moved, false);
+  assert.notEqual((await post("/api/epics/game/EPIC-014/close", {})).status, 200);
 });
 
 test("POST /api/epics/<project>/<id>/move parks and reopens an epic; an unknown target is a 400", async t => {
