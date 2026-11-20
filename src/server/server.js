@@ -17,6 +17,7 @@ export class HttpServer {
       ["POST", /^\/api\/epics$/, (q, b) => ({ id: this.board.addEpic(b.project, b.name, b.status || "Planned") })],
       ["POST", /^\/api\/tasks$/, (q, b) => this.board.addTask(b)],
       ["PATCH", /^\/api\/tasks\/([^/]+)\/([^/]+)$/, (q, b, m) => this.board.update(`${m[1]}/${m[2]}`, b)],
+      ["POST", /^\/api\/tasks\/([^/]+)\/([^/]+)\/move$/, (q, b, m) => this.board.move(`${m[1]}/${m[2]}`, b)],
       ["POST", /^\/api\/tasks\/([^/]+)\/([^/]+)\/comments$/, (q, b, m) => this.board.comment(`${m[1]}/${m[2]}`, b.who || "human", b.text)],
       ["PUT", /^\/api\/settings$/, (q, b) => { this.board.setKeepDays(b.keepCompletedDays); return this.board.settings(); }],
     ];

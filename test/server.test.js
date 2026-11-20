@@ -20,6 +20,8 @@ test("the API reads and changes tasks, and serves the page", async t => {
   assert.equal(patched.body.state, "progress");
   const commented = await api("/api/tasks/game/T-014.2/comments", send("POST", { text: "From the page" }));
   assert.equal(commented.body.comments[0].who, "human");
+  const moved = await api("/api/tasks/game/T-014.3/move", send("POST", { section: "backlog" }));
+  assert.equal(moved.body.state, "backlog");
   const bad = await api("/api/tasks/game/T-014.2", send("PATCH", { owner: "robot" }));
   assert.equal(bad.status, 400);
   assert.match(bad.body.error, /owner must be/);

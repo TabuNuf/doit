@@ -6,7 +6,7 @@
 //   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status) -> epicId
 
 import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask } from "./task.js";
-import { archiveReason, byRank, stamp, DEFAULT_KEEP_DAYS } from "./rules.js";
+import { archiveReason, byRank, rankBetween, stamp, DEFAULT_KEEP_DAYS } from "./rules.js";
 
 export class Board {
   constructor(source, now = () => new Date()) {
@@ -130,6 +130,32 @@ export class Board {
     task.created ||= now;
     this.#write(task);
     return task;
+  }
+
+  /**
+   * Moves a task into a section of the Open tab: just above `before`, just below `after`,
+   * or to the top when neither is given. The neighbour must be in the same project.
+   */
+  move(ref, { section, before, after } = {}) {
+    check(["active", "backlog"], section, "section");
+    const { project } = parseRef(ref);
+    const task = this.get(ref);
+    if (task.state === "done" || task.state === "archived") throw new Error("Only open tasks can be moved");
+    const list = this.#load(project, false).tasks
+      .filter(t => t.id !== task.id && sectionOf(t.state) === section && tabOf(t.state) === "open")
+      .sort(byRank);
+    let i = 0;
+    const anchor = before || after;
+    if (anchor) {
+      const parts = parseRef(anchor);
+      if (parts.project !== project) throw new Error("A task can only move next to a task of its project");
+      i = list.findIndex(t => t.id === parts.id);
+      if (i < 0) throw new Error(`${anchor} is not in ${section}`);
+      if (!before) i++;
+    }
+    const changes = { rank: rankBetween(list[i - 1]?.rank, list[i]?.rank) };
+    if (sectionOf(task.state) !== section) changes.state = section === "backlog" ? "backlog" : "todo";
+    return this.update(ref, changes);
   }
 
   comment(ref, who, text) {

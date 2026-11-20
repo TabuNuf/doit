@@ -1,31 +1,24 @@
 // Reordering: drag and drop and Alt + arrow keys. Works out where a task lands.
 
-import { S, secOf, keyOf, task, visible, patch, sectionLists } from "./state.js";
+import { secOf, keyOf, task, visible, act, api, toast, sectionLists } from "./state.js";
 
-const between = (above, below) => above == null && below == null ? 1000 : above == null ? below - 1000 : below == null ? above + 1000 : (above + below) / 2;
+const move = (t, body) => act(() => api("POST", `/api/tasks/${t.project}/${t.id}/move`, body));
 
 /** Moves a task into a section, before another task (or to the top when beforeKey is null). */
 function place(key, sec, beforeKey) {
   const t = task(key);
-  const list = sectionLists(visible())[sec].filter(x => keyOf(x) !== key);
-  let i = beforeKey ? list.findIndex(x => keyOf(x) === beforeKey) : 0;
-  if (i < 0) i = list.length;
-  const rank = between(list[i - 1]?.rank, list[i]?.rank);
-  const changes = { rank };
-  if (secOf(t.state) !== sec) changes.state = sec === "backlog" ? "backlog" : "todo";
-  patch(t, changes);
+  if (beforeKey && task(beforeKey).project !== t.project) return toast("Drop a task next to one of its own project");
+  move(t, beforeKey ? { section: sec, before: beforeKey } : { section: sec });
 }
 
+/** Alt + arrow: the next visible task of the same project is the neighbour to pass. */
 export function nudge(key, dir) {
   const t = task(key);
   const sec = secOf(t.state);
-  const list = sectionLists(visible())[sec];
-  const i = list.findIndex(x => keyOf(x) === key);
-  const j = i + dir;
+  const list = sectionLists(visible())[sec].filter(x => x.project === t.project);
+  const j = list.findIndex(x => keyOf(x) === key) + dir;
   if (j < 0 || j >= list.length) return;
-  const rest = list.filter(x => keyOf(x) !== key);
-  // Index j in the list without the task is where it lands, either direction.
-  patch(t, { rank: between(rest[j - 1]?.rank, rest[j]?.rank) });
+  move(t, { section: sec, [dir < 0 ? "before" : "after"]: keyOf(list[j]) });
 }
 
 export let dragKey = null;
