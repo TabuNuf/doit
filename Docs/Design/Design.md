@@ -6,7 +6,7 @@ What the app is now. The source of truth for what gets built. When code and this
 
 ## Purpose
 
-One local board where Tabu and Claude share every project's epics, tasks and bugs, so Jira and Confluence can be cancelled. Claude reaches it through a CLI that returns only the slice it asks for. Left out for now: the Confluence import and the Marketing view (events, Reddit, influencers); each is a later epic. The wireframe for all of them is `Docs/Design/wireframe.html`.
+One local board where Tabu and Claude share every project's epics, tasks and bugs, so Jira and Confluence can be cancelled. Claude reaches it through a CLI that returns only the slice it asks for. Left out for now: the Confluence import, a later epic. The Marketing view is designed (section Marketing) but not built. The wireframe for all of them is `Docs/Design/wireframe.html`.
 
 ## Users and their jobs
 
@@ -85,6 +85,33 @@ One page shows what Claude is working on, what it waits on Tabu for, and what ch
 - **Activity log:** every change to a task, from the CLI or the page, appends one line (time, project/task, what changed) to `activity.log` in the app's data folder. Lines older than 30 days are dropped on write. The pane shows the newest first.
 - **Morning run:** a scheduled task in the Claude desktop app, 07:00 on weekdays, that runs `doit morning`. The command sweeps, then writes one report block to the activity log across all projects: tasks swept, AI tasks In progress, the top three AI To-do tasks, Blocked on you, and Tabu's tasks due within 7 days. It changes nothing beyond what the sweep does. It runs only while the app is open and the Mac awake.
 
+## Marketing
+
+Not built yet. Doit becomes the marketing tool for every game and for Hidden by Design: who to contact, about which game, and which festivals to enter. The problem it solves is that outreach does not happen without a system, and time for it is short, so Doit picks the few relevant contacts and events and hides the rest.
+
+When sitting down for outreach the order is festivals first, then people, then campaigns. The build order differs, because everything matches against the game profiles:
+
+1. **Game profiles.** One per project that is marketed (Bunny Bunker, Rapid Rocket Racing, Good Box and the others, Hidden by Design): genre tags, platforms, stage (in development, demo, released), release date, and what it needs now (wishlists, demo players, press). Kept as `Docs/Marketing/Profile.md` in the project, so it is edited in the Docs view and tracked by that project's git.
+2. **Contacts.** A contact is a person, outlet or event. It has one or more types: influencer, blogger, press, publisher/distribution, tester, festival, conference (with a topic tag: game dev, podcast, design). Its fields: name, channels (YouTube, Twitch, Bluesky, X, Instagram, Facebook, Discord, Steam, website, Linktree), email, reach band (the sheet's A to E, from Tiny over 50 to Huge over 10 000), notes, status (active, dormant, archived) and the games it fits.
+   - **Fit** links a contact to a game profile with a one-line reason. Claude decides fit, by researching the contact (what they play, how recently they post, their size) in batches of 20 to 30, largest reach first. Tabu corrects it.
+   - **Touches** replace the sheet's Replied and Posted Video columns: a log per contact of mails sent, replies and videos posted, each dated and tied to a game.
+   - **Next contact** is a date on the contact; when it comes, the contact shows as due, for the games it fits.
+   - First import: the Google Sheet `Marketing Contact List`, tab New Streamers (227 contacts, mostly YouTube).
+3. **Mail.** Doit uses Tabu's Google Workspace account over IMAP and SMTP, with an app password kept in the macOS Keychain.
+   - Doit only reads one label, **Marketing**. Mail from an address on the contact list is moved there from Inbox and logged as a touch; other mail is never opened.
+   - Sending: one template per pitch (game, hook, trailer, Steam link, the ask), plus one or two personal lines per contact that Claude drafts from the contact's research. Claude only writes drafts; Tabu approves each mail before Doit sends it. A copy lands in Marketing.
+   - Sending and reply detection come first; reading full mail (attachments, HTML) after.
+4. **Festivals and conferences.** Contacts of type festival or conference with dates, application deadline, cost, criteria (genre, required stage such as a demo or unreleased game) and a watching state, so they come and go without being deleted. Only those matching a game profile show. Sources: Steam, Epic, GOG and itch event pages and howtomarketagame.com/festivals, gathered by a scheduled Claude task rather than code in the app.
+5. **Campaigns.** A campaign is an epic in the game's project, optionally tied to a festival or a release (Bunny Bunker at Next Fest). Its tasks point at contacts.
+
+Left out: following people on social media to answer their posts. The platforms' APIs are closed or unstable; a recurring "check these people" task stands in for it.
+
+**Open questions.**
+- What the sheet's BB1 and BB2 columns mean (Bunny Bunker, two campaigns or two versions).
+- Which two categories contacts are split into after research.
+- Each game's stage and its next festival or release date, which decides which profile comes first.
+- Where contacts are stored. Proposed: the app's data folder, not a project's git, since they are personal data shared across projects.
+
 ## Look
 
 Blueprint: the board reads as a drafting sheet. It replaces the greyscale wireframe look; there is one style, no picker. Light and dark follow the system setting.
@@ -136,3 +163,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20, EPIC-004: the Claude view, the activity log, the `blocks` field and the morning run (section Claude view); the morning run is a desktop app schedule and only reports.
 - 2026-11-20, EPIC-011: a folded Parked section joins Completed (was Closed) and Archived, all folded; epics move between open, Parked, Completed and Archived by dragging, and a closed epic reopens with its tasks (section Epics).
 - 2026-11-20: the top bar shows only starred projects; every project, its star and + New project sit in a Projects menu.
+- 2026-11-20: the Marketing section, designed but not built: game profiles, contacts with fit decided by Claude, mail through the Workspace account, festivals, campaigns; build order and open questions (section Marketing).
