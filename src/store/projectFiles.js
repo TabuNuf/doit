@@ -24,8 +24,11 @@ export class ProjectFiles {
     return out;
   }
 
+  /** The file whose title is the epic's; another file named EPIC-nnn-*, such as a brief, is passed over. */
   epicFile(epicId, { archived = false } = {}) {
-    return this.epicFiles({ archived }).map(e => e.file).find(f => path.basename(f).startsWith(epicId + "-") || path.basename(f) === epicId + ".md") || null;
+    const title = new RegExp(`^# ${epicId}:`, "m");
+    return this.epicFiles({ archived }).map(e => e.file)
+      .find(f => (path.basename(f).startsWith(epicId + "-") || path.basename(f) === epicId + ".md") && title.test(this.read(f))) || null;
   }
 
   taskIds() { return listDir(this.tasks).filter(n => n.endsWith(".md")).map(n => n.slice(0, -3)); }

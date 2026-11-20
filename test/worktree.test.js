@@ -59,3 +59,14 @@ test("an epic closed in its worktree shows as closed before the merge", t => {
   assert.ok(closed && closed.closed && !closed.archived, "listed under Closed with its date");
   assert.throws(() => s.board.closeEpic("game", "EPIC-014"), /No open epic/);
 });
+
+test("a brief named like the epic in its worktree does not hide the epic", t => {
+  const s = repoWithWorktree(t);
+  fs.writeFileSync(path.join(s.wt, "GameDocs/Epics/EPIC-014-brief.md"), "# EPIC-014 build brief\n\nNotes for the batch agents.\n");
+
+  assert.ok(s.board.view({ project: "game" }).epics.some(e => e.id === "EPIC-014"));
+  assert.match(s.board.epicDocument("game", "EPIC-014").text, /^# EPIC-014: Online lobby/m);
+  s.board.update("game/T-014.2", { state: "done" });
+  assert.match(s.wtRead("Epics/EPIC-014-online-lobby.md"), /- \[x\] T-014.2/);
+  assert.doesNotMatch(s.wtRead("Epics/EPIC-014-brief.md"), /T-014/);
+});
