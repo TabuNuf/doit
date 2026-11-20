@@ -28,6 +28,7 @@ Design: Design.md, section Epics.
 
 - T-010.3: close a throwaway epic; it leaves the open list, shows under Closed, its tasks are in the Archive tab.
 - T-010.4: unfold Archived; EPIC-001 to EPIC-008 are there and open their documents.
+- Checked by Claude on a throwaway copy of these docs at 1400 px: Archived unfolds with six epics and EPIC-008 opens its document; Close epic on EPIC-010 asked for confirmation (dialog answered by script, not by hand), the epic moved to Closed, and its document stayed shown with Status Done, `Closed: 2026-11-20` and no Close button. Not checked: the confirm dialog itself, dark mode, the stacked layout.
 
 ## Notes
 
