@@ -1,0 +1,14 @@
+{
+  "name": "doit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local task and documentation board shared by Tabu and Claude",
+  "type": "module",
+  "bin": { "doit": "bin/doit.js" },
+  "scripts": {
+    "start": "node bin/server.js",
+    "test": "node --test test/*.test.js",
+    "test:audit": "node --test test/*.test.js test/audit/*.test.js"
+  },
+  "engines": { "node": ">=20" }
+}

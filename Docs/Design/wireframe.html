@@ -1,0 +1,624 @@
+<title>Doit Wireframe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: lo-fi three-pane app. Top bar, left nav pane, centre list, right detail. Greyscale with one blue for selection. */
+:root {
+  --bg: #f3f3f1; --panel: #ffffff; --fill: #e8e8e4; --line: #c4c4be; --ink: #222220; --muted: #75756d;
+  --accent: #2f62c9; --accent-soft: #e3eaf8; --warn: #b4441f; --ok: #3d7a45;
+  --p1: #c0577a; --p2: #3f8f8a; --p3: #b8862e; --p4: #6a5bc2;
+  --body: "Inter", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --fs: 15px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1b1b1a; --panel: #242423; --fill: #30302e; --line: #4a4a46; --ink: #ececE8; --muted: #9b9b92;
+  --accent: #7fa3ec; --accent-soft: #2a3448; --warn: #e3825f; --ok: #7fbf87; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1b1b1a; --panel: #242423; --fill: #30302e; --line: #4a4a46; --ink: #ececE8; --muted: #9b9b92;
+  --accent: #7fa3ec; --accent-soft: #2a3448; --warn: #e3825f; --ok: #7fbf87; color-scheme: dark }
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px; box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; }
+button:hover { border-color: var(--ink); }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .row:focus-visible, .epic:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mono { font-family: var(--mono); font-size: 12px; }
+.muted { color: var(--muted); }
+
+.note { border: 1px dashed var(--line); color: var(--muted); padding: 6px 10px; font-size: 12px; border-radius: 4px; margin-bottom: 10px; }
+.app { display: flex; flex-direction: column; gap: 10px; height: calc(100% - 40px); min-height: 640px; }
+
+/* Top bar */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+.logo { font-weight: 600; letter-spacing: .02em; padding-right: 8px; border-right: 1px solid var(--line); }
+.projects { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 3px 10px; font-size: 13px; }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.views { display: flex; gap: 0; margin-left: auto; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.views button { border: 0; border-radius: 0; border-right: 1px solid var(--line); }
+.views button:last-child { border-right: 0; }
+.views button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.badge { font-size: 11px; background: var(--warn); color: #fff; border-radius: 999px; padding: 0 6px; margin-left: 4px; }
+
+/* Panes */
+.panes { display: grid; grid-template-columns: 250px minmax(0, 1fr) 360px; gap: 10px; flex: 1; min-height: 0; }
+.pane { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.pane-h { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); flex-wrap: wrap; }
+.pane-b { overflow: auto; padding: 8px; flex: 1; min-height: 0; }
+
+/* Epics */
+.group-h { font-size: 12px; color: var(--muted); margin: 10px 4px 4px; display: flex; align-items: center; gap: 6px; }
+.epic { display: block; width: 100%; text-align: left; border: 1px solid transparent; border-radius: 4px; padding: 7px 8px; background: none; }
+.epic:hover { border-color: var(--line); }
+.epic[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.epic .t { display: flex; justify-content: space-between; gap: 6px; }
+.epic .n { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.bar { height: 5px; background: var(--fill); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--ink); opacity: .55; }
+.estate { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+
+/* Toolbar */
+.toolbar { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid var(--line); flex-wrap: wrap; align-items: center; }
+.toolbar input[type=search] { flex: 1; min-width: 160px; border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; background: var(--bg); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; border-right: 1px solid var(--line); padding: 4px 9px; font-size: 13px; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.tabs { display: flex; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 10px; background: none; white-space: nowrap; }
+.tabs button[aria-pressed="true"] { border-bottom-color: var(--ink); font-weight: 600; }
+.tabs .c { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: 4px; }
+.filterline { font-size: 12px; color: var(--muted); padding: 6px 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.filterline button { font-size: 12px; padding: 1px 8px; }
+
+/* Rows */
+.row { display: grid; grid-template-columns: 14px 20px 8px 62px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px; border: 1px solid transparent; border-bottom-color: var(--fill); border-radius: 4px; cursor: pointer; }
+.row:hover { border-color: var(--line); }
+.row[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.row.dragging { opacity: .4; }
+.row.over { border-top: 2px solid var(--accent); }
+.rank { font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: right; cursor: grab; user-select: none; }
+.title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pills { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.pill { font-size: 11px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+.pill.ai { border-style: dashed; }
+.pill.bug { border-color: var(--warn); color: var(--warn); }
+.pill.due { font-family: var(--mono); }
+.pill.late { background: var(--warn); color: #fff; border-color: var(--warn); }
+.grip { width: 10px; height: 16px; cursor: grab; opacity: .55; background-image: radial-gradient(var(--ink) 1.1px, transparent 1.3px); background-size: 5px 5px; }
+.row:hover .grip { opacity: 1; }
+.tdot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.tdot.bug { background: #d1453b; }
+.tdot.task { background: #3a73d6; }
+.own { font-size: 15px; line-height: 1; width: 20px; text-align: center; }
+.filt { position: relative; }
+.filt > button { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; }
+.filt > button svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.filt > button.on { border-color: var(--accent); color: var(--accent); }
+.pop { position: absolute; right: 0; top: calc(100% + 4px); z-index: 5; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; width: 220px; box-shadow: 0 4px 16px rgba(0,0,0,.12); font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
+.pop .sect { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-top: 4px; }
+.pop label { display: flex; align-items: center; gap: 8px; }
+.cmt { border-left: 2px solid var(--line); padding: 2px 0 2px 10px; margin: 0 0 10px; font-size: .92em; }
+.cmt-h { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; margin-bottom: 2px; }
+.cmt-in { width: 100%; border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; background: var(--bg); font-size: 14px; resize: vertical; }
+.legend { display: inline-flex; gap: 10px; align-items: center; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 4px; }
+.empty { padding: 30px 10px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 6px; margin: 10px; }
+
+/* Detail */
+.detail { font-size: var(--fs); line-height: 1.6; }
+.detail h2 { font-size: 1.25em; line-height: 1.3; margin: 4px 0 10px; text-wrap: balance; }
+.kv { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px 10px; font-size: 13px; align-items: center; margin: 12px 0; padding: 10px; background: var(--bg); border-radius: 4px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+.kv select, .kv input[type=date] { border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; background: var(--panel); font-size: 13px; }
+.detail .sect { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 4px; }
+.detail p { margin: 0 0 10px; max-width: 65ch; }
+.detail ul { padding-left: 18px; margin: 0 0 10px; }
+.fsz { margin-left: auto; display: inline-flex; gap: 4px; align-items: center; text-transform: none; letter-spacing: 0; }
+.fsz button { padding: 1px 8px; }
+.toggle { display: inline-flex; align-items: center; gap: 6px; }
+.warnline { color: var(--warn); font-size: 12px; }
+
+/* Docs and marketing */
+.tree a { display: block; padding: 5px 8px; border-radius: 4px; color: inherit; text-decoration: none; cursor: pointer; }
+.tree a:hover { background: var(--fill); }
+.tree a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
+.tree .dir { font-size: 12px; color: var(--muted); margin: 8px 8px 2px; }
+.doc { font-size: var(--fs); line-height: 1.65; max-width: 70ch; }
+.doc h1 { font-size: 1.5em; margin: 0 0 6px; }
+.doc h3 { font-size: 1.05em; margin: 18px 0 4px; }
+.doc textarea { width: 100%; min-height: 360px; font-family: var(--mono); font-size: 13px; border: 1px solid var(--line); border-radius: 4px; padding: 8px; background: var(--bg); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--fill); vertical-align: top; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 500; }
+.tbl { overflow-x: auto; }
+.score { font-family: var(--mono); display: inline-flex; align-items: center; gap: 6px; }
+.score i { display: inline-block; height: 6px; background: var(--ink); opacity: .5; border-radius: 3px; }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin-bottom: 8px; }
+.card .h { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.log li { margin-bottom: 6px; }
+.added { color: var(--ok); font-size: 12px; }
+.mk-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+
+.sec-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding: 10px 8px 6px; margin-top: 4px; border-top: 1px solid var(--line); }
+.sec-h:first-child { border-top: 0; margin-top: 0; }
+.sec-h .c { font-family: var(--mono); color: var(--muted); }
+.sec-h .muted { text-transform: none; letter-spacing: 0; }
+.sec-h.over { background: var(--accent-soft); }
+.pill.st { cursor: pointer; background: var(--panel); }
+.pill.st.prog { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.setting { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 10px; font-size: 13px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.setting input { width: 56px; border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; background: var(--panel); }
+.form { background: var(--panel); border: 1px solid var(--accent); border-radius: 6px; padding: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.form label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); }
+.form input, .form select { border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; background: var(--bg); color: var(--ink); min-width: 0; }
+.form .err { color: var(--warn); font-size: 12px; width: 100%; }
+.addbtn { display: block; width: 100%; text-align: left; border: 1px dashed var(--line); background: none; color: var(--muted); font-size: 12px; margin: 6px 0 2px; }
+
+@media (max-width: 1100px) { .panes { grid-template-columns: 220px minmax(0, 1fr); } .panes > .pane:nth-child(3) { grid-column: 1 / -1; min-height: 360px; } }
+@media (max-width: 720px) { .app { height: auto; } .panes { grid-template-columns: minmax(0, 1fr); } .pane { max-height: none; } .pane-b { max-height: 70vh; } .views { margin-left: 0; } .row { grid-template-columns: 14px 20px 8px 58px minmax(0,1fr); } .row .pills { grid-column: 4 / -1; justify-content: flex-start; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="note">Low-fidelity wireframe, nothing is saved. Every project, task, event and person on this page is a made-up example. Try: + Project, click an epic, drag rows by the dotted handle between Active and Backlog, open the funnel filter, click a To-do pill to start it, change how long Completed keeps tasks, toggle a deadline, change font size in the detail pane.</div>
+
+<div class="app">
+  <header class="top">
+    <span class="logo">Doit</span>
+    <div class="projects" id="projects"></div>
+    <nav class="views" id="views" aria-label="Views"></nav>
+  </header>
+  <div id="modal"></div>
+  <div class="panes" id="panes"></div>
+</div>
+
+<script>
+const TODAY = "2026-11-20";
+const PROJECTS = [
+  { id: "cb",  name: "ClobberBop",          color: "var(--p1)" },
+  { id: "bt",  name: "Box Trainer",         color: "var(--p2)" },
+  { id: "bkd", name: "Bunny King Defence",  color: "var(--p3)" },
+  { id: "mkt", name: "Marketing",           color: "var(--p4)" },
+];
+const EPICS = [
+  { id: "EPIC-014", p: "cb",  name: "Online lobby",          status: "Active" },
+  { id: "EPIC-015", p: "cb",  name: "Playtest round 6",      status: "Active" },
+  { id: "EPIC-009", p: "cb",  name: "Bugs (rolling)",        status: "Active" },
+  { id: "EPIC-016", p: "cb",  name: "Steam store page",      status: "Planned" },
+  { id: "EPIC-021", p: "bt",  name: "Fog of war",            status: "Active" },
+  { id: "EPIC-012", p: "bt",  name: "Bugs (rolling)",        status: "Active" },
+  { id: "EPIC-003", p: "bkd", name: "Tower upgrades",        status: "Parked" },
+  { id: "EPIC-001", p: "mkt", name: "Events 2027",           status: "Active" },
+  { id: "EPIC-002", p: "mkt", name: "Influencer outreach",   status: "Active" },
+  { id: "EPIC-004", p: "mkt", name: "Community",             status: "Active" },
+];
+const T = (id, p, e, type, owner, state, title, extra = {}) => ({ id, p, e, type, owner, state, title, created: "2026-11-12 09:14", updated: "2026-11-19 16:40", deadline: null, desc: "", done: "", source: "", ...extra });
+let TASKS = [
+  T("T-014.3","cb","EPIC-014","task","ai","progress","Host migration when the lobby owner leaves",{desc:"When the player who created the lobby quits, the next player in join order becomes host. Match state is kept; nobody is kicked back to the menu.",done:"Two-player loopback test: host quits mid-lobby, second player becomes host and can start the match.",updated:"2026-11-20 08:52"}),
+  T("T-014.4","cb","EPIC-014","task","ai","todo","Show ping next to each player name",{desc:"Ping in milliseconds, refreshed every second, grey above 150 ms.",done:"Visible in lobby for all players in a loopback session."}),
+  T("T-014.5","cb","EPIC-014","task","human","todo","Decide max lobby size: 4 or 8",{desc:"Claude needs this before T-014.6. Recommendation in the epic file: 4, because the arena is tuned for four.",deadline:"2026-11-22"}),
+  T("T-014.6","cb","EPIC-014","task","ai","backlog","Lobby browser with region filter",{desc:"List open lobbies, filter by region."}),
+  T("T-014.1","cb","EPIC-014","task","ai","done","Create and join lobby by code",{updated:"2026-11-15 11:02"}),
+  T("T-014.2","cb","EPIC-014","task","ai","done","Ready-up flow",{updated:"2026-11-17 14:20"}),
+  T("T-015.1","cb","EPIC-015","task","human","todo","Play round 6 build and report findings",{desc:"Play 3 matches on the epic's worktree build. Report loosely, by voice is fine. Each report becomes a numbered finding.",deadline:"2026-11-24"}),
+  T("T-015.2","cb","EPIC-015","bug","ai","todo","Knockback stacks when two hits land on the same frame",{desc:"Seen in playtest round 6: the player flew off the map after a double hit. Reproduce headless first, then check against GameDesign.md before fixing."}),
+  T("T-009.7","cb","EPIC-009","bug","ai","progress","Menu music restarts when returning from settings",{updated:"2026-11-20 07:31"}),
+  T("T-009.6","cb","EPIC-009","bug","ai","done","Controller disconnect freezes pause menu"),
+  T("T-016.1","cb","EPIC-016","task","human","backlog","Capsule art brief",{desc:"Main capsule, header and library hero. Brief the artist from the style guide."}),
+  T("T-021.2","bt","EPIC-021","task","ai","progress","Reveal ground the agent has walked",{updated:"2026-11-20 06:10"}),
+  T("T-021.3","bt","EPIC-021","task","ai","todo","Rivals under fog are heard, not seen"),
+  T("T-021.1","bt","EPIC-021","task","ai","done","Fog layer renders over terrain"),
+  T("T-012.4","bt","EPIC-012","bug","human","todo","Confirm: should water do damage?",{desc:"Rule as written says no. You reported it as a bug. Answer decides whether this is a fix or a design change."}),
+  T("T-003.1","bkd","EPIC-003","task","human","backlog","Interview: what should tier 3 towers do?"),
+  T("T-001.4","mkt","EPIC-001","task","human","todo","Register for Steam Next Fest (Feb 2027)",{desc:"Fetched by Claude from Steam's upcoming events. Fits profile: PC, indie, demo-ready. Needs a public demo and store page live before the registration deadline.",deadline:"2026-12-05",source:"Auto-fetched from Steamworks events, 2026-11-20 07:00"}),
+  T("T-001.5","mkt","EPIC-001","task","human","todo","Apply to Epic Games Store indie showcase",{deadline:"2026-12-12",source:"Auto-fetched from Epic dev portal, 2026-11-20 07:00"}),
+  T("T-001.2","mkt","EPIC-001","task","human","archived","Submit to cozy games showcase",{deadline:"2026-11-18",archivedReason:"Deadline passed on 2026-11-18",source:"Auto-fetched, 2026-11-06 07:00"}),
+  T("T-002.3","mkt","EPIC-002","task","human","todo","Email 5 Tier A creators about ClobberBop demo",{desc:"Claude drafted the five emails in Day Drop. Each contact is past their 60-day cooldown.",deadline:"2026-11-27"}),
+  T("T-002.2","mkt","EPIC-002","task","ai","progress","Score new contacts from last week's import",{updated:"2026-11-20 07:12"}),
+  T("T-004.2","mkt","EPIC-004","task","human","todo","Reply to r/indiegames thread on couch party games",{desc:"Found by Day Drop. 140 comments, asks for local multiplayer recommendations. Suggested reply drafted.",source:"Day Drop, 2026-11-20 07:05"}),
+  T("T-004.1","mkt","EPIC-004","task","human","done","Post devlog #12"),
+];
+const DONE_AT = { "T-014.1": "2026-11-15", "T-014.2": "2026-11-17", "T-009.6": "2026-11-10", "T-021.1": "2026-11-08", "T-004.1": "2026-11-01" };
+TASKS.forEach(t => { t.completedAt = DONE_AT[t.id] || null; t.comments = []; });
+TASKS.find(t => t.id === "T-014.3").comments = [
+  { who: "human", at: "2026-11-19 21:10", text: "Keep the chat history when the host changes." },
+  { who: "ai", at: "2026-11-20 08:52", text: "Done: chat history now moves with the lobby. Loopback test passes. Next is the mid-countdown case." },
+];
+const ORDER = {
+  active: TASKS.filter(t => t.state === "progress" || t.state === "todo").map(t => t.id),
+  backlog: TASKS.filter(t => t.state === "backlog").map(t => t.id),
+};
+const COLORS = ["var(--p1)", "var(--p2)", "var(--p3)", "var(--p4)"];
+
+const S = { project: "all", view: "board", epic: null, tab: "open", q: "", owner: "all", sel: "T-014.3", font: 15, doc: "GameDesign.md", editing: false, keep: 14, newProj: false, npErr: "", f: { task: true, bug: true, due: "any" }, fOpen: false };
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const proj = id => PROJECTS.find(p => p.id === id);
+const fmtDate = d => new Date(d + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+const daysLeft = d => Math.round((new Date(d) - new Date(TODAY)) / 864e5);
+
+function autoArchive() {
+  TASKS.forEach(t => {
+    if (t.deadline && t.state !== "done" && t.state !== "archived" && daysLeft(t.deadline) < 0) { setState(t, "archived"); t.archivedReason = "Deadline passed on " + fmtDate(t.deadline); }
+    else if (t.state === "done" && t.completedAt && -daysLeft(t.completedAt) > S.keep) { setState(t, "archived"); t.archivedReason = "Completed " + fmtDate(t.completedAt) + ", kept " + S.keep + " days"; }
+  });
+}
+
+function scoped() {
+  return TASKS.filter(t => (S.project === "all" || t.p === S.project));
+}
+function visible() {
+  const q = S.q.trim().toLowerCase();
+  const dueOk = t => S.f.due === "any" || (S.f.due === "has" && t.deadline) || (S.f.due === "none" && !t.deadline) || (S.f.due === "week" && t.deadline && daysLeft(t.deadline) <= 7);
+  let list = scoped().filter(t => (!S.epic || t.e === S.epic) && (S.owner === "all" || t.owner === S.owner) && S.f[t.type] && dueOk(t)
+    && (!q || t.id.toLowerCase().includes(q) || t.title.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q)));
+  return list;
+}
+
+function renderTop() {
+  const all = [{ id: "all", name: "All projects" }, ...PROJECTS];
+  $("#projects").innerHTML = all.map(p => `<button class="chip" aria-pressed="${S.project === p.id}" data-p="${p.id}">${p.color ? `<span class="dot" style="background:${p.color}"></span>` : ""}${esc(p.name)}</button>`).join("") + `<button class="chip" data-newproj style="border-style:dashed">+ Project</button>`;
+  $("#modal").innerHTML = S.newProj ? `<div class="form" role="dialog" aria-label="New project">
+    <label for="np-name">Project name<input id="np-name" placeholder="Storm Haven"></label>
+    <label for="np-path">Folder<input id="np-path" placeholder="~/Unity/Storm-Haven" style="width:220px"></label>
+    <label for="np-kind">Kind<select id="np-kind"><option>Game</option><option>Studio (marketing, admin)</option><option>Other</option></select></label>
+    <button data-create>Create project</button><button data-cancelproj>Cancel</button>
+    <div class="muted" style="font-size:12px;width:100%">Creates Docs/Design, Docs/Epics and Docs/Epics/Completed in the folder if they are missing, plus a rolling bug epic.</div>
+    ${S.npErr ? `<div class="err">${esc(S.npErr)}</div>` : ""}</div>` : "";
+  const needs = TASKS.filter(t => t.owner === "human" && t.state === "todo" && t.deadline && daysLeft(t.deadline) <= 7).length;
+  const views = [["board","Board"],["docs","Docs"],["marketing","Marketing"],["claude","Claude"]];
+  $("#views").innerHTML = views.map(([v, l]) => `<button aria-pressed="${S.view === v}" data-v="${v}">${l}${v === "board" && needs ? `<span class="badge" title="Your tasks due within 7 days">${needs}</span>` : ""}</button>`).join("");
+}
+
+function epicBtn(e) {
+  const ts = TASKS.filter(t => t.e === e.id);
+  const d = ts.filter(t => t.state === "done").length;
+  const pct = ts.length ? Math.round(d / ts.length * 100) : 0;
+  return `<button class="epic" aria-pressed="${S.epic === e.id}" data-e="${e.id}">
+    <div class="t"><span>${esc(e.name)}</span><span class="n">${d}/${ts.length}</span></div>
+    <div class="t"><span class="n">${e.id}</span><span class="estate">${e.status}</span></div>
+    <div class="bar"><i style="width:${pct}%"></i></div></button>`;
+}
+
+function renderEpicPane() {
+  const ps = S.project === "all" ? PROJECTS : [proj(S.project)];
+  return `<section class="pane"><div class="pane-h">Epics${S.epic ? `<button class="fsz" data-clear-epic style="text-transform:none">Show all</button>` : ""}</div><div class="pane-b">
+    ${ps.map(p => `<div class="group-h"><span class="dot" style="background:${p.color}"></span>${esc(p.name)}</div>${EPICS.filter(e => e.p === p.id).map(epicBtn).join("")}<button class="addbtn" data-newepic="${p.id}">+ New epic</button>`).join("")}
+    </div></section>`;
+}
+
+const TABS = [["open","Open"],["done","Completed"],["archived","Archive"]];
+const STATES = [["todo","To-do"],["progress","In progress"],["backlog","Backlog"],["done","Completed"],["archived","Archived"]];
+const tabOf = st => st === "done" ? "done" : st === "archived" ? "archived" : "open";
+const secOf = st => st === "backlog" ? "backlog" : "active";
+const byOrder = sec => (a, b) => ORDER[sec].indexOf(a.id) - ORDER[sec].indexOf(b.id);
+
+function rowHtml(t, i, sec) {
+  const p = proj(t.p);
+  const dl = t.deadline ? daysLeft(t.deadline) : null;
+  const due = t.deadline && t.state !== "archived" && t.state !== "done" ? `<span class="pill due ${dl <= 2 ? "late" : ""}" title="Deadline">${dl < 0 ? "late" : "due " + fmtDate(t.deadline)}</span>` : "";
+  const open = sec === "active" || sec === "backlog";
+  const grip = open ? `<span class="grip" title="Drag to reorder (or Alt + arrow keys)" aria-hidden="true"></span>` : `<span></span>`;
+  const rank = sec === "active" ? `<span class="rank">${i + 1}</span>` : `<span class="rank"></span>`;
+  const tdot = `<span class="tdot ${t.type}" title="${t.type === "bug" ? "Bug" : "Task"}"></span>`;
+  const st = sec === "active" ? `<button class="pill st ${t.state === "progress" ? "prog" : ""}" data-cyc="${t.id}" title="Click to switch">${t.state === "progress" ? "In progress" : "To-do"}</button>` : "";
+  const left = t.state === "done" && t.completedAt ? `<span class="pill due" title="Moves to archive">archives in ${Math.max(0, S.keep + daysLeft(t.completedAt))} d</span><button class="pill st" data-reopen="${t.id}">Reopen</button>` : "";
+  const arch = t.state === "archived" ? `<button class="pill st" data-reopen="${t.id}">Restore</button>` : "";
+  return `<div class="row" tabindex="0" role="option" aria-selected="${S.sel === t.id}" data-id="${t.id}" data-sec="${sec}" draggable="${open}">
+    ${grip}${rank}${tdot}<span class="mono muted">${t.id}</span><span class="title">${esc(t.title)}</span>
+    <span class="pills">${st}${due}
+      ${S.project === "all" ? `<span class="pill"><span class="dot" style="background:${p.color}"></span>${esc(p.name)}</span>` : ""}${left}${arch}
+      <span class="own" title="${t.owner === "ai" ? "Claude" : "You"}" aria-label="${t.owner === "ai" ? "Claude" : "You"}">${t.owner === "ai" ? "🤖" : "🧑"}</span></span></div>`;
+}
+
+function listBody(base) {
+  const none = msg => `<div class="empty">${msg}</div>`;
+  if (S.tab === "open") {
+    const act = base.filter(t => t.state === "todo" || t.state === "progress").sort(byOrder("active"));
+    const back = base.filter(t => t.state === "backlog").sort(byOrder("backlog"));
+    return `<div class="sec-h" data-drop="active">Active<span class="c">${act.length}</span><span class="muted">Ranked. Drag rows, or drop here to move up from the backlog.</span></div>
+      ${act.map((t, i) => rowHtml(t, i, "active")).join("") || none("Nothing active. Drag something up from the backlog.")}
+      <div class="sec-h" data-drop="backlog">Backlog<span class="c">${back.length}</span><span class="muted">Not planned. Claude does not pick these up.</span></div>
+      ${back.map((t, i) => rowHtml(t, i, "backlog")).join("") || none("Backlog is empty.")}`;
+  }
+  if (S.tab === "done") {
+    const list = base.filter(t => t.state === "done").sort((a, b) => (b.completedAt || "").localeCompare(a.completedAt || ""));
+    return `<div class="setting"><label for="keep">Move completed tasks to the archive after</label><input type="number" id="keep" min="1" max="90" value="${S.keep}"> days</div>
+      ${list.map((t, i) => rowHtml(t, i, "done")).join("") || none("Nothing completed in the last " + S.keep + " days.")}`;
+  }
+  const list = base.filter(t => t.state === "archived");
+  return `<div class="setting">Claude never reads the archive. Archived tasks are stored outside the folders it loads.</div>
+    ${list.map((t, i) => rowHtml(t, i, "archived")).join("") || none("Archive is empty.")}`;
+}
+
+function renderListPane() {
+  const base = visible();
+  const epic = EPICS.find(e => e.id === S.epic);
+  return `<section class="pane">
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Search by number (T-014) or text" value="${esc(S.q)}" aria-label="Search tasks">
+      <div class="seg" role="group" aria-label="Owner">${[["all","All"],["human","🧑 Mine"],["ai","🤖 Claude's"]].map(([v,l]) => `<button aria-pressed="${S.owner === v}" data-o="${v}">${l}</button>`).join("")}</div>
+      <div class="filt"><button data-fopen aria-expanded="${S.fOpen}" aria-label="Filter" class="${!S.f.task || !S.f.bug || S.f.due !== "any" ? "on" : ""}"><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>${!S.f.task || !S.f.bug || S.f.due !== "any" ? "On" : ""}</button>
+        ${S.fOpen ? `<div class="pop" role="dialog" aria-label="Filter">
+          <div class="sect">Type</div>
+          <label><input type="checkbox" id="f-task" ${S.f.task ? "checked" : ""}><span class="tdot task"></span>Tasks</label>
+          <label><input type="checkbox" id="f-bug" ${S.f.bug ? "checked" : ""}><span class="tdot bug"></span>Bugs</label>
+          <div class="sect">Due date</div>
+          ${[["any","Any"],["week","Due within 7 days"],["has","Has a due date"],["none","No due date"]].map(([v,l]) => `<label><input type="radio" name="f-due" value="${v}" ${S.f.due === v ? "checked" : ""}>${l}</label>`).join("")}
+          <button data-freset style="margin-top:6px">Clear filters</button></div>` : ""}</div>
+      <button>+ Task</button>
+    </div>
+    <div class="tabs" role="tablist">${TABS.map(([v,l]) => `<button role="tab" aria-pressed="${S.tab === v}" data-t="${v}">${l}<span class="c">${base.filter(t => tabOf(t.state) === v).length}</span></button>`).join("")}</div>
+    ${epic ? `<div class="filterline">Filtered to <b>${epic.id} ${esc(epic.name)}</b><button data-clear-epic>Clear</button></div>` : ""}
+    <div class="pane-b" role="listbox" id="list">${listBody(base)}</div>
+  </section>`;
+}
+
+function fontCtl() {
+  return `<span class="fsz"><button data-fs="-1" aria-label="Smaller text">A−</button><span class="mono">${S.font}</span><button data-fs="1" aria-label="Larger text">A+</button></span>`;
+}
+
+function renderDetailPane() {
+  const t = TASKS.find(x => x.id === S.sel);
+  if (!t) return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b"><div class="empty">Select a task.</div></div></section>`;
+  const p = proj(t.p), e = EPICS.find(x => x.id === t.e);
+  const dl = t.deadline ? daysLeft(t.deadline) : null;
+  return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b detail">
+    <div class="mono muted">${t.id} · ${esc(e.name)}</div>
+    <h2>${esc(t.title)}</h2>
+    <div class="pills" style="justify-content:flex-start"><span class="pill"><span class="tdot ${t.type}"></span>${t.type === "bug" ? "Bug" : "Task"}</span><span class="pill">${t.owner === "ai" ? "🤖 Claude" : "🧑 You"}</span><span class="pill"><span class="dot" style="background:${p.color}"></span>${esc(p.name)}</span></div>
+    <dl class="kv">
+      <dt>State</dt><dd><select id="st">${STATES.map(([v,l]) => `<option value="${v}" ${t.state === v ? "selected" : ""}>${l}</option>`).join("")}</select></dd>
+      <dt>Owner</dt><dd><div class="seg">${[["human","Human"],["ai","AI"]].map(([v,l]) => `<button aria-pressed="${t.owner === v}" data-own="${v}">${l}</button>`).join("")}</div></dd>
+      <dt>Deadline</dt><dd><label class="toggle"><input type="checkbox" id="dlon" ${t.deadline ? "checked" : ""}> Archive when passed</label>
+        ${t.deadline ? `<div><input type="date" id="dl" value="${t.deadline}"> <span class="muted">${dl < 0 ? "passed" : dl + " days left"}</span></div>` : ""}</dd>
+      <dt>Created</dt><dd class="mono">${t.created}</dd>
+      <dt>Updated</dt><dd class="mono">${t.updated}</dd>
+      ${t.source ? `<dt>Source</dt><dd>${esc(t.source)}</dd>` : ""}
+      ${t.archivedReason ? `<dt>Archived</dt><dd class="warnline">${esc(t.archivedReason)}</dd>` : ""}
+    </dl>
+    <div class="sect">Description</div>
+    <p>${esc(t.desc || "No description yet.")}</p>
+    <div class="sect">Done when</div>
+    <p>${esc(t.done || "Not written yet.")}</p>
+    <div class="sect">Comments<span class="muted" style="text-transform:none;letter-spacing:0"> · ${(t.comments || []).length}</span></div>
+    ${(t.comments || []).map(c => `<div class="cmt"><div class="cmt-h"><span>${c.who === "ai" ? "🤖 Claude" : "🧑 You"}</span><span class="mono muted">${c.at}</span></div><div>${esc(c.text)}</div></div>`).join("")}
+    <label for="cmt" class="muted" style="font-size:12px">Add a comment</label>
+    <textarea id="cmt" class="cmt-in" rows="3" placeholder="Write a comment. Claude reads new comments on its tasks before it continues."></textarea>
+    <div style="display:flex;justify-content:flex-end;margin-top:6px"><button data-addcmt>Comment</button></div>
+    <div class="sect">Activity</div>
+    <ul class="muted" style="font-size:.85em"><li>${t.updated} · ${t.owner === "ai" ? "Claude" : "You"} changed state</li><li>${t.created} · created from ${esc(t.e)} epic file</li></ul>
+    <div class="muted mono" style="font-size:11px">Stored in ${esc(p.name)}/Docs/${t.state === "archived" ? "Archive" : t.state === "done" ? "Epics/Completed" : "Epics"}/${t.e}-*.md${t.state === "archived" ? " (Claude never reads this folder)" : ""}</div>
+  </div></section>`;
+}
+
+/* Docs view */
+const DOCS = {
+  "Design": ["GameDesign.md", "StyleGuide.md", "ArtBible.md", "Later.md"],
+  "": ["Architecture.md", "Playtest.md", "UIRules.md"],
+  "Epics": ["EPIC-014-online-lobby.md", "EPIC-015-playtest-6.md"],
+  "Epics/Completed": ["EPIC-013-netplay.md"],
+};
+function renderDocs() {
+  const p = S.project === "all" ? PROJECTS[0] : proj(S.project);
+  const tree = Object.entries(DOCS).map(([dir, files]) => `<div class="dir">${esc(p.name)}/Docs/${dir}</div>${files.map(f => `<a data-doc="${f}" aria-current="${S.doc === f}">${f}</a>`).join("")}`).join("");
+  const body = S.editing
+    ? `<textarea id="ed" aria-label="Edit document"># ${p.name}: Game design\n\n## Core loop\nUp to four players knock each other off a shrinking arena...\n\n## Changelog\n- 2026-11-19: max lobby size question added (EPIC-014)</textarea>`
+    : `<h1>${esc(S.doc.replace(".md",""))}</h1><div class="muted mono" style="font-size:11px">Last edited by Claude, 2026-11-19 16:40 · ${esc(p.name)}/Docs/Design/${esc(S.doc)}</div>
+       <h3>Core loop</h3><p>Up to four players knock each other off a shrinking arena. Each round lasts about 90 seconds. Example text standing in for the real document.</p>
+       <h3>Online play</h3><p>Lobbies are created by code. The host can leave without ending the lobby (EPIC-014).</p>
+       <h3>Changelog</h3><ul><li>2026-11-19: max lobby size question added (EPIC-014)</li><li>2026-11-03: knockback curve retuned (EPIC-013)</li></ul>`;
+  return `<section class="pane"><div class="pane-h">Documents</div><div class="pane-b tree">${S.project === "all" ? `<div class="filterline">Pick a project to see its docs. Showing ${esc(p.name)}.</div>` : ""}${tree}<div class="group-h" style="margin-top:14px">+ New doc</div></div></section>
+  <section class="pane"><div class="pane-h">${esc(S.doc)}<span class="fsz"><button data-edit>${S.editing ? "Done" : "Edit"}</button>${fontCtl().replace('<span class="fsz">','').replace(/<\/span>$/,'')}</span></div><div class="pane-b"><div class="doc">${body}</div></div></section>
+  <section class="pane"><div class="pane-h">Linked</div><div class="pane-b detail" style="font-size:14px">
+    <div class="sect">Tasks that cite this doc</div>
+    ${TASKS.filter(t => t.p === p.id).slice(0, 4).map(t => `<div class="card"><div class="mono muted">${t.id}</div>${esc(t.title)}</div>`).join("")}
+    <div class="sect">Moved from Confluence</div><p class="muted">Pages imported from the Confluence space keep their original URL here as a note.</p>
+  </div></section>`;
+}
+
+/* Marketing view */
+const EVENTS = [
+  { name: "Steam Next Fest", when: "Feb 2027", src: "Steam", signup: "2026-12-05", fit: 92, why: "PC, indie, needs demo", task: "T-001.4" },
+  { name: "Epic indie showcase", when: "Jan 2027", src: "Epic", signup: "2026-12-12", fit: 78, why: "Store page on Epic", task: "T-001.5" },
+  { name: "Couch co-op sale", when: "Mar 2027", src: "Steam", signup: "2027-01-15", fit: 88, why: "Local multiplayer theme", task: null },
+  { name: "Nordic game showcase", when: "Apr 2027", src: "Web", signup: "2027-02-01", fit: 64, why: "Region match, fee applies", task: null },
+  { name: "Puzzle fest", when: "Feb 2027", src: "Steam", signup: "2026-12-20", fit: 31, why: "Genre does not match", task: null },
+];
+const THREADS = [
+  { sub: "r/indiegames", title: "Best couch party games for 4 players?", score: 140, why: "Exact audience for ClobberBop", task: "T-004.2" },
+  { sub: "r/gamedev", title: "How did you get into Next Fest?", score: 62, why: "You can answer from experience", task: null },
+  { sub: "r/LocalMultiplayer", title: "Looking for chaotic brawlers", score: 38, why: "Recommendation thread", task: null },
+];
+const PEOPLE = [
+  { name: "Cozy Corner Plays", plat: "YouTube", aud: "210k", val: 86, last: "2026-08-30", next: "ClobberBop demo", ok: true },
+  { name: "Pixel Pal Reviews", plat: "Twitch", aud: "45k", val: 72, last: "2026-10-28", next: "Cooldown until 27 Dec", ok: false },
+  { name: "Party Game Weekly", plat: "Newsletter", aud: "18k", val: 68, last: "2026-07-14", next: "ClobberBop demo", ok: true },
+  { name: "Indie Spotlight DK", plat: "TikTok", aud: "92k", val: 54, last: "never", next: "Intro email", ok: true },
+];
+function scoreBar(v) { return `<span class="score">${v}<i style="width:${v * 0.5}px"></i></span>`; }
+function renderMarketing() {
+  return `<section class="pane"><div class="pane-h">This week</div><div class="pane-b detail" style="font-size:14px">
+    <div class="muted mono" style="font-size:11px">Planned by Claude · Fri 2026-11-20 07:00 · next run Mon 07:00</div>
+    <div class="sect">Do this week</div>
+    <ol style="padding-left:18px"><li>Register for Steam Next Fest. Deadline 5 Dec, demo must be public first.</li><li>Send the 5 drafted creator emails.</li><li>Reply to the r/indiegames thread.</li></ol>
+    <div class="sect">Can wait</div><ul><li>Epic showcase application (12 Dec)</li></ul>
+    <div class="sect">Profile used</div><p class="muted">PC and console, indie, local multiplayer, free or low fee, EU or online. <a href="#" onclick="return false">Edit profile</a></p>
+    <div class="sect">Sources</div><ul class="muted"><li>Steamworks events</li><li>Epic dev portal</li><li>Day Drop (Reddit)</li><li>Event calendars (web)</li></ul>
+  </div></section>
+  <section class="pane"><div class="pane-h">Fetched today</div><div class="pane-b mk-grid">
+    <div><div class="sect pane-h" style="border:0;padding:4px 0">Events</div><div class="tbl"><table><thead><tr><th>Event</th><th>When</th><th>Sign up by</th><th>Fit</th><th></th></tr></thead><tbody>
+      ${EVENTS.map(e => `<tr><td>${esc(e.name)}<div class="muted" style="font-size:12px">${e.src} · ${esc(e.why)}</div></td><td>${e.when}</td><td class="mono">${fmtDate(e.signup)}</td><td>${scoreBar(e.fit)}</td><td>${e.task ? `<span class="added">${e.task}</span>` : e.fit >= 60 ? `<button data-mk="${esc(e.name)}">Make task</button>` : `<span class="muted" style="font-size:12px">Below fit</span>`}</td></tr>`).join("")}
+    </tbody></table></div></div>
+    <div><div class="sect pane-h" style="border:0;padding:4px 0">Reddit threads (via Day Drop)</div>
+      ${THREADS.map(t => `<div class="card"><div class="h"><span class="mono muted">${t.sub} · ${t.score} comments</span>${t.task ? `<span class="added">${t.task}</span>` : `<button data-mk="${esc(t.title)}">Make task</button>`}</div>${esc(t.title)}<div class="muted" style="font-size:12px">${esc(t.why)}</div></div>`).join("")}
+    </div>
+  </div></section>
+  <section class="pane"><div class="pane-h">Influencers</div><div class="pane-b">
+    <div class="filterline">Value score from audience fit, reach and past response. Contact cooldown 60 days.</div>
+    <div class="tbl"><table><thead><tr><th>Contact</th><th>Value</th><th>Next</th></tr></thead><tbody>
+      ${PEOPLE.map(c => `<tr><td>${esc(c.name)}<div class="muted" style="font-size:12px">${c.plat} · ${c.aud} · last ${c.last === "never" ? "never" : fmtDate(c.last)}</div></td><td>${scoreBar(c.val)}</td><td style="font-size:12px" class="${c.ok ? "" : "muted"}">${esc(c.next)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="group-h" style="margin-top:14px">+ Add contact · Import CSV</div>
+  </div></section>`;
+}
+
+/* Claude view */
+function renderClaude() {
+  const ai = TASKS.filter(t => t.owner === "ai");
+  const now = ai.filter(t => t.state === "progress");
+  const next = ai.filter(t => t.state === "todo").sort(byOrder("active"));
+  const waiting = TASKS.filter(t => t.owner === "human" && t.state === "todo" && /Decide|Confirm|Interview/.test(t.title));
+  const card = t => `<div class="card" data-goto="${t.id}" style="cursor:pointer"><div class="h"><span class="mono muted">${t.id}</span><span class="pill"><span class="dot" style="background:${proj(t.p).color}"></span>${esc(proj(t.p).name)}</span></div>${esc(t.title)}<div class="muted mono" style="font-size:11px">last activity ${t.updated}</div></div>`;
+  return `<section class="pane"><div class="pane-h">Working on now</div><div class="pane-b">${now.map(card).join("") || `<div class="empty">Idle</div>`}</div></section>
+  <section class="pane"><div class="pane-h">Blocked on you</div><div class="pane-b">${waiting.map(card).join("")}
+    <div class="sect pane-h" style="border:0;padding:12px 0 4px">Up next for Claude</div>${next.map(card).join("")}</div></section>
+  <section class="pane"><div class="pane-h">Activity log</div><div class="pane-b detail" style="font-size:13px"><ul class="log mono" style="padding-left:0;list-style:none">
+    <li>08:52 · T-014.3 · pushed commit, loopback test passing</li>
+    <li>07:31 · T-009.7 · started, reproduced headless</li>
+    <li>07:12 · T-002.2 · scored 14 new contacts</li>
+    <li>07:05 · Day Drop · 3 threads found, 1 made a task</li>
+    <li>07:00 · Morning run · 5 events fetched, 2 made tasks</li>
+    <li>07:00 · Archive · T-001.2 deadline passed</li>
+    <li>06:10 · T-021.2 · started</li></ul></div></section>`;
+}
+
+function render() {
+  autoArchive();
+  document.documentElement.style.setProperty("--fs", S.font + "px");
+  renderTop();
+  const panes = $("#panes");
+  if (S.view === "board") panes.innerHTML = renderEpicPane() + renderListPane() + renderDetailPane();
+  else if (S.view === "docs") panes.innerHTML = renderDocs();
+  else if (S.view === "marketing") panes.innerHTML = renderMarketing();
+  else panes.innerHTML = renderClaude();
+  bindDrag();
+}
+
+function move(id, dir) {
+  const t = TASKS.find(x => x.id === id), sec = secOf(t.state);
+  const ids = visible().filter(x => secOf(x.state) === sec && tabOf(x.state) === "open").sort(byOrder(sec)).map(x => x.id);
+  const i = ids.indexOf(id), j = i + dir;
+  if (j < 0 || j >= ids.length) return;
+  const a = ORDER[sec].indexOf(ids[i]), b = ORDER[sec].indexOf(ids[j]);
+  [ORDER[sec][a], ORDER[sec][b]] = [ORDER[sec][b], ORDER[sec][a]];
+  render();
+}
+
+/* Put a task into a section of the Open list, before another task or at the top. */
+function place(id, sec, beforeId) {
+  const t = TASKS.find(x => x.id === id);
+  if (secOf(t.state) !== sec || tabOf(t.state) !== "open") setState(t, sec === "backlog" ? "backlog" : "todo");
+  ORDER.active = ORDER.active.filter(x => x !== id);
+  ORDER.backlog = ORDER.backlog.filter(x => x !== id);
+  const at = beforeId ? ORDER[sec].indexOf(beforeId) : 0;
+  ORDER[sec].splice(at < 0 ? 0 : at, 0, id);
+}
+
+function bindDrag() {
+  let dragId = null;
+  const targets = document.querySelectorAll('.row[draggable="true"], .sec-h[data-drop]');
+  document.querySelectorAll('.row[draggable="true"]').forEach(r => {
+    r.addEventListener("dragstart", () => { dragId = r.dataset.id; r.classList.add("dragging"); });
+    r.addEventListener("dragend", () => r.classList.remove("dragging"));
+  });
+  targets.forEach(r => {
+    r.addEventListener("dragover", ev => { ev.preventDefault(); r.classList.add("over"); });
+    r.addEventListener("dragleave", () => r.classList.remove("over"));
+    r.addEventListener("drop", ev => {
+      ev.preventDefault(); r.classList.remove("over");
+      if (!dragId || dragId === r.dataset.id) return;
+      if (r.dataset.drop) place(dragId, r.dataset.drop, null);
+      else place(dragId, r.dataset.sec, r.dataset.id);
+      render();
+    });
+  });
+}
+
+function setState(t, st) {
+  t.state = st; t.updated = TODAY + " 09:00";
+  ORDER.active = ORDER.active.filter(x => x !== t.id);
+  ORDER.backlog = ORDER.backlog.filter(x => x !== t.id);
+  if (st === "todo" || st === "progress") ORDER.active.push(t.id);
+  if (st === "backlog") ORDER.backlog.push(t.id);
+  if (st === "done") t.completedAt = TODAY;
+  if (st !== "done" && st !== "archived") t.completedAt = null;
+  if (st !== "archived") delete t.archivedReason;
+}
+
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("button, .row, .tree a, [data-goto]");
+  if (!b) return;
+  const d = b.dataset;
+  if ("newproj" in d) { S.newProj = true; S.npErr = ""; render(); $("#np-name").focus(); return; }
+  if ("cancelproj" in d) { S.newProj = false; }
+  else if ("create" in d) {
+    const name = $("#np-name").value.trim();
+    if (!name) { S.npErr = "Give the project a name."; render(); return; }
+    const id = "p" + PROJECTS.length;
+    PROJECTS.push({ id, name, color: COLORS[PROJECTS.length % COLORS.length] });
+    EPICS.push({ id: "EPIC-001", p: id, name: "Bugs (rolling)", status: "Active" });
+    S.project = id; S.epic = null; S.newProj = false; S.view = "board";
+  }
+  else if (d.newepic) {
+    const nums = EPICS.filter(e => e.p === d.newepic).map(e => Number(e.id.slice(5)));
+    const n = String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3, "0");
+    EPICS.push({ id: "EPIC-" + n, p: d.newepic, name: "New epic", status: "Planned" });
+    S.epic = "EPIC-" + n;
+  }
+  else if (d.cyc) { ev.stopPropagation(); const t = TASKS.find(x => x.id === d.cyc); t.state = t.state === "todo" ? "progress" : "todo"; t.updated = TODAY + " 09:00"; S.sel = t.id; }
+  else if (d.reopen) { ev.stopPropagation(); setState(TASKS.find(x => x.id === d.reopen), "todo"); S.sel = d.reopen; }
+  else if (d.p) { S.project = d.p; S.epic = null; }
+  else if (d.v) { S.view = d.v; S.editing = false; }
+  else if (d.e) { S.epic = S.epic === d.e ? null : d.e; }
+  else if ("clearEpic" in d) { S.epic = null; }
+  else if (d.t) { S.tab = d.t; }
+  else if (d.o) { S.owner = d.o; }
+  else if ("addcmt" in d) {
+    const txt = $("#cmt").value.trim();
+    if (!txt) return;
+    TASKS.find(x => x.id === S.sel).comments.push({ who: "human", at: TODAY + " 09:00", text: txt });
+  }
+  else if ("fopen" in d) { S.fOpen = !S.fOpen; }
+  else if ("freset" in d) { S.f = { task: true, bug: true, due: "any" }; }
+  else if (d.fs) { S.font = Math.min(22, Math.max(12, S.font + Number(d.fs))); }
+  else if (d.own) { TASKS.find(x => x.id === S.sel).owner = d.own; }
+  else if (d.doc) { S.doc = d.doc; S.editing = false; }
+  else if ("edit" in d) { S.editing = !S.editing; }
+  else if (d.mk) { b.outerHTML = `<span class="added">Added to Marketing</span>`; return; }
+  else if (d.goto) { const t = TASKS.find(x => x.id === d.goto); S.view = "board"; S.project = t.p; S.epic = null; S.tab = tabOf(t.state); S.sel = t.id; }
+  else if (d.id) { S.sel = d.id; }
+  else return;
+  render();
+});
+document.addEventListener("keydown", ev => {
+  const r = ev.target.closest && ev.target.closest(".row");
+  if (r && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); S.sel = r.dataset.id; render(); }
+  if (r && ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && r.draggable) { ev.preventDefault(); move(r.dataset.id, ev.key === "ArrowUp" ? -1 : 1); document.querySelector(`.row[data-id="${r.dataset.id}"]`).focus(); }
+  if (ev.key === "Escape" && S.fOpen) { S.fOpen = false; render(); }
+});
+document.addEventListener("input", ev => {
+  if (ev.target.id === "q") { S.q = ev.target.value; const pos = ev.target.selectionStart; render(); const q = $("#q"); q.focus(); q.setSelectionRange(pos, pos); }
+});
+document.addEventListener("change", ev => {
+  if (ev.target.id === "keep") { S.keep = Math.min(90, Math.max(1, Number(ev.target.value) || 14)); render(); return; }
+  if (ev.target.id === "f-task" || ev.target.id === "f-bug") { S.f[ev.target.id.slice(2)] = ev.target.checked; render(); return; }
+  if (ev.target.name === "f-due") { S.f.due = ev.target.value; render(); return; }
+  const t = TASKS.find(x => x.id === S.sel);
+  if (!t) return;
+  if (ev.target.id === "st") { setState(t, ev.target.value); S.tab = tabOf(t.state); }
+  else if (ev.target.id === "dlon") { t.deadline = ev.target.checked ? "2026-11-27" : null; }
+  else if (ev.target.id === "dl") { t.deadline = ev.target.value || null; if (t.state === "archived" && t.deadline && daysLeft(t.deadline) >= 0) setState(t, "todo"); }
+  else return;
+  render();
+});
+
+render();
+</script>
