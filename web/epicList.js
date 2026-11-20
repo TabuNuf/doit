@@ -23,7 +23,7 @@ export function epicSections(project) {
   const lists = { parked: mine(S.data.parkedEpics), completed: closed.filter(e => !e.archived), archived: closed.filter(e => e.archived) };
   return SECTIONS.map(([sec, label]) => {
     const folded = isFolded(project, sec);
-    return `<button class="sub-h fold" data-fold="${sec}" data-fold-p="${esc(project)}" data-drop-epic="${sec}" data-project="${esc(project)}" aria-expanded="${!folded}">${folded ? "\u25b8" : "\u25be"} ${label}<span class="c">${lists[sec].length}</span></button>`
+    return `<button class="sub-h fold" data-epic-fold="${sec}" data-epic-fold-p="${esc(project)}" data-drop-epic="${sec}" data-project="${esc(project)}" aria-expanded="${!folded}">${folded ? "\u25b8" : "\u25be"} ${label}<span class="c">${lists[sec].length}</span></button>`
       + `<div class="sec-body"${folded ? " hidden" : ""}>${lists[sec].map(epicBtn).join("")}</div>`;
   }).join("");
 }

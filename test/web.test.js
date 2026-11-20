@@ -118,3 +118,15 @@ test("dropping an epic calls the move API, and asks first for Completed and Arch
   await dropEpic("p/EPIC-007", "archived");
   assert.equal(calls.length, 0);
 });
+
+test("a click on an epic section header is not taken by the Docs view, which reads the click first", async () => {
+  const { S } = await import("../web/state.js");
+  const { epicSections } = await import("../web/epicList.js");
+  S.data = { epics: [], parkedEpics: [], closedEpics: [] };
+  const header = epicSections("p").match(/<button class="sub-h[^>]*>/)[0];
+  const keys = [...header.matchAll(/data-([\w-]+)=/g)].map(m => m[1].replace(/-(\w)/g, (_, c) => c.toUpperCase()));
+  const src = fs.readFileSync(path.join(WEB, "docsView.js"), "utf8");
+  const click = src.slice(src.indexOf("export function docsClick"), src.indexOf("\n}\n", src.indexOf("export function docsClick")));
+  const docs = new Set([...click.matchAll(/\bd\.(\w+)/g)].map(m => m[1]));
+  assert.deepEqual(keys.filter(k => docs.has(k)), []);
+});
