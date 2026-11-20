@@ -42,6 +42,14 @@ Why: three Core rules read literally would fight most app frameworks. Decided by
 - **Performance tests sit in their own folder with their own script** (`test/performance/`, `npm run test:performance`), so the Development run never includes them.
   Why: a measurement with a bar (a 500-file tree read under 200 ms) belongs to the Performance category, which runs only when a task changes what it measures.
 
+## Page interaction
+
+- **A page that dispatches clicks on `data-` attribute names gives each meaning its own name, and a test fails when two views' click handlers read the same one.**
+  Why: a section header's fold attribute had the same name as another view's, whose handler runs first; the click did nothing, and unit tests that called the toggle directly passed.
+
+- **A drop target that opens on hover opens only after the dragged item rests on it (about half a second), and a timed reload waits during any drag.**
+  Why: a folded header that opened as a drag passed over it pushed the next target down, so the drop landed on nothing; a reload mid-drag redraws the page and ends the drag.
+
 ## What the first app project decides
 
 Each item becomes a rule here, with its why, or a line in that project's `Deviations.md`:

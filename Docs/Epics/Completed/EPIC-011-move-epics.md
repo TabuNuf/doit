@@ -1,6 +1,7 @@
 # EPIC-011: Move epics
 
-Status: Active
+Status: Done
+Closed: 2026-11-20
 Goal: Tabu drags an epic between the open list, Parked, Completed and Archived, each a folded section below the open epics, and a closed epic reopens with its tasks.
 Design: Design.md, section Epics.
 
@@ -47,5 +48,12 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+- Main merged in (EPIC-004 had landed): conflicts in `web/state.js`, `src/domain/board.js` and `Architecture.md` resolved. EPIC-004's activity log records task changes in `Board.#write`, and `EpicMoves` wrote tasks to the source directly, so a close or reopen would have gone unlogged. Fixed now: `EpicMoves` takes the Board's logged write, with a test that a close and a reopen log one line per task. Development 85/85, Audit 86/86.
+- `src/domain/board.js`, Core/03-Design.md (size): 247 lines against the structure test's cap of 250, after moving epic moves out to `EpicMoves`. Fix before release: split it before the next feature lands in it (already noted at EPIC-010; no conformance epic is open, so it is recorded here).
+- Two routes close an epic: `POST .../close` (the Close epic button) and `POST .../move` with `to: completed`. Deliberate for now, both reach `EpicMoves.close`; the button could use move and the close route go. Question for Tabu at the next pass, recommendation: drop the close route.
+- Boundaries test passes; the class diagram and module list match the code. Store, domain and server each keep one job; the web part sits in its own `epicMove.js`.
+
 ## For the standard
+
+- `App/README.md` Page interaction (new): one `data-` name per meaning in click dispatch, with a test; a hover-opening drop target waits for the dragged item to rest, and a timed reload waits during a drag. Both bugs passed the unit tests and were found with real drag events in the browser.
 - 2026-11-20: Batch B. T-011.4 and .5 share one commit: the section headers are the drop targets and the buttons carry the drag attributes in the same markup. Folded section bodies stay in the DOM with `hidden` (not left out), so a header can unfold on drag-over without a re-render that would end the drag. Drag code is in `web/epicMove.js`; `dropEpic(key, to)` is the testable handler. Browser drag not run.

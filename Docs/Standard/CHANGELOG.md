@@ -6,6 +6,8 @@ One line per change: date, project, file, what changed and why. Newest first wit
 
 Every game that uses the standard adds its lines here when it pushes (`README.md`, Syncing). The version closes when the designer names it (`README.md`, Versions).
 
+- 2026-11-20, Doit EPIC-011, `App/README.md` Page interaction (new): one `data-` name per meaning in click dispatch, with a test; a hover-opening drop target waits for the item to rest, and a timed reload waits during a drag. Why: a browser check with real drag events found both bugs after the unit tests passed.
+
 - 2026-11-20, Doit EPIC-010, `Core/01-Tasks.md` Branches: a tool that writes an epic's files in its worktree also reads the epic's state from there. Why: an epic closed in its worktree showed as open until the merge.
 
 - 2026-11-20, Doit EPIC-003, `App/README.md` Pages over local files: a path from the page is checked in the domain and again after resolving in the adapter; a timed reload never redraws an open edit box; Performance tests get their own folder and script. Why: the Docs view reads and writes project files by path, and its reload would have dropped a draft.
