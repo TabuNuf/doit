@@ -21,14 +21,14 @@ Which layer a project uses is its profile (`profile: unity` or `profile: app` in
 | `Core/03-Design.md` | How code is shaped: objects, modules, low coupling, the composition root, which patterns to use and when, the boundaries |
 | `Core/CLAUDE.core.md` | The first part of a project's `CLAUDE.md`; the stack's template is appended below it |
 | `Core/Templates/` | A project's `Deviations.md` |
-| `Core/Starter/` | Files every project copies: the read guard and the usage script |
+| `Core/Starter/` | Files every project copies: the read guard, the `.claude/settings.json` that wires it, and the usage script |
 | `Unity/01-UI.md` | How UI Toolkit is set up: documents, components, styles, state, examples, guard tests |
 | `Unity/02-Project.md` | The rest of a Unity game: file structure, new project checklist, repo setup, releases, naming, asmdefs, config, Unity tests, saves, Unity MCP pitfalls |
 | `Unity/CLAUDE.unity.md` | The Unity part of a game's `CLAUDE.md` |
 | `Unity/Templates/` | Skeletons for `GameDesign.md`, `Architecture.md`, `Playtest.md`, `StyleGuide.md`, `UIRules.md`, and the bridge prompt |
 | `Unity/Starter/` | The code and files to copy: EventBus, UI helpers, guard tests, build and structure tools, playtest skill, git files. See `Unity/Starter/README.md` |
 | `Unity/Netplay/` | An optional rollback kit for online play, with its tests on a toy simulation. See `Unity/Netplay/README.md` |
-| `App/` | `README.md`, `CLAUDE.app.md`, and templates for `Design.md` and `Architecture.md` |
+| `App/` | `README.md`, `CLAUDE.app.md`, templates for `Design.md` and `Architecture.md`, and a Starter with the build agent |
 | `CHANGELOG.md` | Every change to the standard, per version and per project it came from |
 
 In a game's copy, three more files belong to the game and are never overwritten by a sync:
@@ -58,7 +58,7 @@ The standard started from Box Trainer on 2026-10-18; ClobberBop copied it the sa
 1. Run `python3 Tools/sync_standard.py adopt <project>/<Docs>/Standard [unity|app]`. It copies `Core/` and the profile's folder, writes `BASE.txt`, a blank `Deviations.md` and a `Subscription.txt` with the profile. Without a profile it reads one from the project, and stops when the folder says nothing.
 2. Write `CLAUDE.md` at the repo root from `Core/CLAUDE.core.md` with the stack's template (`Unity/CLAUDE.unity.md` or `App/CLAUDE.app.md`) appended, filled in.
 3. A Unity game: work through `Unity/02-Project.md`, New project checklist. It copies `Unity/Starter/` into place and sets up the scene. An app: work through `App/README.md`, What the first app project decides, as far as day one needs.
-4. Copy `Core/Starter/` into place, fill the stack's `Templates/` into the project's own docs, and write the first epic before the first feature.
+4. Copy `Core/Starter/` into place (a Unity game takes `.claude/settings.json` from `Unity/Starter/` instead; an app also copies `App/Starter/` and fills the build agent's commands), fill the stack's `Templates/` into the project's own docs, and write the first epic before the first feature.
 5. A Unity game keeps the guard tests from `Unity/Starter/` passing from the first commit. Retrofitting them later cost Box Trainer an epic each. A Unity game also works through "Missing in Box Trainer" at the end of `Unity/02-Project.md`: each item is either built in the first epics or moved into `Deviations.md`, with the reason.
 
 **A game already under way** (its own folders, Assembly-CSharp, its own rules files):
@@ -117,6 +117,8 @@ python3 Tools/sync_standard.py status <game>/<Docs>/Standard
 - Every command works on `README.md`, `CHANGELOG.md`, `Core/` and the profile's folder only. A Unity game's push never removes `App/` files, and a pull never brings them.
 - **A copy from before the layers** (`03-Project.md` at its top) is moved into the layered paths by the first `pull` or `update`, which then merges as usual: `01-Tasks.md` to `Core/`, `02-UI.md` to `Unity/01-UI.md`, `03-Project.md` to `Unity/02-Project.md`, `CLAUDE.template.md` to `Unity/CLAUDE.unity.md`, `Templates/Deviations.md` to `Core/Templates/`, the other templates, `Starter/` and `Netplay/` under `Unity/`. Rules that moved from `03-Project.md` into `Core/` arrive as removed there and added in Core; a local edit to one of them is a conflict to resolve by hand. `push` and `status` refuse such a copy until it has pulled, so a copy with unpushed edits pulls first, this once, against the rule above: each conflict keeps the game's lines in the new file, and the next push carries them up, where they are sorted into `Core/` or the stack's folder.
   Why: the merge matches files by path, so without the move every file would look removed on one side and added on the other.
+- **The same first pull points the game's own files at the new paths**: every tracked text file outside the copy (`CLAUDE.md`, `Architecture.md`, open epics, tools, code comments) that names an old file of the standard is rewritten and listed, and a reference to a section that moved to `Core/` (Session cost, Claude setup, Design hooks) follows it there. Epics in `Completed/` are records and stay as written. Read the list and commit it with the pull.
+  Why: all five games' `CLAUDE.md` named `03-Project.md` or `02-UI.md`, so after the move every session would have been sent to a file that no longer exists.
 
 ### Versions
 

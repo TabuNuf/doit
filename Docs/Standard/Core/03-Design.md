@@ -1,6 +1,6 @@
 # Design
 
-How code is shaped in any stack: object-oriented, in modules with low coupling, so a person can read it and a feature can be added or removed without touching the rest. The stack layer says how each rule is enforced there (Unity: asmdefs and `ModuleRulesTests`, `Unity/02-Project.md`, Modules and assemblies).
+How code is shaped in any stack: object-oriented, in modules with low coupling, so a person can read it and a feature can be added or removed without touching the rest. The stack layer says how each rule is met and enforced there (Unity: asmdefs and `ModuleRulesTests`, `Unity/02-Project.md`, Modules and assemblies; apps: `App/README.md`, How the design rules apply).
 
 ## The aim
 
@@ -11,15 +11,15 @@ How code is shaped in any stack: object-oriented, in modules with low coupling, 
 
 ## Objects and modules
 
-- **An object owns its data and the behaviour on it.** Code that reaches into another object's fields to decide for it moves into that object.
+- **An object owns its data and the behaviour on it.** Code that reaches into another object's fields to decide for it moves into that object. In a stack built from functions (a component framework), the module is the unit that owns its data and behaviour, and the rules below apply to modules.
   Why: the rule then lives in one place, and a change to it touches one class. Decided by `<Designer>`, 2026-11-20.
 - **One module, one job, one public surface.** Everything else in it is internal. A module's name says its job in the design's words.
 - **Dependencies go one way, in an order written in `Architecture.md`.** No cycles. The rules (the domain) know nothing of the engine, the framework, the interface or storage.
   Why: Box Trainer's domain compiles without the engine (`noEngineReferences`), so every rule is tested in milliseconds and the simulation runs headless at full speed.
 - **Modules at the same level never reference each other.** They talk through events that carry facts, or through a function the composition root hands one of them, typed in the receiver's own terms.
   Why: ClobberBop's effects had to ride a weapon owned by the fighter view; a function from the root joined them without either module knowing the other.
-- **One composition root creates every module and passes in what it needs**, through a constructor or one `Init(...)`. No service locator, no static `Instance`, no container that wires by reflection.
-  Why: with every dependency passed in, reading the root shows the whole graph, and a test builds a module with fakes in one line.
+- **One composition root creates every module and passes in what it needs**, through a constructor or one `Init(...)`. No service locator, no static `Instance`. A container that wires by reflection is used only where the framework is built on one, and then all registration sits in the one place the stack layer names.
+  Why: with every dependency passed in, reading the root shows the whole graph, and a test builds a module with fakes in one line. Working against a framework's own container costs more than it gives, so the aim there is one registration file to read.
 - **Composition over inheritance.** Inherit only for a true "is a" with shared behaviour, at most one level below an abstract base; share behaviour otherwise by holding an object that has it.
   Why: a deep tree spreads one behaviour over several files and makes every subclass depend on its parents' internals. Decided by `<Designer>`, 2026-11-20.
 - **An interface goes where a seam is**: between modules, and around anything outside the code (a store, the network, the clock, randomness, files, an SDK). Not one per class.
@@ -76,8 +76,13 @@ Why: a shared name lets a reader find a structure's intent in one word, and a pa
 
 - **Singleton, the why.** A static `Instance` is a dependency nobody passed in: the root no longer shows the graph, a test cannot swap it, and removing its module breaks every caller.
   Why: Box Trainer's views each took the session once at start, so switching save slots live would have touched every view, and a scene reload was used instead; with the editor's domain reload off, every static survives between plays and needs a reset, which 15 classes came to carry. Decided as a ban by `<Designer>`, 2026-11-20.
+- **Which statics are allowed.** A static is fine when it holds no state a caller could change: a constant, a pure helper (a function of its arguments), a fixed table, or a cache that rebuilds itself and gives the same answer whether it is warm or cold. Any other mutable static is global state: it is either on the stack layer's short list of named exceptions, each with its reason (Unity: `Unity/02-Project.md`, Modules and assemblies), or a finding at the epic's close audit.
+  The stack layer checks this, the singleton ban and the inheritance depth by a guard test where it can (Unity: `DesignRulesTests`); removability stays a question for the close audit.
+  Why: the ban is on hidden dependencies and state that outlives its owner, not on the keyword; without the line a session could not tell a helper class from a violation, and the Unity rules already keep four statics for reasons a game paid for.
 - **Factory Method, the why.** A new kind is then a new class and one entry in one place, which a coverage test over the kinds holds (Boundaries, below).
-  Why: Box Trainer's ground kinds each cost a field, a constructor line, a case and a term until they became table rows. Decided by `<Designer>`, 2026-11-20.
+  Why: a kind known in several places costs an edit in each when one is added, as Box Trainer's ground kinds did (a field, a constructor line, a case and a term each) before one table held them; a factory gives kinds with behaviour the same single place. Decided by `<Designer>`, 2026-11-20.
+- **A new kind: a row or a class.** Kinds that differ only in numbers or data (a cost, a name, an icon) are rows in one table, and no class is added. Kinds that differ in behaviour are classes, created by a factory. A kind with both is a class that reads its numbers from its row.
+  Why: a class per kind for what is only data spreads one table over many files, and a table with a behaviour switch per row is the branch list the ordered-list rule removes (Boundaries, below). Without the line, this file's factory rule and its table-row rule gave two answers to one question.
 
 ## Boundaries
 

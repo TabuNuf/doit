@@ -12,12 +12,12 @@ The commit rules themselves are in `01-Tasks.md`, Commits.
 
 ## Versions and releases
 
-- The version is `major.minor` in a `VERSION.txt` file at the repo root, mirrored by the release tool into wherever the stack keeps a version (in Unity, Player Settings' Version). Edit the file, never the mirror.
-  Why: one plain file is readable by scripts, CI and people, and a stack's own version field is buried in its settings (Unity's in a YAML file).
+- **One version source, edited in one place.** The stack layer names the file and the format (Unity: `VERSION.txt`, `major.minor`; an app: its package file, in its ecosystem's format). Every other place a version appears (a settings field, a build stamp, an about screen) is written from it by the release tool, never by hand.
+  Why: two version numbers kept in step by hand drift, and then a report names a version that matches no build.
 - Work goes towards the next major. Every release before it is a minor release: 0.5, 0.6, 0.7. When the major is ready, a major release ships 1.0, and minor releases go on from 1.1.
-- Stable branches are records, not places to work. A fix to a released version ships as the next minor from main.
+- Stable branches are records, not places to work. A fix to a released version ships as the next release from main (the next minor; in a three-part format a fix-only release may raise the third number).
 - A release is cut from main in the main checkout with no epic branch half merged, and not while the conformance epic has open tasks unless `<Designer>` ships around it (`01-Tasks.md`, The conformance epic).
-  Why: architecture drift found at each epic's close must be paid before players get the version, or "later" never comes.
+  Why: architecture drift found at each epic's close must be paid before players or users get the version, or "later" never comes.
 
 How a release is built and shipped is the stack layer's (Unity: `Unity/02-Project.md`, Versions and releases).
 
@@ -43,7 +43,7 @@ The stack layer names the test assembly or suite for each category and how each 
   Why: thorough tests cost nothing while nobody waits on them, and nobody else can tell whether someone is waiting.
 - Guard tests keep Development inside its budget: in Box Trainer, any edit-mode test that trains more than 50 runs fails the build, and so does any Development test that takes longer than 1.5 s.
   Why: in Box Trainer the per-batch check grew from 52 s to 224 s in three weeks and the slow measurements ran in most batches, so one batch of three tasks waited 19 minutes on tests; 70 of 1711 fast tests took 147 of its 180 s.
-- Rules that matter are guard tests, not prose. The stack layer lists its own (Unity: `ModuleRulesTests`, `UIStructureTests`, `NoColourLiteralsTests`, readable-text and token tests).
+- Rules that matter are guard tests, not prose. The stack layer lists its own (Unity: `ModuleRulesTests`, `DesignRulesTests`, `UIStructureTests`, `NoColourLiteralsTests`, readable-text and token tests).
 - A refactor's done-when is the Performance tests' logged numbers unchanged, plus a throwaway fingerprint test run before and after each task: a few seeded runs on several levels, hashing every frame's position and heading into one number. The fingerprint is not committed; it only has to match.
   Why: Box Trainer's nine-task brain refactor kept every number; the fingerprint checked each task in seconds, while the Performance tests take about five minutes.
 - A test never asserts a tunable's current number from the config asset; it reads the number from the config, or builds its own rules with the number it needs. The designer tunes the asset on the Balancer at any time.
@@ -60,7 +60,8 @@ What carries over so a new project's sessions start with the same habits:
 - **`CLAUDE.md`** from `Core/CLAUDE.core.md` followed by the stack's template (`Unity/CLAUDE.unity.md`, `App/CLAUDE.app.md`), filled in.
 - **Project skills** in `.claude/skills/`, tracked, from the stack's Starter (Unity: `playtest-video`). A workflow repeated three times becomes a skill.
 - **Shared permissions** in `.claude/settings.json`, tracked: the read-only calls a build or test run makes, so it does not stop for approval (Unity's list: `Unity/02-Project.md`, Claude setup in Unity). Personal ones stay in `settings.local.json`.
-- **The read guard and the build agent**: `.claude/settings.json` wires `Tools/Claude/read_guard.py` from `Core/Starter/`, and `.claude/agents/batch-builder.md` from the stack's Starter is the agent type every task handed to a sub-agent goes to (Session cost, below). A stack without one yet writes it from `Unity/Starter/.claude/agents/batch-builder.md`, with that stack's build tools.
+- **The read guard and the build agent**: `Core/Starter/` holds `Tools/Claude/read_guard.py` and the `.claude/settings.json` that wires it, and `.claude/agents/batch-builder.md` from the stack's Starter (`Unity/Starter/`, `App/Starter/`) is the agent type every task handed to a sub-agent goes to (Session cost, below). A Unity game copies `Unity/Starter/.claude/settings.json` instead of Core's: it is the same wiring plus the deny rules for Unity's generated folders. An app fills the agent's build and test commands on day one.
+  Why: a project's `CLAUDE.md` names the hook and the agent from its first session, and an app that got neither was told of two things it did not have.
 - **Memory is per machine and per project.** Notes that hold for any project belong in this standard instead, where git keeps them. When a memory note turns out to be general, move its rule here and shorten the note to a pointer.
 - **Working agreements** (from Box Trainer, each in `01-Tasks.md`): build a whole epic in one go and stop only for the designer's decisions; one question at a time with a recommendation; commit and push per task during unattended runs; stage explicit paths only.
 
