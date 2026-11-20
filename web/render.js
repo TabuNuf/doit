@@ -2,6 +2,7 @@
 
 import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFilter, projects, proj, color, task, visible, sectionLists } from "./state.js";
 import { bindDrag } from "./ordering.js";
+import { epicViewPane } from "./epicView.js";
 
 /* ---------- Render ---------- */
 
@@ -9,7 +10,7 @@ export function render() {
   if (!S.data) return;
   document.documentElement.style.setProperty("--fs", S.font + "px");
   renderTop();
-  $("#panes").innerHTML = epicPane() + listPane() + detailPane();
+  $("#panes").innerHTML = epicPane() + (S.epicView ? epicViewPane() : listPane() + detailPane());
   bindDrag();
 }
 
@@ -29,10 +30,12 @@ function renderTop() {
 function epicBtn(e) {
   const key = `${e.project}/${e.id}`;
   const pct = e.total ? Math.round(e.done / e.total * 100) : 0;
-  return `<button class="epic" aria-pressed="${S.epic === key}" data-e="${esc(key)}">
+  const open = S.epicView && `${S.epicView.project}/${S.epicView.id}` === key;
+  return `<div class="epic-row"><button class="epic" aria-pressed="${open}" data-open-epic="${esc(key)}" title="Read this epic">
     <div class="t"><span>${esc(e.name)}</span><span class="n">${e.done}/${e.total}</span></div>
     <div class="t"><span class="n">${e.id}</span><span class="estate">${esc(e.status)}</span></div>
-    <div class="bar"><i style="width:${pct}%"></i></div></button>`;
+    <div class="bar"><i style="width:${pct}%"></i></div></button>
+    <button class="efilter" aria-pressed="${S.epic === key}" data-e="${esc(key)}" title="Show only this epic's tasks">Filter</button></div>`;
 }
 
 function epicPane() {

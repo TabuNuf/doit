@@ -9,7 +9,7 @@ Design: Architecture.md
 - [x] T-005.1 Split web/app.js (375 lines) into render, ordering and events modules (done when: no web file over 300 lines; the page works as before)
 - [x] T-005.2 One rank-between helper: the page asks the server for a move instead of computing ranks (done when: web/app.js has no rank arithmetic; drag still works)
 - [x] T-005.3 doit epic close moves the epic's task files to the archive (done when: closing an epic leaves no task files of it in Epics/Tasks)
-- [ ] T-005.4 Clicking an epic opens a view of its contents (done when: Clicking an epic on the board opens a readable view of that epic's document: goal, tasks, test plan and notes, for any epic including parked ones.)
+- [x] T-005.4 Clicking an epic opens a view of its contents (done when: Clicking an epic on the board opens a readable view of that epic's document: goal, tasks, test plan and notes, for any epic including parked ones.)
 
 ## Test plan
 
@@ -19,6 +19,8 @@ Design: Architecture.md
 ## Notes
 
 Decisions and deviations, newest first.
+
+- T-005.4: clicking an epic now opens the view, so the task filter moved to a Filter button on each epic row (Design.md updated). The view is fetched once on click and is not refreshed by the 10 s reload.
 
 - T-005.3: `doit epic close` archives the task files only (including tasks that have no file yet and tasks not ticked). It does not set the epic to Done or move the epic file; that stays in the close procedure.
 

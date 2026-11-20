@@ -3,6 +3,7 @@
 // The source it is given (the store's port) provides:
 //   projects(), addProject({name, path, docs}), settings(), saveSettings(partial),
 //   load(projectId, {archived}) -> {epics, files: Map<id, fields>, archivedIds: Set<id>},
+//   epicDocument(projectId, epicId) -> {id, name, status, completed, text} | null,
 //   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status) -> epicId
 
 import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask } from "./task.js";
@@ -44,6 +45,14 @@ export class Board {
       }
     }
     return count;
+  }
+
+  /** One epic's document as text, for reading. Any epic, parked and completed ones too. */
+  epicDocument(project, epicId) {
+    this.#requireProject(project);
+    const doc = this.source.epicDocument(project, epicId);
+    if (!doc) throw new Error(`No epic ${epicId} in ${project}`);
+    return { project, ...doc };
   }
 
   /** Archives every task of an epic that is not archived yet, by the same path as the sweep. Returns how many. */
