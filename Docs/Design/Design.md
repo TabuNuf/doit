@@ -22,7 +22,8 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 ## Epics
 
 - Epic files follow `Docs/Standard/Core/01-Tasks.md`: `<docs>/Epics/EPIC-<nnn>-<short-name>.md`, status `Parked | Planned | Active | Done`, a `## Tasks` checklist.
-- The left pane lists the project's epics from `Epics/` and `Epics/Parked/` with done/total counts and a progress bar. Clicking one filters the list; clicking it again clears the filter.
+- The left pane lists the project's epics from `Epics/` and `Epics/Parked/` with done/total counts and a progress bar. A small **Filter** button on each epic filters the task list to it; pressing it again clears the filter.
+- **Epic view:** clicking an epic opens its document in place of the task list and detail panes, so the designer can read what an epic contains: its goal and status, tasks (checklist), test plan, notes, close audit and standard section. It works for any epic in the list, parked ones too. The markdown is shown with headings, lists, checkboxes, bold and code; nothing in it is editable. **Close** (or Escape) returns to the board.
 - Epics in `Epics/Completed/` are not shown and not read, except by an explicit archive request.
 - **+ New epic** creates the next number with the standard template, status `Planned`.
 
@@ -52,7 +53,7 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 
 - `projects`, `project add <name> <folder> [--docs Docs]`
 - `list [--project <id>] [--epic EPIC-<nnn>] [--state open|active|backlog|done|archived] [--owner ai|human]`: default open tasks of every project, never archived ones unless asked.
-- `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `sweep`.
+- `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `epic close <project> <EPIC-nnn>` (moves the epic's task files to the archive), `sweep`.
 
 ## Running it
 
@@ -66,3 +67,4 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 ## Changelog
 
 - 2026-11-20, EPIC-001: first version, from the interview (`Brief.md`) and the wireframe.
+- 2026-11-20, EPIC-005: clicking an epic opens a read-only view of its document; the task filter moves to a Filter button on each epic. `epic close` is added to the CLI.

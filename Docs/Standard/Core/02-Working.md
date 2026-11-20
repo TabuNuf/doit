@@ -37,6 +37,8 @@ Why: Bunny Bunker's sessions played the game in the editor for 5 to 15 minutes a
 
 The stack layer names the test assembly or suite for each category and how each runs (Unity: `Unity/02-Project.md`, Tests).
 
+- **A change to what the user sees is checked in the running app before its task is closed.** Tests prove the logic; they do not see layout. Whoever built it, or the session that delegated it, opens the screen and uses the changed part.
+  Why: a page view passed every test while it left half the screen blank and ran its lines together; one look found both.
 - **No test and no play run lasts more than 15 minutes, in any category.** A check that would take longer is redesigned before it is written: run the simulation headless at full speed instead of in play, replay recorded inputs, shorten the scenario to the moment that matters, use fewer seeds, compare a state dump instead of screenshots, assert the mechanism instead of a behaviour bar. What still cannot fit goes to the designer's playtest.
   Why: a gameplay check that needs Claude to play for hours or weeks never finishes inside a working day, and it holds the editor the whole time.
 - **Away runs.** When `<Designer>` says they are away and gives the time ("I'm out, you have 3 hours"), the run may test more: Audit at each batch's end instead of Development, Performance where the epic touches what it measures, and a Behaviour run if one is due, finished inside the time given. Only the designer's words start an away run; it ends when they are back or the time is up.

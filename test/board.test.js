@@ -91,3 +91,20 @@ test("rejects bad input", t => {
   assert.throws(() => s.board.get("game/T-099.1"), /No task/);
   assert.throws(() => s.board.list({ project: "nope" }), /No project/);
 });
+
+test("move places a task between neighbours, across sections and at the top", t => {
+  const s = setup(); t.after(s.cleanup);
+  const order = section => s.board.list({ project: "game", state: section }).map(x => x.id);
+  assert.deepEqual(order("active"), ["T-009.1", "T-014.2", "T-014.3"]);
+  s.board.move("game/T-014.3", { section: "active", before: "game/T-014.2" });
+  assert.deepEqual(order("active"), ["T-009.1", "T-014.3", "T-014.2"]);
+  s.board.move("game/T-009.1", { section: "active", after: "game/T-014.2" });
+  assert.deepEqual(order("active"), ["T-014.3", "T-014.2", "T-009.1"]);
+  s.board.move("game/T-009.1", { section: "active" });
+  assert.deepEqual(order("active"), ["T-009.1", "T-014.3", "T-014.2"]);
+  const moved = s.board.move("game/T-014.2", { section: "backlog" });
+  assert.equal(moved.state, "backlog");
+  assert.deepEqual(order("backlog"), ["T-014.2", "T-016.1"]);
+  assert.throws(() => s.board.move("game/T-014.2", { section: "done" }), /section must be/);
+  assert.throws(() => s.board.move("game/T-014.2", { section: "active", before: "game/T-099.1" }), /No task|not in/);
+});

@@ -3,10 +3,11 @@
 // The source it is given (the store's port) provides:
 //   projects(), addProject({name, path, docs}), settings(), saveSettings(partial),
 //   load(projectId, {archived}) -> {epics, files: Map<id, fields>, archivedIds: Set<id>},
+//   epicDocument(projectId, epicId) -> {id, name, status, completed, text} | null,
 //   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status) -> epicId
 
 import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask } from "./task.js";
-import { archiveReason, byRank, stamp, DEFAULT_KEEP_DAYS } from "./rules.js";
+import { archiveReason, byRank, rankBetween, stamp, DEFAULT_KEEP_DAYS } from "./rules.js";
 
 export class Board {
   constructor(source, now = () => new Date()) {
@@ -39,13 +40,29 @@ export class Board {
       for (const task of this.#load(id, false).tasks) {
         const reason = archiveReason(task, today, keep);
         if (!reason) continue;
-        task.state = "archived";
-        task.archived = reason;
-        this.#write(task);
+        this.#archive(task, reason);
         count++;
       }
     }
     return count;
+  }
+
+  /** One epic's document as text, for reading. Any epic, parked and completed ones too. */
+  epicDocument(project, epicId) {
+    this.#requireProject(project);
+    const doc = this.source.epicDocument(project, epicId);
+    if (!doc) throw new Error(`No epic ${epicId} in ${project}`);
+    return { project, ...doc };
+  }
+
+  /** Archives every task of an epic that is not archived yet, by the same path as the sweep. Returns how many. */
+  closeEpic(project, epicId) {
+    this.#requireProject(project);
+    const loaded = this.#load(project, false);
+    if (!loaded.epics.some(e => e.id === epicId && !e.completed)) throw new Error(`No open epic ${epicId} in ${project}`);
+    const tasks = loaded.tasks.filter(t => t.epic === epicId && t.state !== "archived");
+    for (const task of tasks) this.#archive(task, `Epic ${epicId} closed`);
+    return tasks.length;
   }
 
   /** Everything the board page shows for one project or "all". */
@@ -132,6 +149,32 @@ export class Board {
     return task;
   }
 
+  /**
+   * Moves a task into a section of the Open tab: just above `before`, just below `after`,
+   * or to the top when neither is given. The neighbour must be in the same project.
+   */
+  move(ref, { section, before, after } = {}) {
+    check(["active", "backlog"], section, "section");
+    const { project } = parseRef(ref);
+    const task = this.get(ref);
+    if (task.state === "done" || task.state === "archived") throw new Error("Only open tasks can be moved");
+    const list = this.#load(project, false).tasks
+      .filter(t => t.id !== task.id && sectionOf(t.state) === section && tabOf(t.state) === "open")
+      .sort(byRank);
+    let i = 0;
+    const anchor = before || after;
+    if (anchor) {
+      const parts = parseRef(anchor);
+      if (parts.project !== project) throw new Error("A task can only move next to a task of its project");
+      i = list.findIndex(t => t.id === parts.id);
+      if (i < 0) throw new Error(`${anchor} is not in ${section}`);
+      if (!before) i++;
+    }
+    const changes = { rank: rankBetween(list[i - 1]?.rank, list[i]?.rank) };
+    if (sectionOf(task.state) !== section) changes.state = section === "backlog" ? "backlog" : "todo";
+    return this.update(ref, changes);
+  }
+
   comment(ref, who, text) {
     check(OWNERS, who, "author");
     if (!text || !String(text).trim()) throw new Error("A comment needs text");
@@ -158,6 +201,12 @@ export class Board {
     else if (state === "archived") { task.archived = "Archived by hand"; }
     else { task.completed = null; task.ticked = false; task.archived = null; }
     task.state = state;
+  }
+
+  #archive(task, reason) {
+    task.state = "archived";
+    task.archived = reason;
+    this.#write(task);
   }
 
   #write(task) { this.source.writeTask(task.project, task); }

@@ -52,6 +52,16 @@ export class FileSource {
     return { epics, files: tasks, archivedIds };
   }
 
+  /** The epic's whole document, open, parked or completed; null when there is no such epic. */
+  epicDocument(projectId, epicId) {
+    const files = this.#files(projectId);
+    const file = files.epicFile(epicId, { archived: true });
+    if (!file) return null;
+    const text = files.read(file);
+    const epic = parseEpic(text);
+    return epic && { id: epic.id, name: epic.name, status: epic.status, completed: file.includes(`${path.sep}Completed${path.sep}`), text };
+  }
+
   /** Writes the task file where its state says, removes the old copy, and syncs the epic line. */
   writeTask(projectId, task) {
     const files = this.#files(projectId);

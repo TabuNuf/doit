@@ -14,9 +14,11 @@ export class HttpServer {
     this.routes = [
       ["GET", /^\/api\/board$/, (q) => this.board.view({ project: q.get("project") || "all", archived: q.get("archived") === "1" })],
       ["POST", /^\/api\/projects$/, (q, b) => this.board.addProject(b)],
+      ["GET", /^\/api\/epics\/([^/]+)\/([^/]+)$/, (q, b, m) => this.board.epicDocument(m[1], m[2])],
       ["POST", /^\/api\/epics$/, (q, b) => ({ id: this.board.addEpic(b.project, b.name, b.status || "Planned") })],
       ["POST", /^\/api\/tasks$/, (q, b) => this.board.addTask(b)],
       ["PATCH", /^\/api\/tasks\/([^/]+)\/([^/]+)$/, (q, b, m) => this.board.update(`${m[1]}/${m[2]}`, b)],
+      ["POST", /^\/api\/tasks\/([^/]+)\/([^/]+)\/move$/, (q, b, m) => this.board.move(`${m[1]}/${m[2]}`, b)],
       ["POST", /^\/api\/tasks\/([^/]+)\/([^/]+)\/comments$/, (q, b, m) => this.board.comment(`${m[1]}/${m[2]}`, b.who || "human", b.text)],
       ["PUT", /^\/api\/settings$/, (q, b) => { this.board.setKeepDays(b.keepCompletedDays); return this.board.settings(); }],
     ];

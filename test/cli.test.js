@@ -34,3 +34,17 @@ test("errors go to stderr with exit code 1", t => {
   assert.match(r.err, /^doit: state must be one of/);
   assert.equal(run(s.board, "frobnicate").code, 1);
 });
+
+test("epic close moves the epic's task files to the archive", t => {
+  const s = setup(); t.after(s.cleanup);
+  const b = s.board;
+  run(b, "set", "game/T-014.2", "state=progress");
+  run(b, "set", "game/T-009.1", "state=progress");
+  assert.ok(s.exists("Epics/Tasks/T-014.2.md"));
+  assert.match(run(b, "epic", "close", "game", "EPIC-014").out, /Archived 2 task files of EPIC-014/);
+  for (const id of ["T-014.1", "T-014.2", "T-014.3"]) assert.ok(!s.exists(`Epics/Tasks/${id}.md`), `${id} left in Epics/Tasks`);
+  for (const id of ["T-014.2", "T-014.3"]) assert.ok(s.exists(`Archive/Tasks/${id}.md`), `${id} not archived`);
+  assert.ok(s.exists("Epics/Tasks/T-009.1.md"), "another epic's task is untouched");
+  assert.equal(run(b, "epic", "close", "game", "EPIC-099").code, 1);
+  assert.match(run(b, "help").out, /doit epic close/);
+});

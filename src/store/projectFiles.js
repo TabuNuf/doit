@@ -24,8 +24,8 @@ export class ProjectFiles {
     return out;
   }
 
-  epicFile(epicId) {
-    return this.epicFiles().map(e => e.file).find(f => path.basename(f).startsWith(epicId + "-") || path.basename(f) === epicId + ".md") || null;
+  epicFile(epicId, { archived = false } = {}) {
+    return this.epicFiles({ archived }).map(e => e.file).find(f => path.basename(f).startsWith(epicId + "-") || path.basename(f) === epicId + ".md") || null;
   }
 
   taskIds() { return listDir(this.tasks).filter(n => n.endsWith(".md")).map(n => n.slice(0, -3)); }
