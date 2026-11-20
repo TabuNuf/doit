@@ -31,7 +31,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .mono { font-family: var(--mono); font-size: 12px; }
 .muted { color: var(--muted); }
 
-.note { border: 1px dashed var(--line); color: var(--muted); padding: 6px 10px; font-size: 12px; border-radius: 4px; margin-bottom: 10px; }
+.note { border: 1px dashed var(--line); color: var(--muted); padding: 6px 10px; font-size: 12px; border-radius: 2px; margin-bottom: 10px; }
 .app { display: flex; flex-direction: column; gap: 10px; height: calc(100% - 40px); min-height: 640px; }
 
 /* Top bar */
@@ -41,7 +41,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel); border-radius: 2px; padding: 3px 10px; font-size: 13px; }
 .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
-.views { display: flex; gap: 0; margin-left: auto; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.views { display: flex; gap: 0; margin-left: auto; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
 .views button { border: 0; border-radius: 0; border-right: 1px solid var(--line); }
 .views button:last-child { border-right: 0; }
 .views button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
@@ -64,7 +64,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 /* Epics */
 .group-h { font-size: 12px; color: var(--muted); margin: 10px 4px 4px; display: flex; align-items: center; gap: 6px; }
-.epic { display: block; width: 100%; text-align: left; border: 1px solid transparent; border-radius: 4px; padding: 7px 8px; background: none; }
+.epic { display: block; width: 100%; text-align: left; border: 1px solid transparent; border-radius: 2px; padding: 7px 8px; background: none; }
 .epic:hover { border-color: var(--line); }
 .epic[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
 .epic .t { display: flex; justify-content: space-between; gap: 6px; }
@@ -75,8 +75,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 /* Toolbar */
 .toolbar { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid var(--line); flex-wrap: wrap; align-items: center; }
-.toolbar input[type=search] { flex: 1; min-width: 160px; border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; background: var(--bg); }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.toolbar input[type=search] { flex: 1; min-width: 160px; border: 1px solid var(--line); border-radius: 2px; padding: 5px 8px; background: var(--bg); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
 .seg button { border: 0; border-radius: 0; border-right: 1px solid var(--line); padding: 4px 9px; font-size: 13px; }
 .seg button:last-child { border-right: 0; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
@@ -116,7 +116,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .pop label { display: flex; align-items: center; gap: 8px; }
 .cmt { border-left: 2px solid var(--line); padding: 2px 0 2px 10px; margin: 0 0 10px; font-size: .92em; }
 .cmt-h { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; margin-bottom: 2px; }
-.cmt-in { width: 100%; border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; background: var(--bg); font-size: 14px; resize: vertical; }
+.cmt-in { width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 6px 8px; background: var(--bg); font-size: 14px; resize: vertical; }
 .legend { display: inline-flex; gap: 10px; align-items: center; font-size: 12px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 4px; }
 .empty { padding: 30px 10px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 6px; margin: 10px; }
@@ -127,7 +127,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .kv { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px 10px; font-size: 13px; align-items: center; margin: 12px 0; padding: 10px; border: 1px dashed var(--line); border-radius: 0; }
 .kv dt { color: var(--muted); }
 .kv dd { margin: 0; }
-.kv select, .kv input[type=date] { border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; background: var(--panel); font-size: 13px; }
+.kv select, .kv input[type=date] { border: 1px solid var(--line); border-radius: 2px; padding: 2px 6px; background: var(--panel); font-size: 13px; }
 .detail .sect { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 4px; }
 .detail p { margin: 0 0 10px; max-width: 65ch; }
 .detail ul { padding-left: 18px; margin: 0 0 10px; }
@@ -137,14 +137,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .warnline { color: var(--warn); font-size: 12px; }
 
 /* Docs and marketing */
-.tree a { display: block; padding: 5px 8px; border-radius: 4px; color: inherit; text-decoration: none; cursor: pointer; }
+.tree a { display: block; padding: 5px 8px; border-radius: 2px; color: inherit; text-decoration: none; cursor: pointer; }
 .tree a:hover { background: var(--fill); }
 .tree a[aria-current="true"] { background: var(--accent-soft); color: var(--accent); }
 .tree .dir { font-size: 12px; color: var(--muted); margin: 8px 8px 2px; }
 .doc { font-size: var(--fs); line-height: 1.65; max-width: 70ch; }
 .doc h1 { font-size: 1.5em; margin: 0 0 6px; }
 .doc h3 { font-size: 1.05em; margin: 18px 0 4px; }
-.doc textarea { width: 100%; min-height: 360px; font-family: var(--mono); font-size: 13px; border: 1px solid var(--line); border-radius: 4px; padding: 8px; background: var(--bg); }
+.doc textarea { width: 100%; min-height: 360px; font-family: var(--mono); font-size: 13px; border: 1px solid var(--line); border-radius: 2px; padding: 8px; background: var(--bg); }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--fill); vertical-align: top; }
 th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 500; }
@@ -165,10 +165,10 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .pill.st { cursor: pointer; background: var(--panel); }
 .pill.st.prog { background: var(--ink); color: var(--panel); border-color: var(--ink); }
 .setting { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 10px; font-size: 13px; background: var(--bg); border-bottom: 1px solid var(--line); }
-.setting input { width: 56px; border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; background: var(--panel); }
+.setting input { width: 56px; border: 1px solid var(--line); border-radius: 2px; padding: 2px 6px; background: var(--panel); }
 .form { background: var(--panel); border: 1px solid var(--accent); border-radius: 6px; padding: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
 .form label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); }
-.form input, .form select { border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; background: var(--bg); color: var(--ink); min-width: 0; }
+.form input, .form select { border: 1px solid var(--line); border-radius: 2px; padding: 5px 8px; background: var(--bg); color: var(--ink); min-width: 0; }
 .form .err { color: var(--warn); font-size: 12px; width: 100%; }
 .addbtn { display: block; width: 100%; text-align: left; border: 1px dashed var(--line); background: none; color: var(--muted); font-size: 12px; margin: 6px 0 2px; }
 
@@ -180,8 +180,8 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .app { height: calc(100vh - 24px); }
 .toast { position: fixed; bottom: max(16px, env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--warn); color: var(--on-warn); padding: 8px 14px; border-radius: 6px; font-size: 13px; z-index: 20; max-width: calc(100% - 32px); }
 .inline-add { display: flex; gap: 6px; margin: 6px 0; }
-.inline-add input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 4px; padding: 4px 8px; background: var(--bg); }
-.desc-in { width: 100%; min-height: 120px; border: 1px solid var(--line); border-radius: 4px; padding: 8px; background: var(--bg); font-size: 1em; line-height: 1.6; resize: vertical; }
+.inline-add input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 2px; padding: 4px 8px; background: var(--bg); }
+.desc-in { width: 100%; min-height: 120px; border: 1px solid var(--line); border-radius: 2px; padding: 8px; background: var(--bg); font-size: 1em; line-height: 1.6; resize: vertical; }
 .saved { font-size: 12px; color: var(--ok); margin-left: 6px; }
 .form-task { border-bottom: 1px solid var(--line); border-top: 0; border-left: 0; border-right: 0; border-radius: 0; }
 
