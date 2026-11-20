@@ -1,7 +1,7 @@
 // Board: the one facade the CLI and the server use. It knows the rules, not the files.
 //
 // The source it is given (the store's port) provides:
-//   projects(), addProject({name, path, docs}), settings(), saveSettings(partial),
+//   projects(), addProject({name, path, docs}), setStarred(projectId, bool) (a star pins it to the page's top bar), settings(), saveSettings(partial),
 //   load(projectId, {archived}) -> {epics, files: Map<id, fields>, archivedIds: Set<id>},
 //   epicDocument(projectId, epicId) -> {id, name, status, completed, text} | null,
 //   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status) -> epicId,
@@ -27,6 +27,7 @@ export class Board {
   }
 
   projects() { return this.source.projects(); }
+  starProject(id, starred) { this.#requireProject(id); return this.source.setStarred(id, Boolean(starred)); }
 
   settings() { return { keepCompletedDays: DEFAULT_KEEP_DAYS, ...this.source.settings() }; }
 

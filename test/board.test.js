@@ -111,6 +111,14 @@ test("new epic and new project", t => {
   assert.throws(() => s.board.addProject({ name: "Again", path: s.root + "/storm" }), /already a project/);
 });
 
+test("a star pins a project and comes off again", t => {
+  const s = setup(); t.after(s.cleanup);
+  assert.equal(s.board.starProject("game", true).starred, true);
+  assert.equal(s.board.projects()[0].starred, true, "kept in settings");
+  assert.equal(s.board.starProject("game", false).starred, undefined);
+  assert.throws(() => s.board.starProject("nope", true), /No project nope/);
+});
+
 test("rejects bad input", t => {
   const s = setup(); t.after(s.cleanup);
   assert.throws(() => s.board.update("game/T-014.2", { state: "doing" }), /state must be/);

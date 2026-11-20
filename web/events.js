@@ -16,19 +16,22 @@ const refreshView = () => S.view === "docs" ? refreshDocs() : S.view === "claude
 
 document.addEventListener("click", ev => {
   const b = ev.target.closest("button, .row");
+  if (S.projOpen && !ev.target.closest(".projmenu")) { S.projOpen = false; if (!b) return render(); }
   if (!b) { if (S.fOpen && !ev.target.closest(".pop")) { S.fOpen = false; render(); } return; }
   const d = b.dataset;
   const sel = () => task(S.sel);
   if (d.view) { S.view = d.view; render(); return refreshView(); }
   if (docsClick(d) || claudeClick(d)) return;
-  if ("newproj" in d) { S.newProj = true; S.npErr = ""; render(); $("#np-name").focus(); return; }
+  if ("projmenu" in d) { S.projOpen = !S.projOpen; return render(); }
+  if (d.star) { const p = S.data.projects.find(x => x.id === d.star); return act(() => api("PATCH", `/api/projects/${encodeURIComponent(d.star)}`, { starred: !p.starred })); }
+  if ("newproj" in d) { S.projOpen = false; S.newProj = true; S.npErr = ""; render(); $("#np-name").focus(); return; }
   if ("cancelproj" in d) { S.newProj = false; return render(); }
   if (d.newepic) { S.newEpic = d.newepic; render(); $("#ne-name").focus(); return; }
   if ("newtask" in d) { S.newTask = !S.newTask; render(); if (S.newTask) $("#nt-title")?.focus(); return; }
   if ("canceltask" in d) { S.newTask = false; return render(); }
   if (d.cyc) { const t = task(d.cyc); S.sel = d.cyc; return patch(t, { state: t.state === "todo" ? "progress" : "todo" }); }
   if (d.reopen) { S.sel = d.reopen; return patch(task(d.reopen), { state: "todo" }); }
-  if (d.p) { S.project = d.p; S.epic = null; S.epicView = null; S.newTask = false; try { localStorage.setItem("doit.project", d.p); } catch { /* */ } return load().then(refreshView); }
+  if (d.p) { S.projOpen = false; S.project = d.p; S.epic = null; S.epicView = null; S.newTask = false; try { localStorage.setItem("doit.project", d.p); } catch { /* */ } return load().then(refreshView); }
   if (d.openEpic) {
     // A second click on the epic already shown clears it; with a task open, it brings the epic back.
     if (S.epic === d.openEpic && S.epicView && !S.sel) { S.epic = null; S.epicView = null; return render(); }
@@ -76,7 +79,7 @@ document.addEventListener("keydown", ev => {
   const r = ev.target.closest && ev.target.closest(".row");
   if (r && (ev.key === "Enter" || ev.key === " ") && ev.target === r) { ev.preventDefault(); S.sel = r.dataset.id; render(); }
   if (r && ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && r.draggable) { ev.preventDefault(); nudge(r.dataset.id, ev.key === "ArrowUp" ? -1 : 1); }
-  if (ev.key === "Escape") { S.fOpen = false; S.newProj = false; S.newTask = false; S.newEpic = null; render(); }
+  if (ev.key === "Escape") { S.fOpen = false; S.projOpen = false; S.newProj = false; S.newTask = false; S.newEpic = null; render(); }
 });
 
 document.addEventListener("input", ev => {
@@ -116,7 +119,7 @@ document.addEventListener("focusout", ev => {
 setInterval(() => {
   const a = document.activeElement;
   const typing = a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type !== "checkbox" && a.type !== "radio") || a.tagName === "SELECT");
-  if (typing || dragKey || epicDragging() || S.newProj || S.newTask || S.newEpic !== null || S.fOpen || document.visibilityState !== "visible") return;
+  if (typing || dragKey || epicDragging() || S.newProj || S.newTask || S.newEpic !== null || S.fOpen || S.projOpen || document.visibilityState !== "visible") return;
   // An open edit box keeps its text: the Docs view is not reloaded while editing.
   if (S.view !== "docs" || !S.docs.editing) load().then(refreshView);
 }, 10000);

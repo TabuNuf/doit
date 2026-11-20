@@ -16,8 +16,8 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 ## Projects
 
 - A project is a folder with a docs folder inside, `Docs/` by the standard; a project that has not renamed its own yet (`BB-Docs/`) is registered with that name. The project list lives in the app's settings, not in any project.
-- **+ Project** asks for a name, a folder and the docs folder name. It creates `<docs>/Epics/` with `Tasks/`, `Parked/` and `Completed/` where missing, and a rolling bug epic `EPIC-001: Bugs (rolling)` when the project has no epics yet. It never overwrites an existing file.
-- The top bar lists every project plus **All projects**. In All projects each row shows a project pill.
+- **+ New project**, the last row of the Projects menu, asks for a name, a folder and the docs folder name. It creates `<docs>/Epics/` with `Tasks/`, `Parked/` and `Completed/` where missing, and a rolling bug epic `EPIC-001: Bugs (rolling)` when the project has no epics yet. It never overwrites an existing file.
+- The top bar shows **All projects**, then the starred projects, then a **Projects ▾** menu listing every project. In the menu a click on a name selects the project; a click on its star pins it to the top bar or takes it off. The star is kept in the settings file. A selected project without a star shows its name on the menu button. In All projects each row shows a project pill.
 
 ## Epics
 
@@ -135,3 +135,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20: the Docs view keeps its own column widths, apart from the Board's, and its Linked pane can be closed to a rail and opened again (section Docs).
 - 2026-11-20, EPIC-004: the Claude view, the activity log, the `blocks` field and the morning run (section Claude view); the morning run is a desktop app schedule and only reports.
 - 2026-11-20, EPIC-011: a folded Parked section joins Completed (was Closed) and Archived, all folded; epics move between open, Parked, Completed and Archived by dragging, and a closed epic reopens with its tasks (section Epics).
+- 2026-11-20: the top bar shows only starred projects; every project, its star and + New project sit in a Projects menu.

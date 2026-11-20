@@ -7,7 +7,7 @@ export const FUNNEL = '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z
 
 export const S = {
   project: "all", epic: null, tab: "open", q: "", owner: "all",
-  f: { task: true, bug: true, due: "any" }, fOpen: false,
+  f: { task: true, bug: true, due: "any" }, fOpen: false, projOpen: false,
   view: "board", claude: null, docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
   sel: null, font: 15, newProj: false, newTask: false, newEpic: null, epicView: null, epicFold: {}, data: null, npErr: "",
 };

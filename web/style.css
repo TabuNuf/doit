@@ -41,6 +41,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .projects { display: flex; gap: 4px; flex-wrap: wrap; }
 .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel); border-radius: 2px; padding: 3px 10px; font-size: 13px; }
 .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.projmenu { position: relative; }
+.projpop { left: 0; right: auto; width: auto; min-width: 240px; max-height: 70vh; overflow-y: auto; gap: 2px; padding: 6px; }
+.projrow { display: flex; align-items: center; gap: 2px; }
+.projpop button { border-color: transparent; background: none; }
+.projpop button:hover { border-color: var(--line); }
+.star { padding: 2px 6px; color: var(--muted); font-size: 15px; line-height: 1; }
+.star[aria-pressed="true"] { color: var(--p3); }
+.projpick { flex: 1; display: flex; align-items: center; gap: 8px; text-align: left; }
+.projpick[aria-current="true"] { color: var(--accent); font-weight: 500; }
+.projnew { margin-top: 4px; border-top: 1px solid var(--line) !important; border-radius: 0; padding-top: 8px; color: var(--muted); }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
 .views { display: flex; gap: 0; margin-left: auto; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
 .views button { border: 0; border-radius: 0; border-right: 1px solid var(--line); }

@@ -41,6 +41,16 @@ export class FileSource {
     return project;
   }
 
+  /** Sets or clears a project's star (pinned to the top bar). */
+  setStarred(projectId, starred) {
+    const data = this.settingsFile.read();
+    const project = data.projects.find(p => p.id === projectId);
+    if (!project) throw new Error(`No project ${projectId}`);
+    if (starred) project.starred = true; else delete project.starred;
+    this.settingsFile.write(data);
+    return project;
+  }
+
   load(projectId, { archived }) {
     const { main, branches } = this.#layout(projectId);
     const own = id => branches.get(epicOf(id)) || main;
