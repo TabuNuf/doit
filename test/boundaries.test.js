@@ -7,7 +7,7 @@ import path from "node:path";
 const ROOT = path.join(import.meta.dirname, "..");
 const ALLOWED = {
   domain: { tiers: ["domain"], node: [] },
-  store: { tiers: ["domain", "store"], node: ["node:fs", "node:path", "node:os"] },
+  store: { tiers: ["domain", "store"], node: ["node:fs", "node:path", "node:os", "node:child_process"] },
   cli: { tiers: ["domain", "cli"], node: [] },
   server: { tiers: ["domain", "server"], node: ["node:http", "node:fs", "node:path"] },
 };

@@ -1,5 +1,5 @@
-// Markdown to HTML for reading epic documents: headings, lists, checkboxes, bold, code, links
-// and fenced blocks. Text is escaped first, so nothing in a document can inject markup.
+// Markdown to HTML for reading epic documents and docs: headings, lists, checkboxes, bold, code, links,
+// pipe tables and fenced blocks. Text is escaped first, so nothing in a document can inject markup.
 
 import { esc } from "./state.js";
 
@@ -15,6 +15,23 @@ function item(text) {
   if (!box) return `<li>${inline(text)}</li>`;
   const on = box[1] !== " ";
   return `<li class="check"><input type="checkbox" disabled ${on ? "checked" : ""} aria-label="${on ? "Done" : "Not done"}"> ${inline(box[2])}</li>`;
+}
+
+const SEPARATOR = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
+const isTableAt = (rows, i) => rows[i].includes("|") && i + 1 < rows.length && rows[i + 1].includes("|") && SEPARATOR.test(rows[i + 1]);
+
+/** The cells of a table row: outer pipes dropped, "\\|" kept inside a cell. */
+function cells(row) {
+  const t = row.trim().replace(/^\|/, "").replace(/(?<!\\)\|$/, "");
+  return t.split(/(?<!\\)\|/).map(c => c.trim().replace(/\\\|/g, "|"));
+}
+
+function table(rows, i) {
+  const head = cells(rows[i]);
+  const body = [];
+  for (i += 2; i < rows.length && rows[i].trim() && rows[i].includes("|"); i++) body.push(cells(rows[i]));
+  const tr = (cs, tag) => `<tr>${head.map((_, k) => `<${tag}>${inline(cs[k] ?? "")}</${tag}>`).join("")}</tr>`;
+  return { html: `<table><thead>${tr(head, "th")}</thead><tbody>${body.map(r => tr(r, "td")).join("")}</tbody></table>`, next: i };
 }
 
 export function renderMarkdown(md) {
@@ -41,8 +58,9 @@ export function renderMarkdown(md) {
       out.push(`<${tag}>${items.join("")}</${tag}>`);
       continue;
     }
+    if (isTableAt(rows, i)) { const t = table(rows, i); out.push(t.html); i = t.next; continue; }
     const para = [];
-    for (; i < rows.length && rows[i].trim() && !/^(#{1,6}\s|```|\s*([-*]|\d+\.)\s)/.test(rows[i]); i++) para.push(rows[i].trim());
+    for (; i < rows.length && rows[i].trim() && !/^(#{1,6}\s|```|\s*([-*]|\d+\.)\s)/.test(rows[i]) && !(para.length && isTableAt(rows, i)); i++) para.push(rows[i].trim());
     out.push(`<p>${para.map(inline).join("<br>")}</p>`);
   }
   return out.join("\n");

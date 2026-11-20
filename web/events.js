@@ -4,6 +4,7 @@ import { S, $, keyOf, tabOf, api, act, load, patch, task } from "./state.js";
 import { render } from "./render.js";
 import { nudge, dragKey } from "./ordering.js";
 import { openEpic } from "./epicView.js";
+import { docsClick, docsInput, refreshDocs } from "./docsView.js";
 
 /* ---------- Events ---------- */
 
@@ -12,6 +13,7 @@ document.addEventListener("click", ev => {
   if (!b) { if (S.fOpen && !ev.target.closest(".pop")) { S.fOpen = false; render(); } return; }
   const d = b.dataset;
   const sel = () => task(S.sel);
+  if (docsClick(d)) return;
   if ("newproj" in d) { S.newProj = true; S.npErr = ""; render(); $("#np-name").focus(); return; }
   if ("cancelproj" in d) { S.newProj = false; return render(); }
   if (d.newepic) { S.newEpic = d.newepic; render(); $("#ne-name").focus(); return; }
@@ -19,7 +21,7 @@ document.addEventListener("click", ev => {
   if ("canceltask" in d) { S.newTask = false; return render(); }
   if (d.cyc) { const t = task(d.cyc); S.sel = d.cyc; return patch(t, { state: t.state === "todo" ? "progress" : "todo" }); }
   if (d.reopen) { S.sel = d.reopen; return patch(task(d.reopen), { state: "todo" }); }
-  if (d.p) { S.project = d.p; S.epic = null; S.epicView = null; S.newTask = false; try { localStorage.setItem("doit.project", d.p); } catch { /* */ } return load(); }
+  if (d.p) { S.project = d.p; S.epic = null; S.epicView = null; S.newTask = false; try { localStorage.setItem("doit.project", d.p); } catch { /* */ } return load().then(() => S.view === "docs" && refreshDocs()); }
   if (d.openEpic) {
     // A second click on the epic already shown clears it; with a task open, it brings the epic back.
     if (S.epic === d.openEpic && S.epicView && !S.sel) { S.epic = null; S.epicView = null; return render(); }
@@ -69,6 +71,7 @@ document.addEventListener("keydown", ev => {
 });
 
 document.addEventListener("input", ev => {
+  if (docsInput(ev)) return;
   if (ev.target.id !== "q") return;
   S.q = ev.target.value;
   const pos = ev.target.selectionStart;
@@ -103,7 +106,9 @@ document.addEventListener("focusout", ev => {
 setInterval(() => {
   const a = document.activeElement;
   const typing = a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type !== "checkbox" && a.type !== "radio") || a.tagName === "SELECT");
-  if (!typing && !dragKey && !S.newProj && !S.newTask && S.newEpic === null && !S.fOpen && document.visibilityState === "visible") load();
+  if (typing || dragKey || S.newProj || S.newTask || S.newEpic !== null || S.fOpen || document.visibilityState !== "visible") return;
+  // An open edit box keeps its text: the Docs view is not reloaded while editing.
+  if (S.view === "docs") { if (!S.docs.editing) load().then(refreshDocs); } else load();
 }, 10000);
 
 load();

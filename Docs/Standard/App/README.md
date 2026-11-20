@@ -33,6 +33,15 @@ Why: three Core rules read literally would fight most app frameworks. Decided by
 - **Every colour in a stylesheet is a token, defined for light and for dark; a test fails on a literal colour outside the token blocks.** Component rules use `var(--name)` only, and a script that sets colours picks from the same tokens.
   Why: a literal colour in a component rule looks right in the theme it was written in and wrong in the other, and nothing fails. Doit's restyle found seven such literals, among them the bug and task dots and the white text on warnings; a 30-line test reading the stylesheet now catches the next one.
 
+## Pages over local files
+
+- **An API that reads or writes files by a path from the page checks the path twice:** a pure check in the domain (relative, no `..` segment, no hidden name, no backslash, the one allowed extension), then the adapter resolves it, follows links, and refuses anything that lands outside the folder. Tests send `../x`, an absolute path, a hidden folder and a wrong extension, through the API.
+  Why: the page is the user's, but a path is still text from a request; the string check alone misses a link out of the folder, and the resolve check alone gives poor messages.
+- **A page that reloads on a timer never redraws an open edit box.** The draft lives in page state on every keystroke, and the timer skips the view while it is editing.
+  Why: a 10-second reload that rebuilds the view throws away what was typed since the last save, and nothing fails in a test.
+- **Performance tests sit in their own folder with their own script** (`test/performance/`, `npm run test:performance`), so the Development run never includes them.
+  Why: a measurement with a bar (a 500-file tree read under 200 ms) belongs to the Performance category, which runs only when a task changes what it measures.
+
 ## What the first app project decides
 
 Each item becomes a rule here, with its why, or a line in that project's `Deviations.md`:

@@ -3,6 +3,8 @@
 import os from "node:os";
 import path from "node:path";
 import { Board } from "./domain/board.js";
+import { DocsLibrary } from "./domain/docs.js";
+import { DocsFiles } from "./store/docsFolder.js";
 import { FileSource } from "./store/source.js";
 import { SettingsFile } from "./store/settings.js";
 import { EpicWorktrees } from "./store/worktrees.js";
@@ -17,11 +19,16 @@ export function makeBoard({ home = dataDir(), now } = {}) {
   return new Board(new FileSource(new SettingsFile(home), new EpicWorktrees()), now);
 }
 
+export function makeDocs({ home = dataDir(), board }) {
+  return new DocsLibrary(new DocsFiles(new SettingsFile(home)), board);
+}
+
 export function makeCli(options = {}) {
   return new Cli(makeBoard(options), options.out || process.stdout, options.err || process.stderr);
 }
 
 export function makeServer(options = {}) {
   const webDir = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "web");
-  return new HttpServer(makeBoard(options), webDir, options.commit ?? null);
+  const board = makeBoard(options);
+  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home: options.home, board }));
 }
