@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node bin/server.js",
     "test": "node --test test/*.test.js",
+    "test:performance": "node --test test/performance/*.test.js",
     "test:audit": "node --test test/*.test.js test/audit/*.test.js"
   },
   "engines": { "node": ">=20" }

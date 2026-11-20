@@ -8,8 +8,9 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; ch
 
 export class HttpServer {
   /** `commit` is the git commit the process started from (null when unknown); GET /api/version reports it. */
-  constructor(board, webDir, commit = null) {
+  constructor(board, webDir, commit = null, docs = null) {
     this.board = board;
+    this.docs = docs;
     this.commit = commit;
     this.webDir = path.resolve(webDir);
     this.server = http.createServer((req, res) => this.#handle(req, res));
@@ -23,6 +24,10 @@ export class HttpServer {
       ["PATCH", /^\/api\/tasks\/([^/]+)\/([^/]+)$/, (q, b, m) => this.board.update(`${m[1]}/${m[2]}`, b)],
       ["POST", /^\/api\/tasks\/([^/]+)\/([^/]+)\/move$/, (q, b, m) => this.board.move(`${m[1]}/${m[2]}`, b)],
       ["POST", /^\/api\/tasks\/([^/]+)\/([^/]+)\/comments$/, (q, b, m) => this.board.comment(`${m[1]}/${m[2]}`, b.who || "human", b.text)],
+      ["GET", /^\/api\/docs\/tree$/, q => this.docs.tree(q.get("project"))],
+      ["GET", /^\/api\/docs\/file$/, q => this.docs.read(q.get("project"), q.get("path"))],
+      ["PUT", /^\/api\/docs\/file$/, (q, b) => this.docs.save(q.get("project"), q.get("path"), b.text)],
+      ["GET", /^\/api\/docs\/linked$/, q => this.docs.linked(q.get("project"), q.get("path"))],
       ["PUT", /^\/api\/settings$/, (q, b) => { this.board.setKeepDays(b.keepCompletedDays); return this.board.settings(); }],
     ];
   }
@@ -52,7 +57,7 @@ export class HttpServer {
         const body = method === "GET" ? {} : await readJson(req);
         return json(res, 200, fn(url.searchParams, body, m));
       } catch (e) {
-        return json(res, 400, { error: e.message });
+        return json(res, e.status || 400, { error: e.message });
       }
     }
     json(res, 404, { error: "No such API route" });

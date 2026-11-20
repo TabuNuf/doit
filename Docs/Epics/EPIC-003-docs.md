@@ -15,7 +15,7 @@ Design: Design.md, section Docs. Wireframe: Docs/Design/wireframe.html, Docs vie
 
 ## Tasks
 
-- [ ] T-003.1 Docs API: list a project's docs tree and read one document, with paths kept inside the docs folder (done when: tests read a document and refuse `../` and absolute paths)
+- [x] T-003.1 Docs API: list a project's docs tree and read one document, with paths kept inside the docs folder (done when: tests read a document and refuse `../` and absolute paths)
 - [ ] T-003.2 Docs view: tree and rendered document, using the epic view's markdown renderer, plus tables (done when: picking a file shows it rendered; a table in Design.md renders as a table)
 - [ ] T-003.3 Edit and save a document from the page (done when: a test saves a document through the API; in the page, Edit then Done writes the file and the change shows in git diff)
 - [ ] T-003.4 Linked pane: open tasks whose description or done-when names the document (done when: a task that mentions Design.md is listed when Design.md is open)
