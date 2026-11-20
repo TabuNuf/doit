@@ -22,7 +22,8 @@ Module order, low to high: domain → store → cli, server → root.
 - `domain/task.js`: the task value, its states, sections and defaults for a task without a file. Pure.
 - `domain/rules.js`: the sweep (deadline and retention archiving), whether a closed epic is archived (`epicArchived`) and rank between neighbours (the only place ranks are computed; the page asks `Board.move`). Pure, takes today's date.
 - `domain/mover.js`: `TaskMover`, where a task goes in the Open tab: from the task and its project's tasks it returns the rank and state change. Pure; `Board.move` delegates to it.
-- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves (via `TaskMover`), comments, sweeps, closes an epic (archives its tasks, then the source sets it Done, writes `Closed: <date>` and files it in `Completed/`), returns the closed epics in `view` as `closedEpics` next to the open `epics` (each with `closed` and `archived`; the CLI's `epics` ignores them) and serves an epic's document. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) and a clock.
+- `domain/epicMoves.js`: `EpicMoves`, closes an epic and moves it between open, parked, completed and archived; `planEpicMove` is pure (epic and tasks in, plan out, or a refusal). `Board.closeEpic` and `Board.moveEpic` delegate to it. A reopen restores the tasks archived with reason `Epic <id> closed`.
+- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves (via `TaskMover`), comments, sweeps, closes an epic (archives its tasks, then the source sets it Done, writes `Closed: <date>` and files it in `Completed/`), returns the closed epics in `view` as `closedEpics` (each with `closed` and `archived`, an `Archived:` line counting) and parked ones as `parkedEpics`, next to the open `epics` (the CLI's `epics` lists open then parked) and serves an epic's document. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) and a clock.
 - `store/markdown.js`: parses and writes epic files and task files. Pure text in and out.
 - `store/projectFiles.js`: `ProjectFiles`, reads and writes one project's docs folder: epics, task files, archive moves, new epic, move to Completed, project scaffold.
 - `store/settings.js`: `SettingsFile`, the project list and settings in the app's data folder.
@@ -50,19 +51,23 @@ classDiagram
     +addEpic(project, name)
     +addProject(...)
     +sweep()
-    +closeEpic(project, epic)
+    +closeEpic(project, epic, archived)
+    +moveEpic(project, epic, to)
     +epicDocument(project, epic)
   }
   class DocsLibrary { +tree(project) +read(project, path) +save(project, path, text) +linked(project, path) }
   class DocsFiles { +tree(id) +read(id, path) +write(id, path, text) +lastChange(id, path) }
   class TaskMover { +plan(task, tasks, placement) changes }
-  class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +completeEpic() +closedEpics() +epicDocument() }
+  class EpicMoves { +close() +move(project, epic, to) }
+  class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +completeEpic() +parkEpic() +reopenEpic() +setEpicArchived() +closedEpics() +epicDocument() }
   class ProjectFiles
   class SettingsFile
   class EpicWorktrees { +find(folder) }
   class Cli
   class HttpServer { +commit }
   Board --> TaskMover
+  Board --> EpicMoves
+  EpicMoves --> FileSource : port
   Board --> FileSource : port
   FileSource --> ProjectFiles
   FileSource --> SettingsFile

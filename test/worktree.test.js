@@ -70,3 +70,17 @@ test("a brief named like the epic in its worktree does not hide the epic", t => 
   assert.match(s.wtRead("Epics/EPIC-014-online-lobby.md"), /- \[x\] T-014.2/);
   assert.doesNotMatch(s.wtRead("Epics/EPIC-014-brief.md"), /T-014/);
 });
+
+test("closing with the archive flag and reopening happen in the worktree, not in main", t => {
+  const s = repoWithWorktree(t);
+  s.board.moveEpic("game", "EPIC-014", "archived");
+  assert.match(s.wtRead("Epics/Completed/EPIC-014-online-lobby.md"), /^Closed: 2026-11-20\nArchived: 2026-11-20\n/m);
+  assert.ok(s.exists("Epics/EPIC-014-online-lobby.md") && !s.exists("Epics/Completed/EPIC-014-online-lobby.md"), "main is untouched");
+  s.board.moveEpic("game", "EPIC-014", "open");
+  const text = s.wtRead("Epics/EPIC-014-online-lobby.md");
+  assert.match(text, /^Status: Planned$/m);
+  assert.doesNotMatch(text, /Closed:|Archived:/);
+  assert.ok(!fs.existsSync(path.join(s.wt, "GameDocs/Epics/Completed/EPIC-014-online-lobby.md")));
+  assert.equal(s.board.get("game/T-014.2").state, "todo");
+  assert.ok(fs.existsSync(path.join(s.wt, "GameDocs/Epics/Tasks/T-014.2.md")));
+});

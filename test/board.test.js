@@ -10,7 +10,8 @@ test("open tasks follow epic status; ticked and completed epics stay out", t => 
   assert.deepEqual(tasks.map(x => `${x.id}:${x.state}`), ["T-009.1:todo", "T-014.2:todo", "T-014.3:todo", "T-016.1:backlog"]);
   assert.equal(tasks[0].type, "bug");
   const epics = s.board.view({ project: "game" }).epics;
-  assert.deepEqual(epics.map(e => `${e.id} ${e.done}/${e.total}`), ["EPIC-009 0/1", "EPIC-014 1/3", "EPIC-016 0/1"]);
+  assert.deepEqual(epics.map(e => `${e.id} ${e.done}/${e.total}`), ["EPIC-009 0/1", "EPIC-014 1/3"]);
+  assert.deepEqual(s.board.view({ project: "game" }).parkedEpics.map(e => e.id), ["EPIC-016"]);
 });
 
 test("completing ticks the epic line; reopening unticks it", t => {
@@ -147,4 +148,79 @@ test("closing an epic writes the date; it is closed, then archived after the kep
   assert.ok(!s.board.view({ project: "game" }).epics.some(e => e.id === "EPIC-014"));
   s.clock.t = new Date("2026-12-05T09:00:00");
   assert.equal(find("EPIC-014").archived, true);
+});
+
+const lobbyView = s => s.board.view({ project: "game" });
+const placeOf = (s, id) => {
+  const v = lobbyView(s);
+  if (v.epics.some(e => e.id === id)) return "open";
+  if (v.parkedEpics.some(e => e.id === id)) return "parked";
+  const c = v.closedEpics.find(e => e.id === id);
+  return c && (c.archived ? "archived" : "completed");
+};
+
+test("parking a Planned epic files it in Parked/ and reopening files it back in Epics/", t => {
+  const s = setup(); t.after(s.cleanup);
+  s.board.moveEpic("game", "EPIC-016", "open");
+  assert.equal(placeOf(s, "EPIC-016"), "open");
+  assert.ok(s.exists("Epics/EPIC-016-store.md") && !s.exists("Parked/EPIC-016-store.md"));
+  const r = s.board.moveEpic("game", "EPIC-016", "parked");
+  assert.equal(r.moved, true);
+  assert.ok(s.exists("Epics/Parked/EPIC-016-store.md") && !s.exists("Epics/EPIC-016-store.md"));
+  assert.match(s.read("Epics/Parked/EPIC-016-store.md"), /^Status: Parked$/m);
+  assert.equal(placeOf(s, "EPIC-016"), "parked");
+  s.board.moveEpic("game", "EPIC-016", "open");
+  assert.match(s.read("Epics/EPIC-016-store.md"), /^Status: Planned$/m);
+});
+
+test("an Active epic is refused for Parked, and a same-place move does nothing", t => {
+  const s = setup(); t.after(s.cleanup);
+  assert.throws(() => s.board.moveEpic("game", "EPIC-014", "parked"), /only a Planned epic can be parked/);
+  assert.ok(s.exists("Epics/EPIC-014-online-lobby.md"));
+  assert.deepEqual(s.board.moveEpic("game", "EPIC-014", "open").moved, false);
+  assert.deepEqual(s.board.moveEpic("game", "EPIC-016", "parked").moved, false);
+  assert.throws(() => s.board.moveEpic("game", "EPIC-014", "nowhere"), /to must be one of/);
+  assert.throws(() => s.board.moveEpic("game", "EPIC-099", "open"), /No epic/);
+});
+
+test("completed, archived and back: Archived line, tasks restored by their close only", t => {
+  const s = setup(); t.after(s.cleanup);
+  s.board.update("game/T-014.3", { state: "archived" });
+  s.board.update("game/T-014.2", { state: "done" });
+  s.board.addTask({ project: "game", epic: "EPIC-014", title: "Extra" });
+  const finished = s.board.get("game/T-014.2").completed;
+  s.board.moveEpic("game", "EPIC-014", "completed");
+  assert.equal(placeOf(s, "EPIC-014"), "completed");
+  assert.doesNotMatch(s.read("Epics/Completed/EPIC-014-online-lobby.md"), /Archived:/);
+  assert.equal(s.board.moveEpic("game", "EPIC-014", "completed").moved, false);
+
+  s.board.moveEpic("game", "EPIC-014", "archived");
+  assert.match(s.read("Epics/Completed/EPIC-014-online-lobby.md"), /^Closed: 2026-11-20\nArchived: 2026-11-20\n/m);
+  assert.equal(placeOf(s, "EPIC-014"), "archived");
+  s.board.moveEpic("game", "EPIC-014", "completed");
+  assert.equal(placeOf(s, "EPIC-014"), "completed");
+  s.board.moveEpic("game", "EPIC-014", "archived");
+
+  const r = s.board.moveEpic("game", "EPIC-014", "open");
+  assert.equal(r.restoredTasks, 2);
+  assert.equal(placeOf(s, "EPIC-014"), "open");
+  const text = s.read("Epics/EPIC-014-online-lobby.md");
+  assert.match(text, /^Status: Planned$/m);
+  assert.doesNotMatch(text, /Closed:|Archived:/);
+  const done = s.board.get("game/T-014.2"), todo = s.board.get("game/T-014.4"), hand = s.board.get("game/T-014.3");
+  assert.deepEqual([done.state, done.ticked, done.completed], ["done", true, finished]);
+  assert.deepEqual([todo.state, todo.completed], ["todo", null]);
+  assert.equal(hand.state, "archived");
+  assert.ok(s.exists("Epics/Tasks/T-014.4.md") && !s.exists("Archive/Tasks/T-014.4.md"));
+});
+
+test("archiving an open epic closes it with both lines; an epic archived by date cannot be un-archived by line", t => {
+  const s = setup(); t.after(s.cleanup);
+  const r = s.board.moveEpic("game", "EPIC-014", "archived");
+  assert.equal(r.archivedTasks, 2);
+  assert.match(s.read("Epics/Completed/EPIC-014-online-lobby.md"), /^Status: Done\nClosed: 2026-11-20\nArchived: 2026-11-20\n/m);
+  assert.equal(placeOf(s, "EPIC-014"), "archived");
+  assert.throws(() => s.board.moveEpic("game", "EPIC-013", "completed"), /archived by date/);
+  s.board.moveEpic("game", "EPIC-013", "open");
+  assert.match(s.read("Epics/EPIC-013-netplay.md"), /^Status: Planned$/m);
 });

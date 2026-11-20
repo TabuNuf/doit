@@ -59,7 +59,8 @@ const COMMANDS = {
 
   epics(pos) {
     const project = need(pos[0], "doit epics <project>");
-    for (const e of this.board.view({ project }).epics) this.print(`${e.id}  ${e.status.padEnd(7)} ${e.done}/${e.total}  ${e.name}`);
+    const { epics, parkedEpics } = this.board.view({ project });
+    for (const e of [...epics, ...parkedEpics]) this.print(`${e.id}  ${e.status.padEnd(7)} ${e.done}/${e.total}  ${e.name}`);
   },
 
   epic(pos, flags) {
