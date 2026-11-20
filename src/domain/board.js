@@ -6,12 +6,15 @@
 //   epicDocument(projectId, epicId) -> {id, name, status, completed, text} | null,
 //   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status) -> epicId,
 //   closedEpics(projectId) -> [{id, name, status, closed, done, total}] for Epics/Completed/, closed "YYYY-MM-DD" or null,
-//   completeEpic(projectId, epicId, closed) sets the epic Done, writes its close date and files it as completed
+//   completeEpic(projectId, epicId, closed, archived) sets the epic Done, writes its close date (and archive date) and files it as completed,
+//   parkEpic(projectId, epicId), reopenEpic(projectId, epicId) (Planned, in Epics/, no Closed/Archived lines),
+//   setEpicArchived(projectId, epicId, date|null) on a completed epic; load() epics carry completed, parked, archivedOn
 // `record(ref, what)` is told every change to a task in words (the activity log); the root hands it in.
 
 import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask, matchesState, check, oneLine } from "./task.js";
 import { archiveReason, epicArchived, byRank, stamp, DEFAULT_KEEP_DAYS } from "./rules.js";
 import { TaskMover } from "./mover.js";
+import { EpicMoves } from "./epicMoves.js";
 import { describeChanges } from "./activity.js";
 
 export class Board {
@@ -20,6 +23,7 @@ export class Board {
     this.now = now;
     this.record = record;
     this.mover = new TaskMover();
+    this.moves = new EpicMoves(source, now, (task, what) => this.#write(task, what));
   }
 
   projects() { return this.source.projects(); }
@@ -65,15 +69,16 @@ export class Board {
     return { project, ...doc };
   }
 
-  /** Archives every task of an epic that is not archived yet, by the same path as the sweep, then completes the epic. Returns how many tasks. */
-  closeEpic(project, epicId) {
+  /** Archives the epic's tasks and completes it; archived also writes its Archived line. Returns how many tasks. */
+  closeEpic(project, epicId, archived = false) {
     this.#requireProject(project);
-    const loaded = this.#load(project, false);
-    if (!loaded.epics.some(e => e.id === epicId && !e.completed)) throw new Error(`No open epic ${epicId} in ${project}`);
-    const tasks = loaded.tasks.filter(t => t.epic === epicId && t.state !== "archived");
-    for (const task of tasks) this.#archive(task, `Epic ${epicId} closed`);
-    this.source.completeEpic(project, epicId, stamp(this.now()).slice(0, 10));
-    return tasks.length;
+    return this.moves.close(project, epicId, archived, this.#load(project, false));
+  }
+
+  /** Moves an epic to open, parked, completed or archived. Returns {moved, restoredTasks, archivedTasks}. */
+  moveEpic(project, epicId, to) {
+    this.#requireProject(project);
+    return this.moves.move(project, epicId, to, this.#load(project, true), this.settings().keepCompletedDays);
   }
 
   /** Everything the board page shows for one project or "all". */
@@ -82,19 +87,16 @@ export class Board {
     this.sweep(ids);
     const today = stamp(this.now()).slice(0, 10);
     const keep = this.settings().keepCompletedDays;
-    const epics = [], closedEpics = [], tasks = [];
+    const epics = [], parkedEpics = [], closedEpics = [], tasks = [];
     for (const id of ids) {
-      for (const e of this.source.closedEpics(id)) closedEpics.push({ project: id, ...e, archived: epicArchived(e.closed, today, keep) });
+      for (const e of this.source.closedEpics(id)) closedEpics.push({ project: id, ...e, archived: !!e.archivedOn || epicArchived(e.closed, today, keep) });
       const loaded = this.#load(id, archived);
-      for (const e of loaded.epics) {
-        if (e.completed) continue;
-        epics.push({ project: id, id: e.id, name: e.name, status: e.status, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
-      }
+      for (const e of loaded.epics.filter(x => !x.completed)) (e.parked ? parkedEpics : epics).push({ project: id, id: e.id, name: e.name, status: e.status, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
       tasks.push(...loaded.tasks.filter(t => archived || t.state !== "archived"));
     }
     tasks.sort(byRank);
     closedEpics.sort((a, b) => (b.closed || "").localeCompare(a.closed || "") || b.id.localeCompare(a.id));
-    return { projects: this.projects(), settings: this.settings(), epics, closedEpics, tasks };
+    return { projects: this.projects(), settings: this.settings(), epics, parkedEpics, closedEpics, tasks };
   }
 
   /** Tasks matching a filter. state: open (default), active, backlog, done, archived or a single state. */

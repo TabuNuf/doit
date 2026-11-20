@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile, epicTemplate } from "../src/store/markdown.js";
+import { parseEpic, replaceLine, appendLine, setClosed, setArchived, parseTaskFile, formatTaskFile, epicTemplate } from "../src/store/markdown.js";
 import { LOBBY } from "./helpers.js";
 
 test("parses an epic file", () => {
@@ -35,4 +35,13 @@ test("task file round trip", () => {
   for (const k of ["state", "owner", "type", "rank", "deadline", "created", "updated", "description"]) assert.deepEqual(back[k], task[k], k);
   assert.deepEqual(back.comments, task.comments);
   assert.equal(back.completed, undefined);
+});
+
+test("Closed and Archived lines are written under Status, read back and removed", () => {
+  const text = setArchived(setClosed(LOBBY, "2026-11-20"), "2026-11-21");
+  assert.match(text, /^Status: Active\nClosed: 2026-11-20\nArchived: 2026-11-21\n/m);
+  const e = parseEpic(text);
+  assert.deepEqual([e.closed, e.archivedOn], ["2026-11-20", "2026-11-21"]);
+  assert.equal(setArchived(setClosed(text, null), null), LOBBY);
+  assert.equal(parseEpic(LOBBY).archivedOn, null);
 });

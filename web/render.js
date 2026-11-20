@@ -2,8 +2,9 @@
 
 import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFilter, projects, proj, color, task, visible, sectionLists, dueSoonCount } from "./state.js";
 import { bindDrag } from "./ordering.js";
+import { bindEpicDrag } from "./epicMove.js";
 import { epicViewPane } from "./epicView.js";
-import { epicBtn, closedSections } from "./epicList.js";
+import { epicBtn, epicSections } from "./epicList.js";
 import { docsPanes } from "./docsView.js";
 import { claudePanes } from "./claudeView.js";
 import { setLayout } from "./resize.js";
@@ -19,6 +20,7 @@ export function render() {
   if (S.view === "claude") { $("#panes").innerHTML = claudePanes(); return; }
   $("#panes").innerHTML = epicPane() + listPane() + detailPane();
   bindDrag();
+  bindEpicDrag();
 }
 
 function renderTop() {
@@ -44,7 +46,7 @@ function epicPane() {
     const adding = S.newEpic === p.id
       ? `<form class="inline-add" data-epicform="${esc(p.id)}"><input id="ne-name" placeholder="Epic name" aria-label="Epic name"><button type="submit">Add</button></form>`
       : `<button class="addbtn" data-newepic="${esc(p.id)}">+ New epic</button>`;
-    return `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}</div>${S.data.epics.filter(e => e.project === p.id).map(epicBtn).join("")}${adding}${closedSections(p.id)}`;
+    return `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}</div><div class="open-zone" data-drop-epic="open" data-project="${esc(p.id)}">${S.data.epics.filter(e => e.project === p.id).map(epicBtn).join("")}</div>${adding}${epicSections(p.id)}`;
   }).join("");
   return `<section class="pane"><div class="pane-h">Epics${S.epic ? `<button class="fsz" data-clear-epic style="text-transform:none">Show all</button>` : ""}</div>
     <div class="pane-b">${groups || `<div class="empty">No projects yet. Add one with + Project.</div>`}</div></section>`;

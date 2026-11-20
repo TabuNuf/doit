@@ -13,14 +13,22 @@ export function parseEpic(text) {
     if (!m) continue;
     lines.push({ id: m[2], n: Number(m[2].split(".")[1]), title: m[3].trim(), doneWhen: (m[4] || "").trim(), ticked: m[1] !== " " });
   }
+  const archivedOn = /^Archived:\s*(\d{4}-\d{2}-\d{2})/m.exec(text);
   const closed = /^Closed:\s*(\d{4}-\d{2}-\d{2})/m.exec(text);
-  return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", closed: closed ? closed[1] : null, lines };
+  return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", closed: closed ? closed[1] : null, archivedOn: archivedOn ? archivedOn[1] : null, lines };
 }
 
-/** Writes `Closed: <date>` on the line under Status, replacing an earlier one. */
+/** Writes `Closed: <date>` on the line under Status, replacing an earlier one; a null date removes it. */
 export function setClosed(text, date) {
   const rest = text.replace(/^Closed:.*\n?/m, "");
-  return rest.replace(/^(Status:.*)$/m, `$1\nClosed: ${date}`);
+  return date ? rest.replace(/^(Status:.*)$/m, `$1\nClosed: ${date}`) : rest;
+}
+
+/** Writes `Archived: <date>` under `Closed:` (or Status), replacing an earlier one; a null date removes it. */
+export function setArchived(text, date) {
+  const rest = text.replace(/^Archived:.*\n?/m, "");
+  if (!date) return rest;
+  return /^Closed:.*$/m.test(rest) ? rest.replace(/^(Closed:.*)$/m, `$1\nArchived: ${date}`) : rest.replace(/^(Status:.*)$/m, `$1\nArchived: ${date}`);
 }
 
 /** Sets the epic's Status line, adding one under the title when it has none. */

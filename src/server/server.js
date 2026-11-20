@@ -22,6 +22,7 @@ export class HttpServer {
       ["GET", /^\/api\/epics\/([^/]+)\/([^/]+)$/, (q, b, m) => this.board.epicDocument(m[1], m[2])],
       ["POST", /^\/api\/epics$/, (q, b) => ({ id: this.board.addEpic(b.project, b.name, b.status || "Planned") })],
       ["POST", /^\/api\/epics\/([^/]+)\/([^/]+)\/close$/, (q, b, m) => ({ archivedTasks: this.board.closeEpic(m[1], m[2]) })],
+      ["POST", /^\/api\/epics\/([^/]+)\/([^/]+)\/move$/, (q, b, m) => this.board.moveEpic(m[1], m[2], b.to)],
       ["POST", /^\/api\/tasks$/, (q, b) => this.board.addTask(b)],
       ["PATCH", /^\/api\/tasks\/([^/]+)\/([^/]+)$/, (q, b, m) => this.board.update(`${m[1]}/${m[2]}`, b)],
       ["POST", /^\/api\/tasks\/([^/]+)\/([^/]+)\/move$/, (q, b, m) => this.board.move(`${m[1]}/${m[2]}`, b)],

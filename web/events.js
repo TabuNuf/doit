@@ -3,7 +3,9 @@
 import { S, $, keyOf, tabOf, api, act, load, patch, task } from "./state.js";
 import { render } from "./render.js";
 import { nudge, dragKey } from "./ordering.js";
+import { epicDragging } from "./epicMove.js";
 import { openEpic, closeEpic } from "./epicView.js";
+import { toggleFold } from "./epicList.js";
 import { docsClick, docsInput, refreshDocs } from "./docsView.js";
 import { claudeClick, refreshClaude } from "./claudeView.js";
 
@@ -33,7 +35,7 @@ document.addEventListener("click", ev => {
     return openEpic(d.openEpic);
   }
   if (d.closeEpic) return closeEpic(d.closeEpic);
-  if (d.toggleArchived) { S.archivedOpen[d.toggleArchived] = !S.archivedOpen[d.toggleArchived]; return render(); }
+  if (d.epicFold) { toggleFold(d.epicFoldP, d.epicFold); return render(); }
   if ("clearEpic" in d) { S.epic = null; S.epicView = null; return render(); }
   if (d.t) { const reload = d.t === "archived" || S.tab === "archived"; S.tab = d.t; return reload ? load() : render(); }
   if (d.o) { S.owner = d.o; return render(); }
@@ -114,7 +116,7 @@ document.addEventListener("focusout", ev => {
 setInterval(() => {
   const a = document.activeElement;
   const typing = a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type !== "checkbox" && a.type !== "radio") || a.tagName === "SELECT");
-  if (typing || dragKey || S.newProj || S.newTask || S.newEpic !== null || S.fOpen || document.visibilityState !== "visible") return;
+  if (typing || dragKey || epicDragging() || S.newProj || S.newTask || S.newEpic !== null || S.fOpen || document.visibilityState !== "visible") return;
   // An open edit box keeps its text: the Docs view is not reloaded while editing.
   if (S.view !== "docs" || !S.docs.editing) load().then(refreshView);
 }, 10000);

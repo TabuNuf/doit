@@ -15,12 +15,12 @@ export class ProjectFiles {
   /** Epic files in Epics/ and Parked/, plus Completed/ when archived is asked for. */
   epicFiles({ archived = false } = {}) {
     const out = [];
-    const scan = (dir, completed) => {
-      for (const name of listDir(dir)) if (/^EPIC-\d+.*\.md$/.test(name)) out.push({ file: path.join(dir, name), completed });
+    const scan = (dir, completed, parked) => {
+      for (const name of listDir(dir)) if (/^EPIC-\d+.*\.md$/.test(name)) out.push({ file: path.join(dir, name), completed, parked });
     };
-    scan(this.epics, false);
-    scan(path.join(this.epics, "Parked"), false);
-    if (archived) scan(path.join(this.epics, "Completed"), true);
+    scan(this.epics, false, false);
+    scan(path.join(this.epics, "Parked"), false, true);
+    if (archived) scan(path.join(this.epics, "Completed"), true, false);
     return out;
   }
 
@@ -46,10 +46,11 @@ export class ProjectFiles {
     fs.renameSync(tmp, file);
   }
 
-  /** Writes the text into Epics/Completed/ under the same name and removes the old file. */
-  moveToCompleted(file, text) {
-    this.write(path.join(this.epics, "Completed", path.basename(file)), text);
-    this.remove(file);
+  /** Writes the text into Epics/<folder>/ ("" is Epics/ itself) under the same name and removes the old file. */
+  moveToFolder(file, folder, text) {
+    const target = path.join(this.epics, folder, path.basename(file));
+    this.write(target, text);
+    if (target !== file) this.remove(file);
   }
 
   remove(file) { fs.rmSync(file, { force: true }); }
