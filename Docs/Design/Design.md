@@ -54,7 +54,7 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 
 - `projects`, `project add <name> <folder> [--docs Docs]`
 - `list [--project <id>] [--epic EPIC-<nnn>] [--state open|active|backlog|done|archived] [--owner ai|human]`: default open tasks of every project, never archived ones unless asked.
-- `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `epic close <project> <EPIC-nnn>` (moves the epic's task files to the archive), `sweep`.
+- `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `epic close <project> <EPIC-nnn>` (archives the epic's task files, sets it Done and moves it to Completed/), `sweep`.
 
 ## Running it
 
