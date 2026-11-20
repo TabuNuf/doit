@@ -32,12 +32,14 @@ export function makeDocs({ home = dataDir(), board }) {
 }
 
 export function makeCli(options = {}) {
-  return new Cli(makeBoard(options), options.out || process.stdout, options.err || process.stderr);
+  const log = makeActivity(options);
+  const board = makeBoard({ ...options, log });
+  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now));
 }
 
 export function makeServer(options = {}) {
   const webDir = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "web");
   const log = makeActivity(options);
   const board = makeBoard({ ...options, log });
-  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home: options.home, board }), new ClaudeView(board, log));
+  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home: options.home, board }), new ClaudeView(board, log, options.now));
 }

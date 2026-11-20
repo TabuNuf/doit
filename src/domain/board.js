@@ -39,19 +39,22 @@ export class Board {
   }
 
   /** Archives what is past its deadline or past the completed retention. Returns how many. */
-  sweep(projectIds = this.projects().map(p => p.id)) {
+  sweep(projectIds) { return this.sweepTasks(projectIds).length; }
+
+  /** The sweep, returning the refs it archived. */
+  sweepTasks(projectIds = this.projects().map(p => p.id)) {
     const today = stamp(this.now()).slice(0, 10);
     const keep = this.settings().keepCompletedDays;
-    let count = 0;
+    const swept = [];
     for (const id of projectIds) {
       for (const task of this.#load(id, false).tasks) {
         const reason = archiveReason(task, today, keep);
         if (!reason) continue;
         this.#archive(task, reason);
-        count++;
+        swept.push(`${id}/${task.id}`);
       }
     }
-    return count;
+    return swept;
   }
 
   /** One epic's document as text, for reading. Any epic, parked and completed ones too. */

@@ -15,12 +15,14 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit comment <project>/<T-id> <text> [--as ai|human]   (default author: ai)
   doit keep <days>                                days a completed task stays before it is archived
   doit sweep                                      archive what is past its deadline or retention
+  doit morning                                    sweep, then write the morning report to the activity log and print it
 
 States: todo, progress, backlog, done, archived. "open" = todo + progress + backlog. Archived is never listed unless asked.`;
 
 export class Cli {
-  constructor(board, out, err) {
+  constructor(board, out, err, claude = null) {
     this.board = board;
+    this.claude = claude;
     this.out = out;
     this.err = err;
   }
@@ -126,6 +128,8 @@ const COMMANDS = {
   },
 
   sweep() { this.print(`Archived ${this.board.sweep()}`); },
+
+  morning() { for (const line of this.claude.morning()) this.print(line); },
 };
 
 function row(t) {
