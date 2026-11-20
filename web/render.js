@@ -1,6 +1,6 @@
 // The views: top bar, epic pane, task list and detail pane, as HTML strings.
 
-import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFilter, projects, proj, color, task, visible, sectionLists } from "./state.js";
+import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFilter, projects, proj, color, task, visible, sectionLists, dueSoonCount } from "./state.js";
 import { bindDrag } from "./ordering.js";
 import { epicViewPane } from "./epicView.js";
 import { epicBtn, closedSections } from "./epicList.js";
@@ -22,7 +22,10 @@ export function render() {
 }
 
 function renderTop() {
-  $("#views").innerHTML = [["board", "Board"], ["docs", "Docs"]].map(([v, l]) => `<button aria-pressed="${S.view === v}" data-view="${v}">${l}</button>`).join("");
+  const due = dueSoonCount();
+  const badge = due ? `<span class="badge" title="Your tasks due within 7 days">${due}</span>` : "";
+  $("#views").innerHTML = [["board", "Board", ""], ["docs", "Docs", ""], ["claude", "Claude", badge]]
+    .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${due} of your tasks due within 7 days"` : ""}>${l}${b}</button>`).join("");
   const all = [{ id: "all", name: "All projects" }, ...projects()];
   $("#projects").innerHTML = all.map(p => `<button class="chip" aria-pressed="${S.project === p.id}" data-p="${esc(p.id)}">${p.id !== "all" ? `<span class="dot" style="background:${color(p.id)}"></span>` : ""}${esc(p.name)}</button>`).join("")
     + `<button class="chip" data-newproj style="border-style:dashed">+ Project</button>`;
