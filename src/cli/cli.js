@@ -6,7 +6,7 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit project add <name> <folder> [--docs Docs]  register a project (creates folders it lacks)
   doit epics <project>                            open epics with done/total
   doit epic add <project> <name> [--status Planned|Active|Parked]
-  doit epic close <project> <EPIC-nnn>            move the epic's task files to the archive
+  doit epic close <project> <EPIC-nnn>            archive the epic's task files, set it Done, move it to Completed/
   doit list [--project p] [--epic EPIC-nnn] [--state open|active|backlog|done|archived] [--owner ai|human] [--json]
   doit show <project>/<T-id> [--json]
   doit add <project> <EPIC-nnn> <title> [--owner ai|human] [--type task|bug] [--done-when text]

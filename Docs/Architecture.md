@@ -21,13 +21,15 @@ Module order, low to high: domain → store → cli, server → root.
 
 - `domain/task.js`: the task value, its states, sections and defaults for a task without a file. Pure.
 - `domain/rules.js`: the sweep (deadline and retention archiving) and rank between neighbours (the only place ranks are computed; the page asks `Board.move`). Pure, takes today's date.
-- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves, comments, sweeps, closes an epic's tasks and serves an epic's document. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) and a clock.
+- `domain/mover.js`: `TaskMover`, where a task goes in the Open tab: from the task and its project's tasks it returns the rank and state change. Pure; `Board.move` delegates to it.
+- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves (via `TaskMover`), comments, sweeps, closes an epic (archives its tasks, then the source sets it Done and files it in `Completed/`) and serves an epic's document. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) and a clock.
 - `store/markdown.js`: parses and writes epic files and task files. Pure text in and out.
-- `store/projectFiles.js`: `ProjectFiles`, reads and writes one project's docs folder: epics, task files, archive moves, new epic, project scaffold.
+- `store/projectFiles.js`: `ProjectFiles`, reads and writes one project's docs folder: epics, task files, archive moves, new epic, move to Completed, project scaffold.
 - `store/settings.js`: `SettingsFile`, the project list and settings in the app's data folder.
 - `store/source.js`: `FileSource`, the port implementation the board is given; joins the two above.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board` and an output stream.
-- `server/server.js`: `HttpServer`, the JSON API and the static page. Given a `Board` and the web folder.
+- `server/server.js`: `HttpServer`, the JSON API (including `GET /api/version`, the start commit) and the static page. Given a `Board`, the web folder and the commit; `bin/server.js` reads the commit with `git rev-parse HEAD`.
+- `launcher/`: `Doit.applescript` (the app), `start-server.sh`, `check-server.sh` (running server on the checked-out commit? exit 0, 1 none, 3 other) and `stop-server.sh`.
 - `web/`: the board page, plain HTML, CSS and JS as ES modules, none over 300 lines: `state.js` (page state, helpers, API calls), `render.js` (views), `epicView.js` (the epic document view), `markdown.js` (markdown to HTML, no packages), `ordering.js` (drag and keyboard moves), `resize.js` (column widths), `events.js` (listeners and the reload), `app.js` (wires them).
 - `root.js`: builds the settings file, the source, the board, and hands the board to the CLI or the server.
 
@@ -48,11 +50,13 @@ classDiagram
     +closeEpic(project, epic)
     +epicDocument(project, epic)
   }
-  class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +epicDocument() }
+  class TaskMover { +plan(task, tasks, placement) changes }
+  class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +completeEpic() +epicDocument() }
   class ProjectFiles
   class SettingsFile
   class Cli
-  class HttpServer
+  class HttpServer { +commit }
+  Board --> TaskMover
   Board --> FileSource : port
   FileSource --> ProjectFiles
   FileSource --> SettingsFile

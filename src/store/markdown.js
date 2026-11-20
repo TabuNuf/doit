@@ -16,6 +16,12 @@ export function parseEpic(text) {
   return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", lines };
 }
 
+/** Sets the epic's Status line, adding one under the title when it has none. */
+export function setStatus(text, status) {
+  if (/^Status:.*$/m.test(text)) return text.replace(/^Status:.*$/m, `Status: ${status}`);
+  return text.replace(/^(# EPIC-.*)$/m, `$1\n\nStatus: ${status}`);
+}
+
 export function formatLine(line) {
   return `- [${line.ticked ? "x" : " "}] ${line.id} ${line.title}${line.doneWhen ? ` (done when: ${line.doneWhen})` : ""}`;
 }

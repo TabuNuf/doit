@@ -7,11 +7,14 @@ import path from "node:path";
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png" };
 
 export class HttpServer {
-  constructor(board, webDir) {
+  /** `commit` is the git commit the process started from (null when unknown); GET /api/version reports it. */
+  constructor(board, webDir, commit = null) {
     this.board = board;
+    this.commit = commit;
     this.webDir = path.resolve(webDir);
     this.server = http.createServer((req, res) => this.#handle(req, res));
     this.routes = [
+      ["GET", /^\/api\/version$/, () => ({ commit: this.commit })],
       ["GET", /^\/api\/board$/, (q) => this.board.view({ project: q.get("project") || "all", archived: q.get("archived") === "1" })],
       ["POST", /^\/api\/projects$/, (q, b) => this.board.addProject(b)],
       ["GET", /^\/api\/epics\/([^/]+)\/([^/]+)$/, (q, b, m) => this.board.epicDocument(m[1], m[2])],

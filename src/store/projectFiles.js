@@ -43,6 +43,12 @@ export class ProjectFiles {
     fs.renameSync(tmp, file);
   }
 
+  /** Writes the text into Epics/Completed/ under the same name and removes the old file. */
+  moveToCompleted(file, text) {
+    this.write(path.join(this.epics, "Completed", path.basename(file)), text);
+    this.remove(file);
+  }
+
   remove(file) { fs.rmSync(file, { force: true }); }
 
   nextEpicNumber() {
