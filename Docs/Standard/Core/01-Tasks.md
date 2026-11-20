@@ -104,6 +104,8 @@ Filled when the epic closes: what moved into <Docs>/Standard (file and rule), or
   Why: scenes and prefabs merge badly as text; a conflict found early has one batch of changes on each side instead of a whole epic.
 - The branch merges to main with `git merge --no-ff` from the main checkout (`worktree.py close`), never a squash or a rebase; the worktree is removed, then the branch is deleted locally and on the remote.
   Why: one commit per task is how a failing batch finds its suspects, and a squash throws them away; the merge commit and the epic file in `Completed/` are the record. Git refuses to delete a branch a worktree has checked out, so the worktree goes first.
+- A tool that writes the project's tracked docs (a task board, a generator) writes an active epic's files in that epic's worktree, never in the main checkout, and finds the worktree from its branch name.
+  Why: a tick written in the main checkout while the branch ticks the same line collides at the merge, and the main checkout must stay clean for the merge to run.
 - Stable branches are not epic branches: see `02-Working.md`, Versions and releases.
 
 ## Closing an epic

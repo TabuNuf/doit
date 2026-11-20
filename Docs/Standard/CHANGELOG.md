@@ -6,6 +6,7 @@ One line per change: date, project, file, what changed and why. Newest first wit
 
 Every game that uses the standard adds its lines here when it pushes (`README.md`, Syncing). The version closes when the designer names it (`README.md`, Versions).
 
+- 2026-11-20, Doit EPIC-007, `Core/01-Tasks.md` Branches: a tool that writes tracked docs writes an active epic's files in its worktree. Why: board ticks made in the main checkout during an epic collided with the branch at the merge.
 - 2026-11-20, Doit, `App/README.md` Styling (new): every colour is a token for light and dark, and a test fails on a literal colour outside the token blocks. Why: literals look right in one theme only and fail silently; a restyle found seven.
 - 2026-11-20, Doit, `Core/02-Working.md` Tests: a change to what the user sees is checked in the running app before its task closes. Why: a sub-agent's page view passed 30 tests with a broken layout that one look caught.
 - 2026-11-20, Standard, `Core/01-Tasks.md` Playtest rounds: the pointer to Learning agents names the file the section is in now. Why: the section stayed in the Unity file when the tasks file moved to Core. Core's game wording (`GameDesign.md`, playtest, config asset) is left until an app project shows which terms mislead.
