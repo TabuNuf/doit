@@ -6,7 +6,7 @@ Design: Architecture.md; Design.md, sections Epics and Running it
 
 ## Tasks
 
-- [ ] T-006.1 Split domain/board.js before it passes 300 lines (done when: board.js under 250 lines; move and ordering logic in its own class; npm test passes)
+- [x] T-006.1 Split domain/board.js before it passes 300 lines (done when: board.js under 250 lines; move and ordering logic in its own class; npm test passes)
 - [ ] T-006.2 doit epic close also sets the epic Done and moves its file to Completed/ (done when: after doit epic close the epic file is in Epics/Completed with Status: Done and no task files remain)
 - [ ] T-006.3 Doit.app restarts a server that runs older code than the checkout (done when: the server reports the commit it started from; the launcher, finding a running server on another commit, stops it and starts the current code; a test covers the commit check)
 
