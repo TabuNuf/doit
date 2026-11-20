@@ -3,7 +3,7 @@
 import { S, $, keyOf, tabOf, api, act, load, patch, task } from "./state.js";
 import { render } from "./render.js";
 import { nudge, dragKey } from "./ordering.js";
-import { openEpic } from "./epicView.js";
+import { openEpic, closeEpic } from "./epicView.js";
 import { docsClick, docsInput, refreshDocs } from "./docsView.js";
 
 /* ---------- Events ---------- */
@@ -27,6 +27,8 @@ document.addEventListener("click", ev => {
     if (S.epic === d.openEpic && S.epicView && !S.sel) { S.epic = null; S.epicView = null; return render(); }
     return openEpic(d.openEpic);
   }
+  if (d.closeEpic) return closeEpic(d.closeEpic);
+  if (d.toggleArchived) { S.archivedOpen[d.toggleArchived] = !S.archivedOpen[d.toggleArchived]; return render(); }
   if ("clearEpic" in d) { S.epic = null; S.epicView = null; return render(); }
   if (d.t) { const reload = d.t === "archived" || S.tab === "archived"; S.tab = d.t; return reload ? load() : render(); }
   if (d.o) { S.owner = d.o; return render(); }

@@ -8,6 +8,11 @@ export function daysBetween(a, b) {
   return Math.round((d(b) - d(a)) / 864e5);
 }
 
+/** A closed epic is archived when it has no close date or the date is past the kept days. */
+export function epicArchived(closed, today, keepDays) {
+  return !closed || daysBetween(closed, today) > keepDays;
+}
+
 /** Returns why a task should be archived today, or null. */
 export function archiveReason(task, today, keepDays) {
   if (task.state === "archived") return null;

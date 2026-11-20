@@ -49,3 +49,13 @@ test("the epic branch merges into main without conflict after CLI writes", t => 
   git(s.game, "worktree", "remove", s.wt);
   assert.equal(s.board.get("game/T-014.2").state, "done", "reads return to main once the worktree is gone");
 });
+
+test("an epic closed in its worktree shows as closed before the merge", t => {
+  const s = repoWithWorktree(t);
+  s.board.closeEpic("game", "EPIC-014");
+  const view = s.board.view({ project: "game" });
+  assert.ok(!view.epics.some(e => e.id === "EPIC-014"), "not in the open list");
+  const closed = view.closedEpics.find(e => e.id === "EPIC-014");
+  assert.ok(closed && closed.closed && !closed.archived, "listed under Closed with its date");
+  assert.throws(() => s.board.closeEpic("game", "EPIC-014"), /No open epic/);
+});

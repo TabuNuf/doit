@@ -47,3 +47,18 @@ test("GET /api/version reports the commit the server started from", async t => {
   const r = await fetch(`http://127.0.0.1:${port}/api/version`);
   assert.deepEqual(await r.json(), { commit: "abc123" });
 });
+
+test("POST /api/epics/<project>/<id>/close closes an open epic and refuses a second call", async t => {
+  const s = setup(); t.after(s.cleanup);
+  const server = new HttpServer(s.board, path.join(import.meta.dirname, "..", "web"));
+  const port = await server.listen(0);
+  t.after(() => server.close());
+  const post = p => fetch(`http://127.0.0.1:${port}${p}`, { method: "POST" }).then(async r => ({ status: r.status, body: await r.json() }));
+  const first = await post("/api/epics/game/EPIC-014/close");
+  assert.equal(first.status, 200);
+  assert.equal(first.body.archivedTasks, 2);
+  assert.ok(s.exists("Epics/Completed/EPIC-014-online-lobby.md"));
+  const second = await post("/api/epics/game/EPIC-014/close");
+  assert.equal(second.status, 400);
+  assert.match(second.body.error, /No open epic/);
+});

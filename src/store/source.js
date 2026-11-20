@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { ProjectFiles } from "./projectFiles.js";
 import { taskParts } from "../domain/task.js";
-import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile, setStatus } from "./markdown.js";
+import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile, setStatus, setClosed } from "./markdown.js";
 
 export class FileSource {
   constructor(settingsFile, worktrees) {
@@ -44,14 +44,7 @@ export class FileSource {
   load(projectId, { archived }) {
     const { main, branches } = this.#layout(projectId);
     const own = id => branches.get(epicOf(id)) || main;
-    const epics = [];
-    for (const { file, completed } of main.epicFiles({ archived })) {
-      let epic = parseEpic(main.read(file));
-      if (!epic) continue;
-      const branch = branches.get(epic.id);
-      if (branch) epic = parseEpic(branch.read(branch.epicFile(epic.id, { archived: true })));
-      if (epic) epics.push({ ...epic, completed });
-    }
+    const epics = this.#epics(main, branches, archived);
     const tasks = new Map();
     const archivedIds = new Set();
     for (const files of [main, ...branches.values()]) {
@@ -94,12 +87,37 @@ export class FileSource {
     files.write(file, appendLine(files.read(file), line));
   }
 
-  /** Sets the epic Done and moves its file to Epics/Completed/. */
-  completeEpic(projectId, epicId) {
+  /** The epics in Epics/Completed/, with their `Closed:` date (null when none). */
+  closedEpics(projectId) {
+    const { main, branches } = this.#layout(projectId);
+    return this.#epics(main, branches, true).filter(e => e.completed)
+      .map(e => ({ id: e.id, name: e.name, status: e.status, closed: e.closed, done: e.lines.filter(l => l.ticked).length, total: e.lines.length }));
+  }
+
+  /** The epics the main checkout lists, each read from its worktree when it has one; completed
+   *  follows the copy that was read, so an epic closed in its worktree counts as closed before the merge. */
+  #epics(main, branches, archived) {
+    const out = [];
+    for (const { file, completed } of main.epicFiles({ archived: true })) {
+      let epic = parseEpic(main.read(file)), done = completed;
+      if (!epic) continue;
+      const branch = branches.get(epic.id);
+      if (branch) {
+        const own = branch.epicFile(epic.id, { archived: true });
+        epic = parseEpic(branch.read(own));
+        done = own.includes(`${path.sep}Completed${path.sep}`);
+      }
+      if (epic && (archived || !done)) out.push({ ...epic, completed: done });
+    }
+    return out;
+  }
+
+  /** Sets the epic Done, writes `Closed: <date>` under its status and moves its file to Epics/Completed/. */
+  completeEpic(projectId, epicId, closed) {
     const files = this.#files(projectId, epicId);
     const file = files.epicFile(epicId);
     if (!file) throw new Error(`No epic file for ${epicId}`);
-    files.moveToCompleted(file, setStatus(files.read(file), "Done"));
+    files.moveToCompleted(file, setClosed(setStatus(files.read(file), "Done"), closed));
   }
 
   createEpic(projectId, name, status) {
