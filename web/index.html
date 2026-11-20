@@ -14,7 +14,11 @@
     <div class="projects" id="projects"></div>
   </header>
   <div id="modal"></div>
-  <div class="panes" id="panes"></div>
+  <div class="panes-wrap">
+    <div class="panes" id="panes"></div>
+    <div class="gutter" data-gutter="left" role="separator" aria-orientation="vertical" aria-label="Resize the epics column" tabindex="0" title="Drag to resize. Double-click to reset."></div>
+    <div class="gutter" data-gutter="right" role="separator" aria-orientation="vertical" aria-label="Resize the detail column" tabindex="0" title="Drag to resize. Double-click to reset."></div>
+  </div>
 </div>
 <div id="toast" class="toast" hidden></div>
 <script type="module" src="/app.js"></script>

@@ -45,6 +45,7 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 - Search filters by number or text. **All / 🧑 Mine / 🤖 Claude's** filters by owner. The funnel filters by type (tasks, bugs) and due date (any, due within 7 days, has one, has none).
 - **+ Task** creates a task in a chosen epic with title, type and owner, at the bottom of Active.
 - **Detail pane:** number, epic, title, type, owner, project; state, owner and deadline editable; created and updated times; the description (editable); done when; comments with author and time, and a box to add one. Text size A− / A+, 12 to 22 px, starting at 15.
+- **Column widths:** dragging the gap between two columns resizes them; the middle column takes what is left. Double-click a gap to reset it. Focused, a gap moves 20 px with the arrow keys. Widths are kept per browser. Below 1100 px wide the layout stacks and the gaps do not drag.
 - The board reloads from disk every 10 seconds, so changes Claude makes through the CLI show without a refresh.
 
 ## The CLI
@@ -69,3 +70,4 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 - 2026-11-20, EPIC-001: first version, from the interview (`Brief.md`) and the wireframe.
 - 2026-11-20, EPIC-005: clicking an epic opens a read-only view of its document; the task filter moves to a Filter button on each epic. `epic close` is added to the CLI.
 - 2026-11-20: clicking an epic both filters the list and shows the epic's document in the Detail pane; the separate Filter button and the full-width epic view are gone.
+- 2026-11-20: the three columns are resized by dragging the gaps between them.

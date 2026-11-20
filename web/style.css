@@ -42,7 +42,15 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .badge { font-size: 11px; background: var(--warn); color: #fff; border-radius: 999px; padding: 0 6px; margin-left: 4px; }
 
 /* Panes */
-.panes { display: grid; grid-template-columns: 250px minmax(0, 1fr) 360px; gap: 10px; flex: 1; min-height: 0; }
+.panes-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
+.panes { display: grid; grid-template-columns: var(--w-left, 250px) minmax(0, 1fr) var(--w-right, 360px); gap: 10px; flex: 1; min-height: 0; min-width: 0; }
+.gutter { position: absolute; top: 0; bottom: 0; width: 10px; cursor: col-resize; touch-action: none; z-index: 2; }
+.gutter[data-gutter="left"] { left: var(--w-left, 250px); }
+.gutter[data-gutter="right"] { right: var(--w-right, 360px); }
+.gutter::after { content: ""; position: absolute; top: 0; bottom: 0; left: 4px; width: 2px; border-radius: 1px; background: transparent; }
+.gutter:hover::after, .gutter:focus-visible::after, .resizing .gutter::after { background: var(--line); }
+.gutter:focus-visible { outline: none; }
+.resizing { cursor: col-resize; user-select: none; }
 .pane { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
 .pane-h { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); flex-wrap: wrap; }
 .pane-b { overflow: auto; padding: 8px; flex: 1; min-height: 0; }
@@ -157,7 +165,7 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .form .err { color: var(--warn); font-size: 12px; width: 100%; }
 .addbtn { display: block; width: 100%; text-align: left; border: 1px dashed var(--line); background: none; color: var(--muted); font-size: 12px; margin: 6px 0 2px; }
 
-@media (max-width: 1100px) { .panes { grid-template-columns: 220px minmax(0, 1fr); } .panes > .pane:nth-child(3) { grid-column: 1 / -1; min-height: 360px; } }
+@media (max-width: 1100px) { .gutter { display: none; } .panes { grid-template-columns: 220px minmax(0, 1fr); } .panes > .pane:nth-child(3) { grid-column: 1 / -1; min-height: 360px; } }
 @media (max-width: 720px) { .app { height: auto; } .panes { grid-template-columns: minmax(0, 1fr); } .pane { max-height: none; } .pane-b { max-height: 70vh; } .views { margin-left: 0; } .row { grid-template-columns: 14px 20px 8px 58px minmax(0,1fr); } .row .pills { grid-column: 4 / -1; justify-content: flex-start; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 

@@ -21,6 +21,14 @@ test("the page does no rank arithmetic", () => {
   }
 });
 
+test("column widths keep their minimums and leave the middle column room", async () => {
+  const { clampWidths, DEFAULTS } = await import("../web/resize.js");
+  assert.deepEqual(clampWidths(DEFAULTS, 1400), DEFAULTS);
+  assert.deepEqual(clampWidths({ left: 10, right: 10 }, 1400), { left: 160, right: 260 });
+  const wide = clampWidths({ left: 900, right: 900 }, 1400);
+  assert.ok(1400 - wide.left - wide.right - 20 >= 320, "middle column keeps 320 px");
+});
+
 test("the markdown renderer shows headings, lists and checkboxes, and escapes text", async () => {
   const { renderMarkdown } = await import("../web/markdown.js");
   const html = renderMarkdown("# EPIC-1: A <b>\n\nGoal: **fast** `x`\n\n## Tasks\n\n- [x] T-1.1 Done (done when: ok)\n- [ ] T-1.2 Open\n\n1. one\n2. two\n\n```\n<script>\n```");

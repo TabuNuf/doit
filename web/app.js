@@ -2,7 +2,9 @@
 
 import { setRenderer, load } from "./state.js";
 import { render } from "./render.js";
+import { initResize } from "./resize.js";
 import "./events.js";
 
 setRenderer(render);
+initResize();
 load();
