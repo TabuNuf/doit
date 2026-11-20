@@ -1,6 +1,6 @@
 # EPIC-008: Visual style
 
-Status: Active
+Status: Done
 Goal: The board looks like a drafting sheet (Blueprint) in light and dark, with every colour from a token.
 Design: Design.md, section Look
 
@@ -31,4 +31,11 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+Diff `main...HEAD`: web/style.css, web/index.html, test/style.test.js and the epic's docs. No module, class, import or boundary changed; style.css is 197 lines. Development and Audit pass, 40 of 40, with main merged in (main had not moved).
+
+- `web/state.js` `COLORS` gives projects five to seven literal colours with no dark value, against Design.md Look ("no literal colour"). Fix before release: a task in EPIC-007.
+- The six-px corners on popups, empty states, cards, forms and the toast, and the round badge, stay from the preview while panes have 2 px corners. Deliberate: they mark floating or transient things. Kept as built; Design.md Look is silent on them.
+
 ## For the standard
+
+- `App/README.md`, new section Styling: every colour is a token for light and dark, with a test that fails on a literal colour outside the token blocks. Line added to `CHANGELOG.md`.
