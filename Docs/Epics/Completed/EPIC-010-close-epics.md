@@ -1,6 +1,7 @@
 # EPIC-010: Close epics
 
-Status: Active
+Status: Done
+Closed: 2026-11-20
 Goal: Tabu closes an epic from the board; it shows under Closed, then after the keep setting under a folded Archived section.
 Design: Design.md, section Epics.
 
