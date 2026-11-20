@@ -1,0 +1,104 @@
+// Every listener on the page, and the 10 s reload.
+
+import { S, $, keyOf, tabOf, api, act, load, patch, task } from "./state.js";
+import { render } from "./render.js";
+import { nudge, dragKey } from "./ordering.js";
+
+/* ---------- Events ---------- */
+
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("button, .row");
+  if (!b) { if (S.fOpen && !ev.target.closest(".pop")) { S.fOpen = false; render(); } return; }
+  const d = b.dataset;
+  const sel = () => task(S.sel);
+  if ("newproj" in d) { S.newProj = true; S.npErr = ""; render(); $("#np-name").focus(); return; }
+  if ("cancelproj" in d) { S.newProj = false; return render(); }
+  if (d.newepic) { S.newEpic = d.newepic; render(); $("#ne-name").focus(); return; }
+  if ("newtask" in d) { S.newTask = !S.newTask; render(); if (S.newTask) $("#nt-title")?.focus(); return; }
+  if ("canceltask" in d) { S.newTask = false; return render(); }
+  if (d.cyc) { const t = task(d.cyc); S.sel = d.cyc; return patch(t, { state: t.state === "todo" ? "progress" : "todo" }); }
+  if (d.reopen) { S.sel = d.reopen; return patch(task(d.reopen), { state: "todo" }); }
+  if (d.p) { S.project = d.p; S.epic = null; S.newTask = false; try { localStorage.setItem("doit.project", d.p); } catch { /* */ } return load(); }
+  if (d.e) { S.epic = S.epic === d.e ? null : d.e; return render(); }
+  if ("clearEpic" in d) { S.epic = null; return render(); }
+  if (d.t) { const reload = d.t === "archived" || S.tab === "archived"; S.tab = d.t; return reload ? load() : render(); }
+  if (d.o) { S.owner = d.o; return render(); }
+  if ("fopen" in d) { S.fOpen = !S.fOpen; return render(); }
+  if ("freset" in d) { S.f = { task: true, bug: true, due: "any" }; return render(); }
+  if (d.fs) { S.font = Math.min(22, Math.max(12, S.font + Number(d.fs))); try { localStorage.setItem("doit.font", S.font); } catch { /* */ } return render(); }
+  if (d.own) return patch(sel(), { owner: d.own });
+  if (d.type) return patch(sel(), { type: d.type });
+  if ("addcmt" in d) {
+    const text = $("#cmt").value.trim();
+    if (!text) return;
+    const t = sel();
+    return act(() => api("POST", `/api/tasks/${t.project}/${t.id}/comments`, { text, who: "human" }));
+  }
+  if (d.id) { S.sel = d.id; return render(); }
+});
+
+document.addEventListener("submit", ev => {
+  ev.preventDefault();
+  const f = ev.target;
+  if (f.id === "np") {
+    const body = { name: $("#np-name").value, path: $("#np-path").value, docs: $("#np-docs").value || "Docs" };
+    api("POST", "/api/projects", body)
+      .then(p => { S.newProj = false; S.project = p.id; S.epic = null; return load(); })
+      .catch(e => { S.npErr = e.message; render(); });
+  } else if (f.dataset.epicform) {
+    const project = f.dataset.epicform, name = $("#ne-name").value.trim();
+    if (!name) { S.newEpic = null; return render(); }
+    act(async () => { const r = await api("POST", "/api/epics", { project, name }); S.newEpic = null; S.epic = `${project}/${r.id}`; });
+  } else if (f.id === "nt") {
+    const [project, epic] = $("#nt-epic").value.split("/");
+    const body = { project, epic, title: $("#nt-title").value, type: $("#nt-type").value, owner: $("#nt-owner").value };
+    act(async () => { const t = await api("POST", "/api/tasks", body); S.newTask = false; S.sel = keyOf(t); S.tab = "open"; });
+  }
+});
+
+document.addEventListener("keydown", ev => {
+  const r = ev.target.closest && ev.target.closest(".row");
+  if (r && (ev.key === "Enter" || ev.key === " ") && ev.target === r) { ev.preventDefault(); S.sel = r.dataset.id; render(); }
+  if (r && ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && r.draggable) { ev.preventDefault(); nudge(r.dataset.id, ev.key === "ArrowUp" ? -1 : 1); }
+  if (ev.key === "Escape") { S.fOpen = false; S.newProj = false; S.newTask = false; S.newEpic = null; render(); }
+});
+
+document.addEventListener("input", ev => {
+  if (ev.target.id !== "q") return;
+  S.q = ev.target.value;
+  const pos = ev.target.selectionStart;
+  render();
+  const q = $("#q"); q.focus(); q.setSelectionRange(pos, pos);
+});
+
+document.addEventListener("change", ev => {
+  const id = ev.target.id;
+  if (id === "keep") return act(() => api("PUT", "/api/settings", { keepCompletedDays: Number(ev.target.value) }));
+  if (id === "f-task" || id === "f-bug") { S.f[id.slice(2)] = ev.target.checked; return render(); }
+  if (ev.target.name === "f-due") { S.f.due = ev.target.value; return render(); }
+  const t = task(S.sel);
+  if (!t) return;
+  if (id === "st") { const st = ev.target.value; S.tab = tabOf(st) === "archived" ? S.tab : tabOf(st); return patch(t, { state: st }); }
+  if (id === "dlon") {
+    const d = new Date(); d.setDate(d.getDate() + 7);
+    return patch(t, { deadline: ev.target.checked ? d.toISOString().slice(0, 10) : "" });
+  }
+  if (id === "dl") return patch(t, { deadline: ev.target.value });
+});
+
+// Description saves when the field loses focus.
+document.addEventListener("focusout", ev => {
+  if (ev.target.id !== "desc") return;
+  const t = task(S.sel);
+  if (!t || ev.target.value === t.description) return;
+  act(async () => { await api("PATCH", `/api/tasks/${t.project}/${t.id}`, { description: ev.target.value }); });
+});
+
+// Reload from disk every 10 s so Claude's changes show, unless the user is typing or dragging.
+setInterval(() => {
+  const a = document.activeElement;
+  const typing = a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type !== "checkbox" && a.type !== "radio") || a.tagName === "SELECT");
+  if (!typing && !dragKey && !S.newProj && !S.newTask && S.newEpic === null && !S.fOpen && document.visibilityState === "visible") load();
+}, 10000);
+
+load();

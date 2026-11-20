@@ -1,0 +1,78 @@
+// Page state, small helpers, and the API calls. Every other web module reads and changes the page through this.
+
+export const COLORS = ["var(--p1)", "var(--p2)", "var(--p3)", "var(--p4)", "#7a8a3a", "#3a7a8a", "#8a3a6a"];
+export const TABS = [["open", "Open"], ["done", "Completed"], ["archived", "Archive"]];
+export const STATES = [["todo", "To-do"], ["progress", "In progress"], ["backlog", "Backlog"], ["done", "Completed"], ["archived", "Archived"]];
+export const FUNNEL = '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>';
+
+export const S = {
+  project: "all", epic: null, tab: "open", q: "", owner: "all",
+  f: { task: true, bug: true, due: "any" }, fOpen: false,
+  sel: null, font: 15, newProj: false, newTask: false, newEpic: null, data: null, npErr: "",
+};
+try { S.font = Number(localStorage.getItem("doit.font")) || 15; S.project = localStorage.getItem("doit.project") || "all"; } catch { /* storage off */ }
+
+let renderer = () => {};
+/** The page registers its render function here, so loading does not import the views. */
+export const setRenderer = fn => { renderer = fn; };
+
+export const $ = s => document.querySelector(s);
+export const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+export const keyOf = t => `${t.project}/${t.id}`;
+export const today = () => new Date().toISOString().slice(0, 10);
+export const daysLeft = d => Math.round((Date.parse(d) - Date.parse(today())) / 864e5);
+export const fmtDate = d => new Date(d.slice(0, 10) + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+export const tabOf = st => (st === "done" || st === "archived") ? st : "open";
+export const secOf = st => st === "backlog" ? "backlog" : "active";
+export const hasFilter = () => !S.f.task || !S.f.bug || S.f.due !== "any";
+
+/* ---------- API ---------- */
+
+export async function api(method, path, body) {
+  const res = await fetch(path, { method, headers: body ? { "Content-Type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => ({ error: "The server sent something unreadable" }));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+export async function load() {
+  try {
+    S.data = await api("GET", `/api/board?project=${encodeURIComponent(S.project)}${S.tab === "archived" ? "&archived=1" : ""}`);
+    if (S.project !== "all" && !S.data.projects.some(p => p.id === S.project)) { S.project = "all"; return load(); }
+    renderer();
+  } catch (e) { toast(e.message.includes("fetch") ? "Doit's server is not running. Start Doit.app." : e.message); }
+}
+
+export async function act(fn) {
+  try { await fn(); await load(); } catch (e) { toast(e.message); }
+}
+
+export const patch = (t, changes) => act(() => api("PATCH", `/api/tasks/${t.project}/${t.id}`, changes));
+
+export function toast(msg) {
+  const el = $("#toast");
+  el.textContent = msg; el.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 5000);
+}
+
+/* ---------- Helpers on loaded data ---------- */
+
+export const projects = () => S.data ? S.data.projects : [];
+export const proj = id => projects().find(p => p.id === id) || { id, name: id };
+export const color = id => COLORS[Math.max(0, projects().findIndex(p => p.id === id)) % COLORS.length];
+export const task = key => S.data && S.data.tasks.find(t => keyOf(t) === key);
+
+export function visible() {
+  const q = S.q.trim().toLowerCase();
+  const dueOk = t => S.f.due === "any" || (S.f.due === "has" && t.deadline) || (S.f.due === "none" && !t.deadline) || (S.f.due === "week" && t.deadline && daysLeft(t.deadline) <= 7);
+  return S.data.tasks.filter(t =>
+    (!S.epic || `${t.project}/${t.epic}` === S.epic) && (S.owner === "all" || t.owner === S.owner) && S.f[t.type] && dueOk(t) &&
+    (!q || t.id.toLowerCase().includes(q) || t.title.toLowerCase().includes(q) || (t.description || "").toLowerCase().includes(q)));
+}
+
+export function sectionLists(base) {
+  return {
+    active: base.filter(t => t.state === "todo" || t.state === "progress"),
+    backlog: base.filter(t => t.state === "backlog"),
+  };
+}

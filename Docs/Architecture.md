@@ -28,7 +28,7 @@ Module order, low to high: domain → store → cli, server → root.
 - `store/source.js`: `FileSource`, the port implementation the board is given; joins the two above.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board` and an output stream.
 - `server/server.js`: `HttpServer`, the JSON API and the static page. Given a `Board` and the web folder.
-- `web/`: the board page, plain HTML, CSS and JS.
+- `web/`: the board page, plain HTML, CSS and JS as ES modules, none over 300 lines: `state.js` (page state, helpers, API calls), `render.js` (views), `ordering.js` (drag and keyboard moves), `events.js` (listeners and the reload), `app.js` (wires them).
 - `root.js`: builds the settings file, the source, the board, and hands the board to the CLI or the server.
 
 ## Class diagram
