@@ -1,6 +1,6 @@
 # EPIC-005: Conformance
 
-Status: Planned
+Status: Active
 Goal: Every "fix before release" finding from epic close audits, fixed before the first release.
 Design: Architecture.md
 
