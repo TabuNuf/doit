@@ -1,6 +1,6 @@
 # EPIC-005: Conformance
 
-Status: Active
+Status: Done
 Goal: Every "fix before release" finding from epic close audits, fixed before the first release.
 Design: Architecture.md
 
@@ -28,4 +28,13 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+Diff `main...epic/005-conformance` read against Architecture.md and Core/03-Design.md. No boundary breaks; `test/boundaries.test.js` passes; the class diagram matches the code.
+
+- Fix now, fixed: `web/markdown.js` had its own copy of `esc`; it now imports the one in `web/state.js`.
+- Fix now, fixed: the `domain/board.js` line in Architecture.md did not name move, closeEpic and epicDocument.
+- Fix before release: `domain/board.js` is at 249 lines and is the hub every feature grows; split it before it passes 300 (for example the move and ordering logic into its own class).
+- Fix before release: `doit epic close` archives task files only; setting the epic Done and moving its file to Completed/ is still done by hand at close.
+
 ## For the standard
+
+- Core/02-Working.md, Tests: a change to what the user sees is checked in the running app before its task closes. Here 30 passing tests let through an epic view that left half the screen blank and joined the epic's header lines.
