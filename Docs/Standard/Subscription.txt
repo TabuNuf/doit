@@ -1,0 +1,7 @@
+# Owned by the game; never overwritten by a sync. Read by sync_standard.py update at an epic's start.
+# auto-pull: on pulls the standard when ClaudeStandards is ahead; off leaves the copy alone.
+# central: the ClaudeStandards checkout, relative to this game's repo root.
+# profile: the stack layer this copy holds beside Core/: unity or app.
+auto-pull: on
+central: ../../Unity/ClaudeStandards
+profile: app
