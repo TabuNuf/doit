@@ -106,6 +106,8 @@ Filled when the epic closes: what moved into <Docs>/Standard (file and rule), or
   Why: one commit per task is how a failing batch finds its suspects, and a squash throws them away; the merge commit and the epic file in `Completed/` are the record. Git refuses to delete a branch a worktree has checked out, so the worktree goes first.
 - A tool that writes the project's tracked docs (a task board, a generator) writes an active epic's files in that epic's worktree, never in the main checkout, and finds the worktree from its branch name.
   Why: a tick written in the main checkout while the branch ticks the same line collides at the merge, and the main checkout must stay clean for the merge to run.
+- Such a tool reads an epic's state (status, open or closed) from the same copy it writes, the worktree's while there is one.
+  Why: an epic closed in its worktree but read from the main checkout stayed in the open list until the merge, which is when the close was already over.
 - Stable branches are not epic branches: see `02-Working.md`, Versions and releases.
 
 ## Closing an epic

@@ -42,4 +42,10 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+- `src/domain/board.js`, Core/03-Design.md (split a class past about 300 lines): 239 lines after this epic. Fix before release: no rule broken yet; split it before the next feature lands in it. No conformance epic is open, so it is recorded here, not as a task.
+- `src/store/source.js` `#epics`: every board read now parses the epic files in `Completed/` as well, twice per `view` (load and `closedEpics`). Deliberate: a few dozen small files cost nothing measurable; revisit if a project collects hundreds of closed epics.
+- Boundaries test passes; the class diagram and module list match the code.
+
 ## For the standard
+
+- `Core/01-Tasks.md`, Branches: a tool that writes an epic's files in its worktree reads the epic's state from there too. CHANGELOG line added.
