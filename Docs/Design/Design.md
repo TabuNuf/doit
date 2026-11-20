@@ -31,7 +31,7 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
   - onto **Completed**: the same as Close epic, with its confirmation.
   - onto **Archived**: Close epic, plus an `Archived: <date>` line under `Closed:`, so it shows in Archived at once.
   - onto the **open epics**, from Parked: status Planned, file moved to `Epics/`. From Completed or Archived it is reopened: status Planned, the `Closed:` and `Archived:` lines removed, file moved to `Epics/`, and the tasks that closing archived (reason `Epic <id> closed`) come back, the ticked ones as Completed and the rest as To-do.
-  - A drop where the epic already is does nothing. The section headers fold open while an epic is dragged over them.
+  - A drop where the epic already is does nothing. A folded section header opens when an epic is held over it for a moment, so passing over one on the way to another does not move the target.
 - The CLI's `epics` lists open epics only; Claude never reads closed or archived ones unless asked.
 - **An epic with a worktree** on its branch `epic/<nnn>-<short-name>` has its epic file and task files read and written in that worktree, by the page and the CLI alike, so a tick made during the epic lands on its branch and the main checkout stays clean. When the worktree is removed, they are read from the project folder again.
 - **+ New epic** creates the next number with the standard template, status `Planned`.

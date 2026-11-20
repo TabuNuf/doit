@@ -16,6 +16,12 @@ export function dropEpic(key, to) {
 }
 
 let dragged = null;
+/** True while an epic button is being dragged, so the timed reload waits. */
+export const epicDragging = () => dragged !== null;
+
+// A header unfolds only after the pointer rests on it, so passing over one on the way to another does not push that one away.
+const DWELL_MS = 600;
+
 /** Wires epic buttons as drag sources and the section headers and open list as drop targets, within one project. */
 export function bindEpicDrag() {
   document.querySelectorAll(".epic[data-epic-key]").forEach(b => {
@@ -23,19 +29,24 @@ export function bindEpicDrag() {
     b.addEventListener("dragend", () => { b.classList.remove("dragging"); dragged = null; });
   });
   document.querySelectorAll("[data-drop-epic]").forEach(t => {
+    let timer = null;
+    const stop = () => { clearTimeout(timer); timer = null; };
     const mine = () => dragged && dragged.split("/")[0] === t.dataset.project;
     t.addEventListener("dragover", ev => { if (mine()) { ev.preventDefault(); t.classList.add("over"); } });
     t.addEventListener("dragenter", () => {
+      if (!mine() || t.dataset.dropEpic === "open" || t.getAttribute("aria-expanded") !== "false" || timer) return;
       // Unfold in place: a full render would remove the dragged button and end the drag.
-      if (!mine() || t.dataset.dropEpic === "open" || t.getAttribute("aria-expanded") !== "false") return;
-      toggleFold(t.dataset.project, t.dataset.dropEpic, true);
-      t.setAttribute("aria-expanded", "true");
-      t.textContent = t.textContent.replace("▸", "▾");
-      t.nextElementSibling?.removeAttribute("hidden");
+      timer = setTimeout(() => {
+        timer = null;
+        toggleFold(t.dataset.project, t.dataset.dropEpic, true);
+        t.setAttribute("aria-expanded", "true");
+        t.innerHTML = t.innerHTML.replace("\u25b8", "\u25be");
+        t.nextElementSibling?.removeAttribute("hidden");
+      }, DWELL_MS);
     });
-    t.addEventListener("dragleave", () => t.classList.remove("over"));
+    t.addEventListener("dragleave", ev => { if (t.contains(ev.relatedTarget)) return; stop(); t.classList.remove("over"); });
     t.addEventListener("drop", ev => {
-      ev.preventDefault(); t.classList.remove("over");
+      ev.preventDefault(); stop(); t.classList.remove("over");
       const k = dragged; dragged = null;
       if (k && k.split("/")[0] === t.dataset.project) dropEpic(k, t.dataset.dropEpic);
     });
