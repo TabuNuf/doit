@@ -45,6 +45,7 @@ classDiagram
     +addEpic(project, name)
     +addProject(...)
     +sweep()
+    +closeEpic(project, epic)
   }
   class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() }
   class ProjectFiles

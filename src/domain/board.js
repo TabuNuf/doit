@@ -39,13 +39,21 @@ export class Board {
       for (const task of this.#load(id, false).tasks) {
         const reason = archiveReason(task, today, keep);
         if (!reason) continue;
-        task.state = "archived";
-        task.archived = reason;
-        this.#write(task);
+        this.#archive(task, reason);
         count++;
       }
     }
     return count;
+  }
+
+  /** Archives every task of an epic that is not archived yet, by the same path as the sweep. Returns how many. */
+  closeEpic(project, epicId) {
+    this.#requireProject(project);
+    const loaded = this.#load(project, false);
+    if (!loaded.epics.some(e => e.id === epicId && !e.completed)) throw new Error(`No open epic ${epicId} in ${project}`);
+    const tasks = loaded.tasks.filter(t => t.epic === epicId && t.state !== "archived");
+    for (const task of tasks) this.#archive(task, `Epic ${epicId} closed`);
+    return tasks.length;
   }
 
   /** Everything the board page shows for one project or "all". */
@@ -184,6 +192,12 @@ export class Board {
     else if (state === "archived") { task.archived = "Archived by hand"; }
     else { task.completed = null; task.ticked = false; task.archived = null; }
     task.state = state;
+  }
+
+  #archive(task, reason) {
+    task.state = "archived";
+    task.archived = reason;
+    this.#write(task);
   }
 
   #write(task) { this.source.writeTask(task.project, task); }

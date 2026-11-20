@@ -6,6 +6,7 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit project add <name> <folder> [--docs Docs]  register a project (creates folders it lacks)
   doit epics <project>                            open epics with done/total
   doit epic add <project> <name> [--status Planned|Active|Parked]
+  doit epic close <project> <EPIC-nnn>            move the epic's task files to the archive
   doit list [--project p] [--epic EPIC-nnn] [--state open|active|backlog|done|archived] [--owner ai|human] [--json]
   doit show <project>/<T-id> [--json]
   doit add <project> <EPIC-nnn> <title> [--owner ai|human] [--type task|bug] [--done-when text]
@@ -62,7 +63,11 @@ const COMMANDS = {
   },
 
   epic(pos, flags) {
-    if (pos[0] !== "add") throw new Error("Usage: doit epic add <project> <name>");
+    if (pos[0] === "close") {
+      const n = this.board.closeEpic(need(pos[1], "project"), need(pos[2], "epic"));
+      return this.print(`Archived ${n} task files of ${pos[2]}`);
+    }
+    if (pos[0] !== "add") throw new Error("Usage: doit epic add <project> <name> | doit epic close <project> <EPIC-nnn>");
     const id = this.board.addEpic(need(pos[1], "project"), pos.slice(2).join(" "), flags.status || "Planned");
     this.print(`Added ${id}`);
   },
