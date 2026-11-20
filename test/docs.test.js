@@ -71,3 +71,19 @@ test("lastChange reads author and date from git, and is null outside git", async
   assert.match(change.date, /^\d{4}-\d{2}-\d{2}T/);
   assert.equal(s.docs.read("game", "Specs/Net.md").lastChange, null);
 });
+
+test("a document saved through the API changes the file on disk, and a refused path is not written", async t => {
+  const s = await docsSetup(t);
+  const r = await s.api(s.file("Design.md"), s.send("PUT", { text: "# Changed\n" }));
+  assert.equal(r.status, 200);
+  assert.equal(r.body.text, "# Changed\n");
+  assert.equal(fs.readFileSync(path.join(s.dir, "Design.md"), "utf8"), "# Changed\n");
+  assert.equal((await s.api(s.file("Specs/New.md"), s.send("PUT", { text: "# New\n" }))).status, 200);
+  assert.equal(fs.readFileSync(path.join(s.dir, "Specs", "New.md"), "utf8"), "# New\n");
+  for (const bad of ["../escape.md", "/tmp/escape.md", "a/../../escape.md", ".git/x.md", "x.txt"]) {
+    assert.equal((await s.api(s.file(bad), s.send("PUT", { text: "no" }))).status, 400, bad);
+  }
+  assert.equal((await s.api(s.file("NoFolder/x.md"), s.send("PUT", { text: "no" }))).status, 400);
+  assert.equal((await s.api(s.file("Design.md"), s.send("PUT", {}))).status, 400);
+  assert.ok(!fs.existsSync(path.join(s.game, "escape.md")) && !fs.existsSync(path.join(s.dir, "x.txt")) && !fs.existsSync(path.join(s.dir, "NoFolder")));
+});

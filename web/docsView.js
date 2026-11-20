@@ -76,7 +76,7 @@ function treeHtml(nodes, depth = 0) {
     const pad = `style="padding-left:${8 + depth * 14}px"`;
     if (n.type === "file") return `<button class="tnode file" ${pad} aria-pressed="${D.path === n.path}" data-doc="${esc(n.path)}">${esc(n.name)}</button>`;
     const open = n.path in D.open ? D.open[n.path] : !n.folded;
-    return `<button class="tnode folder" ${pad} aria-expanded="${open}" data-fold="${esc(n.path)}" data-folded="${!!n.folded}">${open ? "▾" : "▸"} ${esc(n.name)}${n.folded ? ' <span class="muted">(completed)</span>' : ""}</button>${open ? treeHtml(n.children, depth + 1) : ""}`;
+    return `<button class="tnode folder" ${pad} aria-expanded="${open}" data-fold="${esc(n.path)}" data-folded="${!!n.folded}">${open ? "▾" : "▸"} ${esc(n.name)}</button>${open ? treeHtml(n.children, depth + 1) : ""}`;
   }).join("");
 }
 
