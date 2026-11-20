@@ -44,7 +44,7 @@ export class FileSource {
   load(projectId, { archived }) {
     const { main, branches } = this.#layout(projectId);
     const own = id => branches.get(epicOf(id)) || main;
-    const epics = this.#epics(main, branches, archived);
+    const epics = this.#epics(main, branches);
     const tasks = new Map();
     const archivedIds = new Set();
     for (const files of [main, ...branches.values()]) {
@@ -96,7 +96,7 @@ export class FileSource {
 
   /** The epics the main checkout lists, each read from its worktree when it has one; completed
    *  follows the copy that was read, so an epic closed in its worktree counts as closed before the merge. */
-  #epics(main, branches, archived) {
+  #epics(main, branches) {
     const out = [];
     for (const { file, completed } of main.epicFiles({ archived: true })) {
       let epic = parseEpic(main.read(file)), done = completed;
@@ -107,7 +107,7 @@ export class FileSource {
         epic = parseEpic(branch.read(own));
         done = own.includes(`${path.sep}Completed${path.sep}`);
       }
-      if (epic && (archived || !done)) out.push({ ...epic, completed: done });
+      if (epic) out.push({ ...epic, completed: done });
     }
     return out;
   }

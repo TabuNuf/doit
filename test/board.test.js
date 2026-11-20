@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { setup } from "./helpers.js";
 
 test("open tasks follow epic status; ticked and completed epics stay out", t => {
@@ -50,6 +52,30 @@ test("completed tasks move to the archive after the kept days", t => {
   assert.equal(s.board.list({ project: "game", state: "done" }).length, 0);
   assert.match(s.board.get("game/T-014.2").archived, /kept 3 days/);
   assert.throws(() => s.board.setKeepDays(0));
+});
+
+test("a done task of a closed epic stays in Completed until the kept days pass", t => {
+  const s = setup(); t.after(s.cleanup);
+  s.board.setKeepDays(3);
+  s.board.update("game/T-014.2", { state: "done" });
+  s.board.closeEpic("game", "EPIC-014");
+  s.board.update("game/T-014.2", { state: "done" });
+  const done = () => s.board.list({ project: "game", state: "done" }).map(x => x.id);
+  assert.deepEqual(done(), ["T-014.2"], "untracked ticked lines of closed epics stay out");
+  assert.ok(!s.board.view({ project: "game" }).epics.some(e => e.id === "EPIC-014"));
+  s.clock.t = new Date("2026-11-24T09:00:00");
+  assert.deepEqual(done(), []);
+  assert.match(s.board.get("game/T-014.2").archived, /kept 3 days/);
+});
+
+test("a task file in Archive/ counts as archived whatever its state says", t => {
+  const s = setup(); t.after(s.cleanup);
+  s.board.update("game/T-014.2", { state: "done" });
+  fs.mkdirSync(path.join(s.game, "GameDocs/Archive/Tasks"), { recursive: true });
+  fs.renameSync(path.join(s.game, "GameDocs/Epics/Tasks/T-014.2.md"), path.join(s.game, "GameDocs/Archive/Tasks/T-014.2.md"));
+  const tasks = s.board.view({ project: "game", archived: true }).tasks;
+  assert.equal(tasks.find(x => x.id === "T-014.2").state, "archived");
+  assert.ok(!tasks.some(x => x.state === "done"));
 });
 
 test("adding a task appends to the epic and lands at the bottom of Active", t => {

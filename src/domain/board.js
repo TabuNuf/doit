@@ -207,7 +207,12 @@ export class Board {
     for (const epic of epics) {
       for (const line of epic.lines) {
         if (!archived && archivedIds.has(line.id)) continue;
-        tasks.push(makeTask(projectId, epic, line, files.get(line.id) || null));
+        // A closed epic's tasks show until archived, but only those Doit tracks with a file.
+        if (!archived && epic.completed && !files.has(line.id)) continue;
+        const task = makeTask(projectId, epic, line, files.get(line.id) || null);
+        // The Archive/ folder decides: a file moved there by hand still says its old state.
+        if (archivedIds.has(line.id) && task.state !== "archived") { task.state = "archived"; task.archived ||= "Moved to the archive"; }
+        tasks.push(task);
       }
     }
     return { epics, tasks };
