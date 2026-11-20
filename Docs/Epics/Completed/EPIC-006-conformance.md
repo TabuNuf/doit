@@ -33,7 +33,7 @@ Decisions and deviations, newest first.
 ## Close audit
 
 - `doit set` and `doit epic close` write to the registered project's Docs folder, the main checkout, while an active epic's file lives on its branch: a tick made through the CLI during an epic collides with the branch's tick at the merge (`src/store/source.js`, Design.md Epics). Fix before release: a task in the next conformance epic.
-- `launcher/stop-server.sh` stops whatever listens on the port once it answers on another commit, not only a Doit server. Deliberate: the port is Doit's, and the only answer that leads there is an HTTP reply on it.
+- `launcher/stop-server.sh` stops whatever listens on the port once it answers on another commit, not only a Doit server. Deliberate: the port is Doit's, and the only answer that leads there is an HTTP reply on it. Tabu kept it, 2026-11-20.
 
 ## For the standard
 
