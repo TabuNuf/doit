@@ -13,6 +13,9 @@ Design: Architecture.md
 
 ## Test plan
 
+- Batch A (T-005.1 to T-005.4), development, run at the batch's end:
+  - `npm test` checks: no file in `web/` is over 300 lines; the move endpoint places a task between neighbours, across sections and to the top; `web/` has no rank arithmetic; `doit epic close` leaves no task file of the epic in `Epics/Tasks` and appears in `doit help`; the epic endpoint returns the document of an open, parked and completed epic; the markdown renderer turns headings, lists and checkboxes into HTML and escapes text.
+  - By hand in the page: the board loads and every control works as before; drag a row within Active, to the top of Active, into Backlog; Alt + arrow keys nudge a row; click an epic (also a parked one) and read goal, tasks, test plan and notes; close the view and land on the board.
 ## Notes
 
 Decisions and deviations, newest first.
