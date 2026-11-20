@@ -91,7 +91,7 @@ Not built yet. Doit becomes the marketing tool for every game and for Hidden by 
 
 When sitting down for outreach the order is festivals first, then people, then campaigns. The build order differs, because everything matches against the game profiles:
 
-1. **Game profiles.** One per project that is marketed (Bunny Bunker, Rapid Rocket Racing, Good Box and the others, Hidden by Design): genre tags, platforms, stage (in development, demo, released), release date, and what it needs now (wishlists, demo players, press). Kept as `Docs/Marketing/Profile.md` in the project, so it is edited in the Docs view and tracked by that project's git.
+1. **Game profiles.** One per project that is marketed (Bunny Bunker, Rapid Rocket Racing, Good Box and the others, Hidden by Design): genre tags, platforms, stage (in development, demo, released), release date, and what it needs now (wishlists, demo players, press). Kept as `Docs/Profiles/<game>.md` in the Polyspice Marketing project, all in one place, so a game needs no Doit project of its own; edited in the Docs view and tracked by that project's git.
 2. **Contacts.** A contact is a person, outlet or event. It has one or more types: influencer, blogger, press, publisher/distribution, tester, festival, conference (with a topic tag: game dev, podcast, design). Its fields: name, channels (YouTube, Twitch, Bluesky, X, Instagram, Facebook, Discord, Steam, website, Linktree), email, reach band (the sheet's A to E, from Tiny over 50 to Huge over 10 000), notes, status (active, dormant, archived) and the games it fits.
    - **Fit** links a contact to a game profile with a one-line reason. Claude decides fit, by researching the contact (what they play, how recently they post, their size) in batches of 20 to 30, largest reach first. Tabu corrects it.
    - **Touches** replace the sheet's Replied and Posted Video columns: a log per contact of mails sent, replies and videos posted, each dated and tied to a game.
@@ -164,3 +164,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20: the top bar shows only starred projects; every project, its star and + New project sit in a Projects menu.
 - 2026-11-20: the Marketing section, designed but not built: game profiles, contacts with fit decided by Claude, mail through the Workspace account, festivals, campaigns; build order and open questions (section Marketing).
 - 2026-11-20: contacts are stored in SQLite (`marketing.db`, built-in `node:sqlite`); the sheet's BB1 and BB2 columns are not imported (section Marketing).
+- 2026-11-20, EPIC-012: game profiles all live in the Polyspice Marketing project, not in each game's project (section Marketing).

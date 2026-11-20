@@ -1,6 +1,6 @@
 # EPIC-002: Marketing
 
-Status: Parked
+Status: Done (dissolved: superseded by the Marketing section of Design.md; contacts and profiles go to EPIC-012, mail, festivals and campaigns to later epics)
 Goal: Events, Reddit threads and influencer outreach arrive as tasks in a Marketing project, with a weekly plan written by Claude.
 Design: not written yet. Wireframe: Docs/Design/wireframe.html, Marketing view.
 
