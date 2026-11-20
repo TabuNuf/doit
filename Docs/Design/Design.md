@@ -6,7 +6,7 @@ What the app is now. The source of truth for what gets built. When code and this
 
 ## Purpose
 
-One local board where Tabu and Claude share every project's epics, tasks and bugs, so Jira and Confluence can be cancelled. Claude reaches it through a CLI that returns only the slice it asks for. Left out for now: the Confluence import, the Marketing view (events, Reddit, influencers), the Claude view and the morning run; each is a later epic. The wireframe for all of them is `Docs/Design/wireframe.html`.
+One local board where Tabu and Claude share every project's epics, tasks and bugs, so Jira and Confluence can be cancelled. Claude reaches it through a CLI that returns only the slice it asks for. Left out for now: the Confluence import and the Marketing view (events, Reddit, influencers); each is a later epic. The wireframe for all of them is `Docs/Design/wireframe.html`.
 
 ## Users and their jobs
 
@@ -67,6 +67,18 @@ Each project's docs folder (design, specs, architecture) is read and edited in p
 - Docs are read and written in the project folder, not in an epic's worktree.
 - Pictures in a document are not shown yet; the Confluence import epic (EPIC-009) brings them.
 
+## Claude view
+
+One page shows what Claude is working on, what it waits on Tabu for, and what changed. Everything on it comes from task data and the activity log; it keeps no state of its own.
+
+- **Board / Docs / Claude** in the top bar switches the view and keeps the selected project. Claude carries a badge with the count of Tabu's tasks due within 7 days, the same count as the Board's "due within 7 days" filter on 🧑 tasks.
+- Three panes: **Working on now**, **Blocked on you** with **Up next for Claude** below it, and **Activity log**.
+- **Working on now:** AI tasks In progress. **Up next:** AI To-do tasks in rank order.
+- **Blocked on you:** human To-do tasks with a `blocks: T-<id>` field naming the AI task they hold up. The field is set with `doit set <project>/<T-id> blocks=T-<id>` or in the Detail pane, and is kept in the task file.
+- A card shows number, project pill, title and last change. Clicking it opens that task on the Board.
+- **Activity log:** every change to a task, from the CLI or the page, appends one line (time, project/task, what changed) to `activity.log` in the app's data folder. Lines older than 30 days are dropped on write. The pane shows the newest first.
+- **Morning run:** a scheduled task in the Claude desktop app, 07:00 on weekdays, that runs `doit morning`. The command sweeps, then writes one report block to the activity log across all projects: tasks swept, AI tasks In progress, the top three AI To-do tasks, Blocked on you, and Tabu's tasks due within 7 days. It changes nothing beyond what the sweep does. It runs only while the app is open and the Mac awake.
+
 ## Look
 
 Blueprint: the board reads as a drafting sheet. It replaces the greyscale wireframe look; there is one style, no picker. Light and dark follow the system setting.
@@ -90,7 +102,7 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 
 - `projects`, `project add <name> <folder> [--docs Docs]`
 - `list [--project <id>] [--epic EPIC-<nnn>] [--state open|active|backlog|done|archived] [--owner ai|human]`: default open tasks of every project, never archived ones unless asked.
-- `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `epic close <project> <EPIC-nnn>` (archives the epic's task files, sets it Done, writes its `Closed:` date and moves it to Completed/), `sweep`.
+- `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `epic close <project> <EPIC-nnn>` (archives the epic's task files, sets it Done, writes its `Closed:` date and moves it to Completed/), `sweep`, `morning` (sweeps and writes the morning report to the activity log, section Claude view).
 
 ## Running it
 
@@ -99,6 +111,7 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 ## Data
 
 - The project list and settings: `~/Library/Application Support/Doit/settings.json` (`DOIT_HOME` overrides it). Kept until deleted.
+- The activity log: `activity.log` beside the settings, 30 days.
 - Tasks and epics: Markdown in each project's docs folder, tracked by that project's git. Nothing leaves the machine. No personal data beyond names Tabu types.
 
 ## Changelog
@@ -114,3 +127,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20, EPIC-003: the Docs view: tree, rendered document with edit, and Linked tasks (section Docs). The Confluence import moves to EPIC-009.
 - 2026-11-20, EPIC-010: an epic is closed from the page; closed epics show in a Closed section, then after the keep setting in a folded Archived section (section Epics). Replaces "Epics in Completed/ are not shown".
 - 2026-11-20: the Docs view keeps its own column widths, apart from the Board's, and its Linked pane can be closed to a rail and opened again (section Docs).
+- 2026-11-20, EPIC-004: the Claude view, the activity log, the `blocks` field and the morning run (section Claude view); the morning run is a desktop app schedule and only reports.
