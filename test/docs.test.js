@@ -39,6 +39,7 @@ test("a document is read through the library and the API", async t => {
   assert.equal(r.status, 200);
   assert.equal(r.body.text, "# Net\n");
   assert.equal((await s.api(s.file("Missing.md"))).status, 404);
+  assert.equal((await s.api(s.file("NoFolder/Missing.md"))).status, 404);
 });
 
 test("paths outside the docs folder or not Markdown are refused", async t => {

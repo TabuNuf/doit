@@ -73,9 +73,11 @@ export class DocsFiles {
     const file = path.resolve(root, rel);
     const within = (base, p) => p.startsWith(base + path.sep);
     if (!within(path.resolve(root), file)) throw new DocsError(`Path must be inside the docs folder: ${rel}`);
-    // A link out of the folder is followed to where it really points.
-    const real = fs.existsSync(file) ? fs.realpathSync(file) : path.join(fs.realpathSync(path.dirname(fs.existsSync(path.dirname(file)) ? file : root)), path.basename(file));
-    if (!within(fs.realpathSync(root), real)) throw new DocsError(`Path must be inside the docs folder: ${rel}`);
+    // A link out of the folder is followed to where it really points. A missing folder holds
+    // nothing to follow: read finds no file and write refuses.
+    const dir = path.dirname(file);
+    const real = fs.existsSync(file) ? fs.realpathSync(file) : fs.existsSync(dir) ? path.join(fs.realpathSync(dir), path.basename(file)) : null;
+    if (real && !within(fs.realpathSync(root), real)) throw new DocsError(`Path must be inside the docs folder: ${rel}`);
     return file;
   }
 }
