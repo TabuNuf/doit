@@ -24,7 +24,9 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 - Epic files follow `Docs/Standard/Core/01-Tasks.md`: `<docs>/Epics/EPIC-<nnn>-<short-name>.md`, status `Parked | Planned | Active | Done`, a `## Tasks` checklist.
 - The left pane lists the project's epics from `Epics/` and `Epics/Parked/` with done/total counts and a progress bar.
 - **Clicking an epic** filters the task list to its tasks and shows its document in the Detail pane: goal and status, tasks (checklist), test plan, notes, close audit and standard section. It works for any epic in the list, parked ones too. The markdown is shown with headings, lists, checkboxes, bold and code; nothing in it is editable. Selecting a task shows the task in the Detail pane, and clicking the epic again brings its document back. Clicking the epic while its document shows, or **Show all**, clears the filter.
-- Epics in `Epics/Completed/` are not shown and not read, except by an explicit archive request.
+- **Close epic** in the epic document's header (open epics only) asks for confirmation, then does what `epic close` does: archives the epic's tasks, sets it Done, writes `Closed: <date>` under its status line and moves it to `Epics/Completed/`.
+- Below the open epics, per project, the left pane has two sections. **Closed**: epics in `Epics/Completed/` closed within the keep setting (14 days, the same as completed tasks), newest first. **Archived**: older ones and those with no `Closed:` line, folded until clicked. Both open the epic's document like any epic; neither has Close. Nothing moves on disk between Closed and Archived; the date decides.
+- The CLI's `epics` lists open epics only; Claude never reads closed or archived ones unless asked.
 - **An epic with a worktree** on its branch `epic/<nnn>-<short-name>` has its epic file and task files read and written in that worktree, by the page and the CLI alike, so a tick made during the epic lands on its branch and the main checkout stays clean. When the worktree is removed, they are read from the project folder again.
 - **+ New epic** creates the next number with the standard template, status `Planned`.
 
@@ -88,7 +90,7 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 
 - `projects`, `project add <name> <folder> [--docs Docs]`
 - `list [--project <id>] [--epic EPIC-<nnn>] [--state open|active|backlog|done|archived] [--owner ai|human]`: default open tasks of every project, never archived ones unless asked.
-- `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `epic close <project> <EPIC-nnn>` (archives the epic's task files, sets it Done and moves it to Completed/), `sweep`.
+- `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `epic close <project> <EPIC-nnn>` (archives the epic's task files, sets it Done, writes its `Closed:` date and moves it to Completed/), `sweep`.
 
 ## Running it
 
@@ -109,4 +111,5 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20: the Doit logo, in the top bar, as the tab icon and as the launcher icon (section Look).
 - 2026-11-20, EPIC-007: an epic with a worktree has its files read and written there (section Epics).
 - 2026-11-20, EPIC-003: the Docs view: tree, rendered document with edit, and Linked tasks (section Docs). The Confluence import moves to EPIC-009.
+- 2026-11-20, EPIC-010: an epic is closed from the page; closed epics show in a Closed section, then after the keep setting in a folded Archived section (section Epics). Replaces "Epics in Completed/ are not shown".
 - 2026-11-20: the Docs view keeps its own column widths, apart from the Board's, and its Linked pane can be closed to a rail and opened again (section Docs).
