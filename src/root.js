@@ -3,9 +3,11 @@
 import os from "node:os";
 import path from "node:path";
 import { Board } from "./domain/board.js";
+import { ActivityLog } from "./domain/activity.js";
 import { DocsLibrary } from "./domain/docs.js";
 import { DocsFiles } from "./store/docsFolder.js";
 import { FileSource } from "./store/source.js";
+import { ActivityFile } from "./store/activityFile.js";
 import { SettingsFile } from "./store/settings.js";
 import { EpicWorktrees } from "./store/worktrees.js";
 import { Cli } from "./cli/cli.js";
@@ -15,8 +17,14 @@ export function dataDir() {
   return process.env.DOIT_HOME || path.join(os.homedir(), "Library", "Application Support", "Doit");
 }
 
+export function makeActivity({ home = dataDir(), now } = {}) {
+  return new ActivityLog(new ActivityFile(home), now);
+}
+
+/** The board, telling the activity log in `home` every change it makes. */
 export function makeBoard({ home = dataDir(), now } = {}) {
-  return new Board(new FileSource(new SettingsFile(home), new EpicWorktrees()), now);
+  const log = makeActivity({ home, now });
+  return new Board(new FileSource(new SettingsFile(home), new EpicWorktrees()), now, (ref, what) => log.record({ ref, what }));
 }
 
 export function makeDocs({ home = dataDir(), board }) {

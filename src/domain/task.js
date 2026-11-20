@@ -84,3 +84,18 @@ function stripNulls(obj) {
   for (const [k, v] of Object.entries(obj)) if (v !== null && v !== undefined && v !== "") out[k] = v;
   return out;
 }
+
+/** Whether a state is in a list filter: open, active, or one state. */
+export function matchesState(actual, wanted) {
+  if (wanted === "open") return tabOf(actual) === "open";
+  if (wanted === "active") return actual === "todo" || actual === "progress";
+  return actual === wanted;
+}
+
+export function check(allowed, value, name) {
+  if (!allowed.includes(value)) throw new Error(`${name} must be one of: ${allowed.join(", ")}`);
+}
+
+export function oneLine(s) {
+  return String(s || "").replace(/\s+/g, " ").trim();
+}
