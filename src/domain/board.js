@@ -4,7 +4,8 @@
 //   projects(), addProject({name, path, docs}), settings(), saveSettings(partial),
 //   load(projectId, {archived}) -> {epics, files: Map<id, fields>, archivedIds: Set<id>},
 //   epicDocument(projectId, epicId) -> {id, name, status, completed, text} | null,
-//   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status) -> epicId
+//   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status) -> epicId,
+//   completeEpic(projectId, epicId) sets the epic Done and files it as completed
 
 import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask } from "./task.js";
 import { archiveReason, byRank, stamp, DEFAULT_KEEP_DAYS } from "./rules.js";
@@ -57,13 +58,14 @@ export class Board {
     return { project, ...doc };
   }
 
-  /** Archives every task of an epic that is not archived yet, by the same path as the sweep. Returns how many. */
+  /** Archives every task of an epic that is not archived yet, by the same path as the sweep, then completes the epic. Returns how many tasks. */
   closeEpic(project, epicId) {
     this.#requireProject(project);
     const loaded = this.#load(project, false);
     if (!loaded.epics.some(e => e.id === epicId && !e.completed)) throw new Error(`No open epic ${epicId} in ${project}`);
     const tasks = loaded.tasks.filter(t => t.epic === epicId && t.state !== "archived");
     for (const task of tasks) this.#archive(task, `Epic ${epicId} closed`);
+    this.source.completeEpic(project, epicId);
     return tasks.length;
   }
 

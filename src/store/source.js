@@ -5,7 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { ProjectFiles } from "./projectFiles.js";
-import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile } from "./markdown.js";
+import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile, setStatus } from "./markdown.js";
 
 export class FileSource {
   constructor(settingsFile) {
@@ -82,6 +82,14 @@ export class FileSource {
     const file = files.epicFile(epicId);
     if (!file) throw new Error(`No epic file for ${epicId}`);
     files.write(file, appendLine(files.read(file), line));
+  }
+
+  /** Sets the epic Done and moves its file to Epics/Completed/. */
+  completeEpic(projectId, epicId) {
+    const files = this.#files(projectId);
+    const file = files.epicFile(epicId);
+    if (!file) throw new Error(`No epic file for ${epicId}`);
+    files.moveToCompleted(file, setStatus(files.read(file), "Done"));
   }
 
   createEpic(projectId, name, status) {

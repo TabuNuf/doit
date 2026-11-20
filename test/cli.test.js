@@ -45,6 +45,9 @@ test("epic close moves the epic's task files to the archive", t => {
   for (const id of ["T-014.1", "T-014.2", "T-014.3"]) assert.ok(!s.exists(`Epics/Tasks/${id}.md`), `${id} left in Epics/Tasks`);
   for (const id of ["T-014.2", "T-014.3"]) assert.ok(s.exists(`Archive/Tasks/${id}.md`), `${id} not archived`);
   assert.ok(s.exists("Epics/Tasks/T-009.1.md"), "another epic's task is untouched");
+  assert.ok(!s.exists("Epics/EPIC-014-online-lobby.md"), "epic file left in Epics/");
+  assert.match(s.read("Epics/Completed/EPIC-014-online-lobby.md"), /^Status: Done$/m);
+  assert.equal(s.board.epicDocument("game", "EPIC-014").completed, true);
   assert.equal(run(b, "epic", "close", "game", "EPIC-099").code, 1);
   assert.match(run(b, "help").out, /doit epic close/);
 });

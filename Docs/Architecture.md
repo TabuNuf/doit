@@ -22,9 +22,9 @@ Module order, low to high: domain → store → cli, server → root.
 - `domain/task.js`: the task value, its states, sections and defaults for a task without a file. Pure.
 - `domain/rules.js`: the sweep (deadline and retention archiving) and rank between neighbours (the only place ranks are computed; the page asks `Board.move`). Pure, takes today's date.
 - `domain/mover.js`: `TaskMover`, where a task goes in the Open tab: from the task and its project's tasks it returns the rank and state change. Pure; `Board.move` delegates to it.
-- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves (via `TaskMover`), comments, sweeps, closes an epic's tasks and serves an epic's document. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) and a clock.
+- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves (via `TaskMover`), comments, sweeps, closes an epic (archives its tasks, then the source sets it Done and files it in `Completed/`) and serves an epic's document. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) and a clock.
 - `store/markdown.js`: parses and writes epic files and task files. Pure text in and out.
-- `store/projectFiles.js`: `ProjectFiles`, reads and writes one project's docs folder: epics, task files, archive moves, new epic, project scaffold.
+- `store/projectFiles.js`: `ProjectFiles`, reads and writes one project's docs folder: epics, task files, archive moves, new epic, move to Completed, project scaffold.
 - `store/settings.js`: `SettingsFile`, the project list and settings in the app's data folder.
 - `store/source.js`: `FileSource`, the port implementation the board is given; joins the two above.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board` and an output stream.
@@ -50,7 +50,7 @@ classDiagram
     +epicDocument(project, epic)
   }
   class TaskMover { +plan(task, tasks, placement) changes }
-  class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +epicDocument() }
+  class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +completeEpic() +epicDocument() }
   class ProjectFiles
   class SettingsFile
   class Cli
