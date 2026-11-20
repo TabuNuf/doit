@@ -33,9 +33,13 @@ Design: Design.md, section Epics.
 - T-011.4: Parked shows EPIC-002 and EPIC-009 for Doit, folded; Completed and Archived fold and unfold.
 - T-011.5: on a throwaway project, park a Planned epic, reopen it, close one by dropping on Completed, archive one by dropping on Archived, reopen an archived one and see its tasks back.
 
+- Checked by Claude on a throwaway copy of these docs at 1400 px, with real drag events: a Planned epic parked (file in `Parked/`, status Parked), reopened from Parked, dropped on Archived (`Closed:` and `Archived:` lines, both tasks in `Archive/Tasks`), reopened from Archived (status Planned, open task back as To-do, ticked one as Completed), dropped on Completed; an Active epic dropped on Parked showed the refusal toast. Each section header unfolds on click. Not checked: the confirm dialog itself (answered by script), dark mode, the stacked layout.
+
 ## Notes
 
 Decisions and deviations, newest first.
+
+- 2026-11-20, browser check: clicking a section header did nothing, because the Docs tree's click handler also reads `data-fold` and ran first; the epic headers use `data-epic-fold` now, with a test that no header attribute is one the Docs click reads. Dragging to Archived missed when it passed over Completed, which unfolded on enter and pushed Archived down; a header now unfolds only after the epic rests on it 600 ms. The 10 s reload now waits during an epic drag, since a re-render ends it.
 
 - 2026-11-20: planned from Tabu's request. Archived as a drop target closes and archives in one step rather than staying date-only. Reopen restores only tasks archived by the close, so a task archived by its deadline before the close stays archived.
 
