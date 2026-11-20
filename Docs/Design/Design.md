@@ -15,7 +15,7 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 
 ## Projects
 
-- A project is a folder with a docs folder inside (`Docs/` by default; a game keeps its own, such as `ClobberBopDocs/`). The project list lives in the app's settings, not in any project.
+- A project is a folder with a docs folder inside, `Docs/` by the standard; a project that has not renamed its own yet (`BB-Docs/`) is registered with that name. The project list lives in the app's settings, not in any project.
 - **+ Project** asks for a name, a folder and the docs folder name. It creates `<docs>/Epics/` with `Tasks/`, `Parked/` and `Completed/` where missing, and a rolling bug epic `EPIC-001: Bugs (rolling)` when the project has no epics yet. It never overwrites an existing file.
 - The top bar lists every project plus **All projects**. In All projects each row shows a project pill.
 
@@ -108,6 +108,7 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20: clicking an epic both filters the list and shows the epic's document in the Detail pane; the separate Filter button and the full-width epic view are gone.
 - 2026-11-20: the three columns are resized by dragging the gaps between them.
 - 2026-11-20, EPIC-008: the Blueprint look replaces the greyscale wireframe look (section Look), chosen from five candidate styles.
+- 2026-11-20: a project's docs folder is `Docs/` by the standard again; other names are only for projects not yet renamed.
 - 2026-11-20: the Doit logo, in the top bar, as the tab icon and as the launcher icon (section Look).
 - 2026-11-20, EPIC-007: an epic with a worktree has its files read and written there (section Epics).
 - 2026-11-20, EPIC-003: the Docs view: tree, rendered document with edit, and Linked tasks (section Docs). The Confluence import moves to EPIC-009.
