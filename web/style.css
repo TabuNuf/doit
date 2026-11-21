@@ -238,3 +238,14 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .doc-edit { width: 100%; min-height: 70vh; font-family: var(--mono); font-size: var(--fs); line-height: 1.5; border: 1px solid var(--line); border-radius: 2px; padding: 8px; background: var(--bg); color: var(--ink); resize: vertical; }
 .linked-card { display: block; width: 100%; text-align: left; margin-bottom: 6px; padding: 6px 8px; }
 .linked-card:hover { background: var(--fill); }
+
+/* Marketing view: filter column, contact rows, channel links */
+.mk-filters { flex-direction: column; align-items: stretch; border: 0; border-radius: 0; background: none; }
+.mk-filters select { width: 100%; }
+.mk-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; width: 100%; text-align: left; padding: 8px; border: 1px solid transparent; border-bottom: 1px dashed var(--fill); border-radius: 0; background: none; }
+.mk-row:hover { border-color: var(--line); }
+.mk-row[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.mk-links { list-style: none; padding-left: 0; margin: 0 0 10px; font-size: 13px; }
+.mk-links li { margin-bottom: 4px; overflow-wrap: anywhere; }
+.mk-links a { color: var(--accent); }
+.mk-touch { margin-top: 8px; }
