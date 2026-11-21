@@ -34,6 +34,7 @@ Source: review video Bandicam_20261121_111550.mp4, narrated by Tabu; times in ea
 
 Decisions and deviations, newest first.
 
+- T-021.10 to .12 landed in one commit (afb161e) since they share the Marketing view's files; the rule is one commit per task. Its first build put a page campaign in the marketed project; fixed so + Campaign creates it in the marketing project with `Game:` naming the chosen project, as Design.md says.
 - T-021.9: arrow up and down also work in the Festivals and Events lists (they share the key handler); the Overview lists do not have them yet. The pick no longer reaches `GET /api/contacts` as `fits` (the server filter stays for the CLI); the fit mark is made in the page from each contact's `fit`. The empty list says `No contact matches these filters.` with a Clear filters button when a filter is on, else `No contacts yet.`.
 - T-021.8: the history comes from `GET /api/contacts/:id/history` (the Mailroom, which holds the drafts); a sent draft that its send already logged as a touch shows once. A contact's `last` (list row) comes from touches alone, since the contact book does not see drafts; a sent draft always logs a touch, so they agree, and the pane takes the newest of both.
 - T-021.6: the Genre filter's options come from `GET /api/genres` (every genre in use), so they do not shrink while a filter is on. The importer, `genres` and `about` fields and the migration landed in T-021.5; this task adds the CLI keys and flag, the route, the filter and the pane field.

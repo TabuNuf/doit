@@ -32,10 +32,10 @@ test("a campaign for an application is created from the page and listed under it
 
   const req = campaignRequest({ project: "doit", name: "  Launch push ", event: String(events[0].id) });
   const made = await api(req.path, req.method, req.body);
-  assert.equal(made.status, 200);
+  assert.equal(made.status, 200, "the campaign lives in the marketing project, its Game line names Doit");
   const epics = (await api("/api/board?project=all")).body.epics;
   const listed = campaignsFor(epics, "doit");
-  assert.deepEqual(listed.map(e => [e.project, e.name, e.status, e.game]), [["doit", "Launch push", "Active", "doit"]]);
+  assert.deepEqual(listed.map(e => [e.project, e.name, e.status, e.game]), [["polyspice-marketing", "Launch push", "Active", "doit"]]);
   assert.match(campaignsPane(listed), /Launch push/);
 
   assert.equal((await api("/api/campaigns", "POST", { project: "doit", name: " " })).status, 400);

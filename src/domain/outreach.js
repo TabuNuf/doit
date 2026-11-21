@@ -5,10 +5,12 @@ import { planWeek, pickContacts } from "./outreachPlan.js";
 import { checkDate, ContactError } from "./contacts.js";
 
 export class Outreach {
-  constructor(board, book, now = () => new Date()) {
+  /** `campaignHome()` names the marketing project, where campaigns started from the page live; the root reads it from the settings. */
+  constructor(board, book, now = () => new Date(), campaignHome = () => "polyspice-marketing") {
     this.board = board;
     this.book = book;
     this.now = now;
+    this.campaignHome = campaignHome;
   }
 
   /** The weekly list: contacts, festival deadlines within 14 days and campaign steps. */
@@ -30,6 +32,11 @@ export class Outreach {
     if (!this.book.profiles().some(p => p.game === game)) throw new Error(`No profile for game "${game}": a game, application or podcast is a project with a kind, or a profile file`);
     const when = event ? this.#checkEvent(String(event).trim()) : null;
     return this.board.addEpic(project, name, { status: "Active", game, event: when });
+  }
+
+  /** A campaign for `game` (a project with a kind) in the marketing project, as + Campaign in the page starts it. */
+  startCampaign(game, name, { event } = {}) {
+    return this.addCampaign(this.campaignHome(), name, { game, event });
   }
 
   /** One task per picked contact on an open campaign. Returns the made refs. */

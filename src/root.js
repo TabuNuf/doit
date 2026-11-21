@@ -68,8 +68,9 @@ export function makeMarketing(options = {}) {
 }
 
 /** Outreach over the board and the book, listening for the board's done facts. */
-export function makeOutreach({ board, book, now }) {
-  const outreach = new Outreach(board, book, now);
+export function makeOutreach({ board, book, now, home = dataDir() }) {
+  const settings = new SettingsFile(home);
+  const outreach = new Outreach(board, book, now, () => settings.read().marketingProject || "polyspice-marketing");
   board.subscribe(fact => outreach.taskDone(fact));
   return outreach;
 }
@@ -79,7 +80,7 @@ export function makeCli(options = {}) {
   const board = makeBoard({ ...options, log });
   const readText = file => fs.readFileSync(file, "utf8");
   const { book, mailroom } = makeMarketing(options);
-  const outreach = makeOutreach({ board, book, now: options.now });
+  const outreach = makeOutreach({ board, book, now: options.now, home: options.home });
   return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now, outreach), book, readText, mailroom, outreach);
 }
 
@@ -90,6 +91,6 @@ export function makeServer(options = {}) {
   const home = options.home ?? dataDir();
   const changes = new ChangeWatcher(new SettingsFile(home), new EpicWorktrees(), home);
   const { book, mailroom } = makeMarketing({ ...options, home });
-  const outreach = makeOutreach({ board, book, now: options.now });
+  const outreach = makeOutreach({ board, book, now: options.now, home });
   return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home, board }), new ClaudeView(board, log, options.now, outreach), changes, book, mailroom, outreach);
 }
