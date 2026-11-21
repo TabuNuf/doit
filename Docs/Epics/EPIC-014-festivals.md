@@ -15,7 +15,7 @@ Design: Design.md, section Marketing (step 4)
 
 ## Tasks
 
-- [ ] T-014.1 Architecture and design: event fields and the matching rule in the class diagram and Design.md (done when: Architecture.md lists `EventMatch` and its tests' names)
+- [x] T-014.1 Architecture and design: event fields and the matching rule in the class diagram and Design.md (done when: Architecture.md lists `EventMatch` and its tests' names)
 - [ ] T-014.2 Domain: event fields on a contact and `EventMatch`, pure: profile and festival in, match or the reason it fails (done when: domain tests match on genre, refuse on stage and platform, and mark a festival without criteria)
 - [ ] T-014.3 Store: the event fields in `marketing.db` with a `user_version` migration from version 2, EPIC-013's schema (done when: a test opens a version 2 database, migrates it and reads an event back)
 - [ ] T-014.4 CLI: `doit festivals [--fits <game>] [--deadline-within <days>] [--json]`, `doit festival upsert` (by name and year, so a rerun updates instead of duplicating), `doit festival set <id> state=<state>` (done when: CLI tests cover each command and an upsert twice gives one festival)

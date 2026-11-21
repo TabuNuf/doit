@@ -37,6 +37,8 @@ Module order, low to high: domain → store → cli, server → root.
 - `store/docsFolder.js`: `DocsFiles`, the `DocsSource` port on disk: the docs tree (leaving out `Archive/`, `Epics/Tasks/`, `Standard/`, folding `Epics/Completed/`), read, write, and the last change from `git log`.
 - `domain/contacts.js`: the `Contact` value and its vocabulary (types, statuses, channel kinds, touch kinds), validation that refuses an unknown value (reach is a non-negative whole follower count or empty), and the filters (`contactFilter`: type, game fit, status, reach at least n followers, due by date). Pure.
 - `domain/contactBook.js`: `ContactBook`, the contacts facade: list with filters, get, add, update, set fit, add touch, the profiles, and the sheet import (`importCsv(text)`, so an interface never calls the mapper). Over a `ContactSource` port (`all()`, `get(id)`, `insert(contact)`, `update(id, contact)`, `setFit(id, game, reason)`, `addTouch(id, touch)`, a touch with optional `note` and `ref`) and a `ProfileShelf` port (`list()`, `has(game)`), with a clock for "due". A fit to a game with no profile is refused.
+- `domain/events.js`: the event fields of a festival or conference contact, pure: `checkEvent` (year; start, end and application deadline as dates; cost as text; where: steam, epic, gog, itch, physical, online; criteria `{genres, stages, platforms}`, stages being game stages; watch state: watching, applied, accepted, declined, past) refuses an unknown value, `daysLeft`. A contact carries `event` (null when it is not an event); only types festival and conference may.
+- `domain/eventMatch.js`: `EventMatch.check(profile, festival)`, pure: `{match:true}`, `{match:true, criteriaUnknown:true}` (no criteria at all) or `{match:false, reason}`. Each criterion that is given must hold: a genre in common, the game's stage among the allowed stages, a platform in common; a criterion left empty is not checked. Tests: `test/eventMatch.test.js` ("matches on a genre in common", "refuses on a genre not shared", "refuses on stage", "refuses on platform", "marks a festival without criteria as unknown", "checks only the criteria given", "refuses a contact that is not an event"); fields in `test/events.test.js`.
 - `domain/contactImport.js`: the sheet import, pure: `parseCsv` (quotes, commas and newlines in quoted fields), `mapStreamers` (header aliases, BB1 and BB2 ignored, a reach count kept as the number, a band letter or other text left out of reach and noted as `Sheet reach: <cell>`, links to channels, Replied and Posted Video to touches). `ContactBook.import(rows)` matches by email, then YouTube link, and returns `{added, updated, skipped}`.
 - `store/sqliteContacts.js`: `SqliteContacts`, the `ContactSource` port on `marketing.db` in the data folder (`node:sqlite`): tables contacts, channels, fit, touches; the handle and the schema (`PRAGMA user_version` 2) come from `MarketingDb`, opened on first use, so a command that never reads contacts leaves no file. A touch carries a note and a ref (a ref is logged once).
 - `store/profileShelf.js`: `ProfileShelf`, the profile port: reads `<docs folder>/Profiles/*.md` of the marketing project (settings key `marketingProject`, default `polyspice-marketing`, resolved through `SettingsFile`), creates a profile from a template.
@@ -54,6 +56,7 @@ Module order, low to high: domain → store → cli, server → root.
 - `web/draftsPane.js`: the Drafts pane of the Marketing view (each draft as the mail will look, edit, approve and send, discard, status line); pure HTML and request builders like `contactDetail.js`. `marketingView.js` switches between the Contacts and Drafts panes and sweeps once when the view opens.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board`, output streams, the `ClaudeView` (for `morning`), the `ContactBook` and `readText(path)` (a file reader the root supplies, since the CLI tier has no `node:fs`); the contact commands go to `ContactsCli`.
 - `cli/contactsCli.js`: `ContactsCli`, the contact commands (`contacts`, `contact`, `fit`, `touch`, `profiles`), over the `ContactBook`.
+- `cli/festivalsCli.js`: `FestivalsCli`, the festival commands (`festivals`, `festival upsert|set`), over the `ContactBook`; an upsert finds the festival by name and year.
 - `server/server.js`: `HttpServer`, the JSON API (including `GET /api/version`, the start commit) and the static page. Given a `Board`, the web folder, the commit, the `DocsLibrary` (the `/api/docs/` routes) and the `ClaudeView` (`GET /api/claude`), and `GET /api/events`, a server-sent event stream that sends `changed` on connect and on every event of the optional `changes` port (`subscribe(listener)` returning an unsubscribe; the root passes the `ChangeWatcher`); `close()` ends the open streams first and closes the port, since the server is its only user. `bin/server.js` reads the commit with `git rev-parse HEAD`. It also takes the `ContactBook` and adds the contact routes.
 - `server/contactRoutes.js`: `contactRoutes(book)`, the rows for `GET /api/contacts` (filters `type`, `fits`, `status`, `reach`, `due`), `GET` and `PATCH /api/contacts/:id`, `POST /api/contacts/:id/fit` and `/touch`, and `GET /api/profiles`; a refused value is a 400 with the message, a missing contact a 404.
 - `launcher/`: `Doit.applescript` (the app), `start-server.sh`, `check-server.sh` (running server on the checked-out commit? exit 0, 1 none, 3 other), `stop-server.sh`, and `morning-run.md` (the desktop app scheduled task's prompt for `doit morning`; created by hand).
@@ -84,7 +87,9 @@ classDiagram
   class ActivityFile { +lines() +append(lines) +replace(lines) }
   class DocsLibrary { +tree(project) +read(project, path) +save(project, path, text) +linked(project, path) }
   class DocsFiles { +tree(id) +read(id, path) +write(id, path, text) +lastChange(id, path) }
-  class ContactBook { +list(filter) +get(id) +add(input) +update(id, changes) +setFit(id, game, reason) +addTouch(id, touch) +profiles() +import(rows) +importCsv(text) }
+  class ContactBook { +list(filter) +get(id) +add(input) +update(id, changes) +setFit(id, game, reason) +addTouch(id, touch) +profiles() +import(rows) +importCsv(text) +festivals(filter) +upsertFestival(name, year, fields) +setFestivalState(id, state) }
+  class EventMatch { +check(profile, festival) }
+  class FestivalsCli { +festivals() +festival() }
   class ContactRoutes { +contactRoutes(book) }
   class ContactsCli { +contacts() +contact() +fit() +touch() +profiles() }
   class SqliteContacts { +all() +get(id) +insert(c) +update(id, c) +setFit() +addTouch() }
@@ -118,6 +123,7 @@ classDiagram
   FileSource --> EpicWorktrees
   ContactBook --> SqliteContacts : port
   ContactBook --> ProfileShelf : port
+  ContactBook --> EventMatch
   ProfileShelf --> SettingsFile
   SqliteContacts --> MarketingDb
   SqliteDrafts --> MarketingDb
@@ -137,6 +143,8 @@ classDiagram
   Cli --> ClaudeView
   Cli --> ContactsCli
   ContactsCli --> ContactBook
+  Cli --> FestivalsCli
+  FestivalsCli --> ContactBook
   HttpServer --> Board
   HttpServer --> DocsLibrary
   HttpServer --> ClaudeView
