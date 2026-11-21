@@ -251,6 +251,8 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mk-links { list-style: none; padding-left: 0; margin: 0 0 10px; font-size: 13px; }
 .mk-links li { margin-bottom: 4px; overflow-wrap: anywhere; }
 .mk-links a { color: var(--accent); }
+.mk-ch { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+.mk-ch input { flex: 1; min-width: 8em; font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 2px; background: var(--bg); color: var(--ink); }
 .mk-touch { margin-top: 8px; }
 .mk-draft { border: 1px solid var(--line); border-radius: 2px; padding: 8px; margin-bottom: 10px; }
 .mk-draft input { width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 5px 8px; background: var(--bg); color: var(--ink); }

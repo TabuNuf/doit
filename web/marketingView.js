@@ -3,6 +3,7 @@
 
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail.js";
+import { channelRemove, channelAdd } from "./contactChannels.js";
 import { festivalPath, eventsInfoPane, festivalsPane } from "./festivalsPane.js";
 import { overviewPanes } from "./weekPane.js";
 import { campaignsFor, profilePane, campaignsPane } from "./campaignsPane.js";
@@ -123,6 +124,8 @@ export function marketingClick(d) {
   if (d.campaign) { S.view = "board"; S.project = d.campaign.split("/")[0]; S.tab = "open"; openEpic(d.campaign); return true; }
   if (d.mkSend) { sendDraft(d.mkSend); return true; }
   if (d.mkDiscard) { discardDraft(d.mkDiscard); return true; }
+  if (d.mkChDel !== undefined && m.detail) { send(channelRemove(m.detail, d.mkChDel)); return true; }
+  if ("mkChAdd" in d && m.detail) { const req = channelAdd(m.detail, $("#mk-chk-new").value, $("#mk-chu-new").value); req ? send(req) : toast("Give the channel a URL first."); return true; }
   if ("mkTouch" in d) { m.touchOpen = true; redraw(); $("#mk-tk-kind")?.focus(); return true; }
   if ("mkTouchCancel" in d) { m.touchOpen = false; redraw(); return true; }
   if ("mkClear" in d) { m.f = { type: "", reach: "", status: "", genre: "" }; refreshMarketing(); return true; }
@@ -156,14 +159,14 @@ export function marketingChange(ev) {
   if (FILTERS[el.id]) { S.mk.f[FILTERS[el.id]] = el.value; refreshMarketing(); return true; }
   const dr = draftEditRequest(el, S.mk.drafts);
   if (dr) { saveDraft(dr); return true; }
-  const req = S.view === "marketing" && S.mk.detail && el.id !== "mk-notes" && editRequest(el, S.mk.detail);
+  const req = S.view === "marketing" && S.mk.detail && el.id !== "mk-notes" && el.id !== "mk-about" && editRequest(el, S.mk.detail);
   if (req) send(req);
   return Boolean(req) || el.id.startsWith("mk-");
 }
 
-/** Notes save when the field loses focus; true when the event was the notes field. */
+/** Notes and About save when the field loses focus; true when the event was one of them. */
 export function marketingFocusOut(ev) {
-  if (ev.target.id !== "mk-notes" || !S.mk.detail) return false;
+  if ((ev.target.id !== "mk-notes" && ev.target.id !== "mk-about") || !S.mk.detail) return false;
   const req = editRequest(ev.target, S.mk.detail);
   if (req) send(req);
   return true;

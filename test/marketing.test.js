@@ -46,8 +46,8 @@ test("the detail pane shows channels as safe links, fit with reason, and touches
     notes: "a \"note\"", next: "2026-04-01", status: "dormant",
   });
   const html = detailPane(c, [], false, "2026-03-05");
-  assert.match(html, /<a href="https:\/\/example.org\/yt" target="_blank" rel="noopener">/);
-  assert.match(html, /<a href="https:\/\/example.social\/x" target="_blank" rel="noopener">/);
+  assert.match(html, /<a href="https:\/\/example.org\/yt" target="_blank" rel="noopener" title="Open [^"]*">Open<\/a>/);
+  assert.match(html, /<a href="https:\/\/example.social\/x" target="_blank" rel="noopener" title="Open [^"]*">Open<\/a>/);
   assert.doesNotMatch(html, /href="javascript/);
   assert.match(html, /storm-haven<\/span><\/div>Plays &lt;tactics&gt;/);
   assert.ok(html.indexOf("2026-03-02") < html.indexOf("2026-02-01"));

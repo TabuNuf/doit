@@ -2,28 +2,14 @@
 // Pure functions: HTML from a contact, and the requests an edit sends. marketingView.js sends them.
 
 import { esc } from "./state.js";
+import { channelsBlock, channelEdit } from "./contactChannels.js";
+
+export { channelHref } from "./contactChannels.js";
 
 export const STATUSES = ["active", "dormant", "archived"];
 export const TOUCH_KINDS = ["mail", "reply", "video"];
 
-/** A channel url made safe to link: http(s) as given, a bare host gets https://, any other scheme is not linked. */
-export function channelHref(url) {
-  const u = String(url ?? "").trim();
-  if (/^https?:\/\//i.test(u)) return u;
-  if (/^[a-z][a-z0-9+.-]*:/i.test(u) && !/^[^/]*\.[^/]*:\d+/.test(u)) return "";
-  return u ? `https://${u}` : "";
-}
-
 const opt = (v, l, sel) => `<option value="${esc(v)}" ${sel === v ? "selected" : ""}>${esc(l)}</option>`;
-
-function channels(list) {
-  if (!list.length) return `<span class="muted">None.</span>`;
-  return `<ul class="mk-links">${list.map(ch => {
-    const href = channelHref(ch.url);
-    const link = href ? `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(ch.url)}</a>` : esc(ch.url);
-    return `<li><span class="pill">${esc(ch.kind)}</span> ${link}</li>`;
-  }).join("")}</ul>`;
-}
 
 function touchForm(profiles, now) {
   return `<form class="form mk-touch" id="mk-touch" aria-label="Add a touch">
@@ -54,8 +40,10 @@ export function detailPane(c, profiles, touchOpen, now) {
       <dt>Email</dt><dd>${c.email ? esc(c.email) : "-"}</dd>
       <dt>Genres</dt><dd><input type="text" id="mk-genres" value="${esc((c.genres ?? []).join(", "))}" aria-label="Genres, separated by commas" placeholder="Indie, Horror"></dd>
     </dl>
-    <div class="sect">Channels</div>${channels(c.channels)}
+    ${channelsBlock(c.channels)}
     <div class="sect">Fit</div>${fit}
+    <div class="sect">About</div>
+    <textarea id="mk-about" class="desc-in" aria-label="About: who the contact is and what they cover" placeholder="Who they are and what they cover.">${esc(c.about ?? "")}</textarea>
     <div class="sect">Notes<span id="saved"></span></div>
     <textarea id="mk-notes" class="desc-in" aria-label="Notes" placeholder="No notes yet.">${esc(c.notes)}</textarea>
     ${touches(c, profiles, touchOpen, now)}`);
@@ -68,6 +56,8 @@ export function editRequest(el, c) {
   if (el.id === "mk-next" && el.value !== c.next) return { method: "PATCH", path, body: { next: el.value } };
   if (el.id === "mk-reach-n" && (el.value === "" ? null : Number(el.value)) !== c.reach) return { method: "PATCH", path, body: { reach: el.value === "" ? null : Number(el.value) } };
   if (el.id === "mk-genres") { const genres = el.value.split(",").map(g => g.trim()).filter(Boolean); if (genres.join(",") !== (c.genres ?? []).join(",")) return { method: "PATCH", path, body: { genres } }; }
+  if (el.id === "mk-about" && el.value !== (c.about ?? "")) return { method: "PATCH", path, body: { about: el.value } };
+  if (el.id.startsWith("mk-ch")) return channelEdit(el, c);
   if (el.id === "mk-notes" && el.value !== c.notes) return { method: "PATCH", path, body: { notes: el.value } };
   return null;
 }
