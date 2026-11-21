@@ -38,6 +38,8 @@ Design: Design.md, section Marketing (step 3)
 
 Decisions and deviations, newest first.
 
+- T-013.6: `Cli.run` returns a promise of the exit code for an async command (`mail sweep`) and a number otherwise; `bin/doit.js` awaits it. `draft add` prints `Draft <id>` and the mail; `mail sweep` prints one `Reply from <name>: <subject>` line per reply and a summary line, exits 1 on a mailbox error, and prints `Mail is not set up` (exit 0) with no account.
+
 - T-013.5: the root has `makeMarketing(options)` (one `MarketingDb`, the `ContactBook` and the `Mailroom` over it) beside `makeContacts` (which now takes an optional `db`) and `makeMailroom`; `makeMailroom` takes `ports` to swap account, sender, mailbox or random in tests.
 - T-013.5: `approveAndSend` also takes an `approved` draft that waited for the cap and sends it; the cap-wait result is the draft itself, still `approved`. Drafts come back with `contactName` and `to` added. `edit` with only `personal` refills the template (subject and body are replaced); with a subject or body it stores the text as given. A reply whose Message-ID is missing is logged without a `ref`, so it cannot be deduped. `status()` is async (it reads the account); with no account `cap` is 20.
 

@@ -26,16 +26,26 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]
   doit profiles                                   the game profiles contacts can fit
 
+  doit templates                                  the mail templates (Templates/ in the marketing docs)
+  doit draft add <contact id> --template <name> --game <game> --personal <text>   fill a template into a draft, print it
+  doit draft show <id> [--json]
+  doit drafts [--state draft|approved|sent|failed] [--json]
+  doit mail sweep                                 file replies from contacts as touches and move them to Marketing
+  (approving and sending a draft is done in the page, never here)
+
 States: todo, progress, backlog, done, archived. "open" = todo + progress + backlog. Archived is never listed unless asked.`;
 
 import { ContactsCli } from "./contactsCli.js";
+import { MailCli } from "./mailCli.js";
 
 export class Cli {
-  /** `contacts` is the ContactBook and `readText(path)` reads a file; the contact commands need both. */
-  constructor(board, out, err, claude = null, contacts = null, readText = null) {
+  /** `contacts` is the ContactBook and `readText(path)` reads a file; the contact commands need both.
+   *  `mailroom` is the Mailroom behind the mail commands. `run` returns the exit code, or a promise of it for `mail sweep`. */
+  constructor(board, out, err, claude = null, contacts = null, readText = null, mailroom = null) {
     this.board = board;
     this.claude = claude;
     this.contactCommands = contacts && new ContactsCli(contacts, s => this.print(s), readText);
+    this.mailCommands = mailroom && new MailCli(mailroom, s => this.print(s));
     this.out = out;
     this.err = err;
   }
@@ -46,19 +56,28 @@ export class Cli {
       const cmd = pos.shift() || "help";
       const fn = COMMANDS[cmd];
       if (!fn) throw new Error(`Unknown command "${cmd}". Try: doit help`);
-      fn.call(this, pos, flags);
-      return 0;
+      const done = fn.call(this, pos, flags);
+      return done?.then ? done.then(() => 0, e => this.#fail(e)) : 0;
     } catch (e) {
-      this.err.write(`doit: ${e.message}\n`);
-      return 1;
+      return this.#fail(e);
     }
+  }
+
+  #fail(e) {
+    this.err.write(`doit: ${e.message}\n`);
+    return 1;
   }
 
   print(s) { this.out.write(s + "\n"); }
 
   delegate(name, pos, flags) {
     if (!this.contactCommands) throw new Error("Contacts are not available here");
-    this.contactCommands[name](pos, flags);
+    return this.contactCommands[name](pos, flags);
+  }
+
+  delegateMail(name, pos, flags) {
+    if (!this.mailCommands) throw new Error("Mail is not available here");
+    return this.mailCommands[name](pos, flags);
   }
 }
 
@@ -155,6 +174,10 @@ const COMMANDS = {
   fit(pos, flags) { this.delegate("fit", pos, flags); },
   touch(pos, flags) { this.delegate("touch", pos, flags); },
   profiles(pos, flags) { this.delegate("profiles", pos, flags); },
+  templates(pos, flags) { return this.delegateMail("templates", pos, flags); },
+  draft(pos, flags) { return this.delegateMail("draft", pos, flags); },
+  drafts(pos, flags) { return this.delegateMail("drafts", pos, flags); },
+  mail(pos, flags) { return this.delegateMail("mail", pos, flags); },
 };
 
 function row(t) {

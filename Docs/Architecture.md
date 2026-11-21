@@ -49,7 +49,7 @@ Module order, low to high: domain → store → cli, server → root.
 - `store/mailAccount.js`: `MailAccount`, the account from settings key `mail` and the app password from the Keychain (`security find-generic-password -s doit-mail -a <address> -w` through `execFile`); `read()` gives the account or `null`. The password is never stored or logged.
 - `store/smtpSender.js`: `SmtpSender`, a minimal SMTP client over `node:tls` (port 465, AUTH PLAIN); `send(account, message)` returns `{ok}` or `{ok: false, error}`, never throws.
 - `store/imapMailbox.js`: `ImapMailbox`, a minimal IMAP client over `node:tls`: `session(account, fn)` with select, search from, headers (never bodies), move, sent mailbox, copy by Message-ID. Errors come back as results.
-- `cli/mailCli.js`: `MailCli`, the mail commands (`templates`, `draft`, `drafts`, `mail sweep`), over the `Mailroom`. Nothing approves or sends. (T-013.6)
+- `cli/mailCli.js`: `MailCli`, the mail commands (`templates`, `draft`, `drafts`, `mail sweep`), over the `Mailroom`. Nothing approves or sends. `Cli.run` returns a promise of the exit code when a command is async (`mail sweep`); `bin/doit.js` awaits it.
 - `server/mailRoutes.js`: `mailRoutes(mailroom)`, the `/api/drafts` and `/api/mail` routes. (T-013.7)
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board`, output streams, the `ClaudeView` (for `morning`), the `ContactBook` and `readText(path)` (a file reader the root supplies, since the CLI tier has no `node:fs`); the contact commands go to `ContactsCli`.
 - `cli/contactsCli.js`: `ContactsCli`, the contact commands (`contacts`, `contact`, `fit`, `touch`, `profiles`), over the `ContactBook`.
@@ -95,7 +95,7 @@ classDiagram
   class MailAccount { +read() account }
   class SmtpSender { +send(account, message) }
   class ImapMailbox { +session(account, fn) }
-  class MailCli
+  class MailCli { +templates() +draft() +drafts() +mail() }
   class MailRoutes { +mailRoutes(mailroom) }
   class TaskMover { +plan(task, tasks, placement) changes }
   class EpicMoves { +close() +move(project, epic, to) }
