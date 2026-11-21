@@ -16,7 +16,7 @@ Design: Design.md, section Marketing (step 5)
 
 - [x] T-015.1 Architecture and design: the `contact` task field, the campaign lines and `OutreachPlan` in the class diagram; Design.md section Marketing updated (done when: Architecture.md and Design.md name them)
 - [x] T-015.2 Domain: campaign lines read from an epic, the `contact` task field, and a touch logged when such a task completes (done when: domain tests complete a contact task and find the touch on the contact)
-- [ ] T-015.3 Domain: `OutreachPlan`, pure: contacts, festivals, campaigns and today in, the weekly list out, capped (done when: domain tests cover the cap, the 14-day deadline window and an empty week)
+- [x] T-015.3 Domain: `OutreachPlan`, pure: contacts, festivals, campaigns and today in, the weekly list out, capped (done when: domain tests cover the cap, the 14-day deadline window and an empty week)
 - [ ] T-015.4 CLI: `doit campaign add <project> <name> --game <game> [--event]`, `doit campaign contacts <project> <EPIC-nnn> [--limit]`, `doit outreach [--json]`; `doit morning` includes the outreach list (done when: CLI tests cover each command)
 - [ ] T-015.5 Server and web: a This week pane on top of the Marketing view with the outreach list; Add contacts on a campaign epic's document; a contact task shows the contact's name and opens it (done when: web tests render This week and Add contacts from fixtures; in the app Add contacts on a test campaign makes its tasks)
 
@@ -33,6 +33,8 @@ Design: Design.md, section Marketing (step 5)
 ## Notes
 
 Decisions and deviations, newest first.
+
+- T-015.3: `addCampaign` makes the epic `Active` so its tasks are open at once; a festival event is stored as its contact id (`Event: 12`). The morning report block now holds the outreach lines after its five parts, so `test/morning.test.js` expects seven lines (`Outreach this week: nothing` on an empty week). The root builds `Outreach` in `makeOutreach` for the CLI and the server and gives it to `ClaudeView`; `Cli` and `HttpServer` take it in Batch B. A campaign task whose contact is also due is listed once, as `campaign`.
 
 - T-015.2: `Board` was past its 250-line limit, so the done-fact listeners went to `domain/doneNotifier.js` and the task loading to `domain/taskLoader.js`; `Board.subscribe` and `Board.#load` delegate. The Board announces after the task file is written, and a listener that throws is ignored. `Outreach.taskDone` exists from this task; the rest of `Outreach` comes with T-015.3.
 - Commit trailer follows the session's attribution (Claude Sonnet 5.5), not the brief's Opus line.

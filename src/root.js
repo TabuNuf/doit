@@ -9,6 +9,7 @@ import { Mailroom } from "./domain/mailroom.js";
 import { ActivityLog } from "./domain/activity.js";
 import { DocsLibrary } from "./domain/docs.js";
 import { ClaudeView } from "./domain/claude.js";
+import { Outreach } from "./domain/outreach.js";
 import { DocsFiles } from "./store/docsFolder.js";
 import { FileSource } from "./store/source.js";
 import { ActivityFile } from "./store/activityFile.js";
@@ -66,12 +67,20 @@ export function makeMarketing(options = {}) {
   return { book, mailroom: makeMailroom({ ...options, home, db, book }) };
 }
 
+/** Outreach over the board and the book, listening for the board's done facts. */
+export function makeOutreach({ board, book, now }) {
+  const outreach = new Outreach(board, book, now);
+  board.subscribe(fact => outreach.taskDone(fact));
+  return outreach;
+}
+
 export function makeCli(options = {}) {
   const log = makeActivity(options);
   const board = makeBoard({ ...options, log });
   const readText = file => fs.readFileSync(file, "utf8");
   const { book, mailroom } = makeMarketing(options);
-  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now), book, readText, mailroom);
+  const outreach = makeOutreach({ board, book, now: options.now });
+  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now, outreach), book, readText, mailroom);
 }
 
 export function makeServer(options = {}) {
@@ -81,5 +90,6 @@ export function makeServer(options = {}) {
   const home = options.home ?? dataDir();
   const changes = new ChangeWatcher(new SettingsFile(home), new EpicWorktrees(), home);
   const { book, mailroom } = makeMarketing({ ...options, home });
-  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home, board }), new ClaudeView(board, log, options.now), changes, book, mailroom);
+  const outreach = makeOutreach({ board, book, now: options.now });
+  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home, board }), new ClaudeView(board, log, options.now, outreach), changes, book, mailroom);
 }

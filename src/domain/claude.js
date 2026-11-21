@@ -2,6 +2,7 @@
 // and the activity log only. The facade the interfaces use for the Claude view.
 
 import { daysBetween, stamp } from "./rules.js";
+import { outreachLines } from "./outreachPlan.js";
 
 /** AI tasks In progress, in rank order. */
 export const workingOn = tasks => tasks.filter(t => t.owner === "ai" && t.state === "progress");
@@ -33,8 +34,10 @@ export function morningReport({ swept, tasks, today }) {
 }
 
 export class ClaudeView {
-  constructor(board, activity, now = () => new Date()) {
+  /** `outreach` is optional: anything with `week()`; its lines end the morning report. */
+  constructor(board, activity, now = () => new Date(), outreach = null) {
     this.board = board;
+    this.outreach = outreach;
     this.activity = activity;
     this.now = now;
   }
@@ -44,6 +47,7 @@ export class ClaudeView {
     const swept = this.board.sweepTasks();
     const { tasks } = this.board.view({ project: "all" });
     const lines = morningReport({ swept, tasks, today: stamp(this.now()).slice(0, 10) });
+    if (this.outreach) lines.push(...outreachLines(this.outreach.week()));
     this.activity.record(...lines.map(what => ({ ref: "morning", what })));
     return lines;
   }
