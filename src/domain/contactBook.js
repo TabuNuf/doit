@@ -8,6 +8,8 @@
 
 import { makeContact, contactFilter, byReach, isDue, checkDate, checkTouchKind, ContactError } from "./contacts.js";
 import { mapStreamers } from "./contactImport.js";
+import { EventMatch } from "./eventMatch.js";
+import { daysLeft, checkWatchState, checkYear } from "./events.js";
 
 const day = d => {
   const p = n => String(n).padStart(2, "0");
@@ -21,6 +23,7 @@ export class ContactBook {
     this.source = source;
     this.shelf = shelf;
     this.now = now;
+    this.matcher = new EventMatch();
   }
 
   today() { return day(this.now()); }
@@ -70,6 +73,54 @@ export class ContactBook {
   }
 
   profiles() { return this.shelf.list(); }
+
+  /** Festivals and conferences by deadline (those with none last), each with `daysLeft`.
+   *  `state` keeps one watching state; by default the past ones are left out.
+   *  `fits` (a game) keeps the events whose criteria match that game's profile, each with `match`, and drops those past their deadline.
+   *  `deadlineWithin` (days) keeps deadlines from today to that many days ahead. */
+  festivals({ fits, deadlineWithin, state } = {}) {
+    const today = this.today();
+    const profile = fits ? this.shelf.list().find(p => p.game === String(fits).trim()) : null;
+    if (fits && !profile) throw new ContactError(`No profile for game "${fits}"`);
+    const within = deadlineWithin === undefined || deadlineWithin === "" ? null : Number(deadlineWithin);
+    if (within !== null && (!Number.isInteger(within) || within < 0)) throw new ContactError(`Days must be a whole number, 0 or more: ${deadlineWithin}`);
+    const want = state ? checkWatchState(state) : null;
+    return this.source.all().filter(c => c.event)
+      .map(c => ({ ...c, due: isDue(c, today), daysLeft: daysLeft(c.event.deadline, today), match: profile ? this.matcher.check(profile, c) : null }))
+      .filter(c => (want ? c.event.state === want : c.event.state !== "past")
+        && (!profile || (c.match.match && (c.daysLeft === null || c.daysLeft >= 0)))
+        && (within === null || (c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= within)))
+      .sort((a, b) => (a.event.deadline || "9999").localeCompare(b.event.deadline || "9999") || a.name.localeCompare(b.name));
+  }
+
+  /** The festival or conference of that name and year gets the fields given (event fields in `event`, criteria lists per key), or is added.
+   *  Returns {contact, created}. Fields not given stay, so a rerun that knows less does not erase. */
+  upsertFestival(name, year, { types, topic, notes, url, event = {} } = {}) {
+    const key = String(name ?? "").replace(/\s+/g, " ").trim().toLowerCase();
+    const y = checkYear(year);
+    const known = this.source.all().find(c => c.event && c.event.year === y && c.name.toLowerCase() === key);
+    const given = o => Object.fromEntries(Object.entries(o ?? {}).filter(([, v]) => v !== undefined));
+    const merged = { ...known?.event, ...given(event), year: y, criteria: { ...known?.event.criteria, ...given(event.criteria) } };
+    const channels = known?.channels ?? [];
+    const more = url && !channels.some(c => linkKey(c.url) === linkKey(url)) ? [{ kind: "website", url }] : [];
+    if (!known) {
+      const c = this.add({ name, types: types ?? ["festival"], topic, notes, channels: more, event: merged });
+      return { contact: c, created: true };
+    }
+    const { fit, touches, due, id, ...fields } = known;
+    this.source.update(id, makeContact({
+      ...fields, types: types ?? known.types, topic: topic ?? known.topic, notes: notes ?? known.notes,
+      channels: [...channels, ...more], event: merged,
+    }));
+    return { contact: this.get(id), created: false };
+  }
+
+  /** The watching state of a festival or conference. */
+  setFestivalState(id, state) {
+    const c = this.get(id);
+    if (!c.event) throw new ContactError(`Contact ${c.id} is not a festival or conference with an event`);
+    return this.update(c.id, { event: { ...c.event, state: checkWatchState(state) } });
+  }
 
   /** The New Streamers sheet as CSV text, imported as `import` does. */
   importCsv(text) { return this.import(mapStreamers(text)); }

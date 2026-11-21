@@ -26,6 +26,11 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]
   doit profiles                                   the game profiles contacts can fit
 
+  doit festivals [--fits <game>] [--deadline-within <days>] [--state s] [--json]   festivals and conferences by deadline with days left; past ones hidden unless --state past; --fits keeps those matching the game's profile (and not past their deadline), --deadline-within n those due in n days
+  doit festival upsert <name> --year <yyyy> [--type festival,conference] [--topic] [--starts d] [--ends d] [--deadline d] [--cost] [--where steam|epic|gog|itch|physical|online]
+           [--genres a,b] [--stages demo,...] [--platforms a,b] [--url] [--notes] [--state s]   add, or update the one of that name and year; fields not given stay
+  doit festival set <id> state=watching|applied|accepted|declined|past
+
   doit templates                                  the mail templates (Templates/ in the marketing docs)
   doit draft add <contact id> --template <name> --game <game> --personal <text>   fill a template into a draft, print it
   doit draft show <id> [--json]
@@ -37,6 +42,7 @@ States: todo, progress, backlog, done, archived. "open" = todo + progress + back
 
 import { ContactsCli } from "./contactsCli.js";
 import { MailCli } from "./mailCli.js";
+import { FestivalsCli } from "./festivalsCli.js";
 
 export class Cli {
   /** `contacts` is the ContactBook and `readText(path)` reads a file; the contact commands need both.
@@ -45,6 +51,7 @@ export class Cli {
     this.board = board;
     this.claude = claude;
     this.contactCommands = contacts && new ContactsCli(contacts, s => this.print(s), readText);
+    this.festivalCommands = contacts && new FestivalsCli(contacts, s => this.print(s));
     this.mailCommands = mailroom && new MailCli(mailroom, s => this.print(s));
     this.out = out;
     this.err = err;
@@ -73,6 +80,11 @@ export class Cli {
   delegate(name, pos, flags) {
     if (!this.contactCommands) throw new Error("Contacts are not available here");
     return this.contactCommands[name](pos, flags);
+  }
+
+  delegateFestival(name, pos, flags) {
+    if (!this.festivalCommands) throw new Error("Festivals are not available here");
+    return this.festivalCommands[name](pos, flags);
   }
 
   delegateMail(name, pos, flags) {
@@ -174,6 +186,8 @@ const COMMANDS = {
   fit(pos, flags) { this.delegate("fit", pos, flags); },
   touch(pos, flags) { this.delegate("touch", pos, flags); },
   profiles(pos, flags) { this.delegate("profiles", pos, flags); },
+  festivals(pos, flags) { this.delegateFestival("festivals", pos, flags); },
+  festival(pos, flags) { this.delegateFestival("festival", pos, flags); },
   templates(pos, flags) { return this.delegateMail("templates", pos, flags); },
   draft(pos, flags) { return this.delegateMail("draft", pos, flags); },
   drafts(pos, flags) { return this.delegateMail("drafts", pos, flags); },
