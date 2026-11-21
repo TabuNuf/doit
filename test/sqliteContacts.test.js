@@ -3,9 +3,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { MarketingDb } from "../src/store/marketingDb.js";
+import { DatabaseSync } from "node:sqlite";
+import { SqliteDrafts } from "../src/store/sqliteDrafts.js";
 import { SqliteContacts } from "../src/store/sqliteContacts.js";
 import { ContactBook } from "../src/domain/contactBook.js";
 
+const open = dir => { const m = new MarketingDb(dir); return Object.assign(new SqliteContacts(m), { close: () => m.close() }); };
 function home() { return path.join(fs.mkdtempSync(path.join(os.tmpdir(), "doit-contacts-")), "home"); }
 
 const ADA = {
@@ -16,7 +20,7 @@ const ADA = {
 
 test("a contact with channels, fit and touches is read back after reopening", () => {
   const dir = home();
-  const a = new SqliteContacts(dir);
+  const a = open(dir);
   const id = a.insert(ADA);
   a.setFit(id, "bunny-bunker", "plays co-op");
   a.setFit(id, "good-box", "likes puzzles");
@@ -24,12 +28,12 @@ test("a contact with channels, fit and touches is read back after reopening", ()
   a.addTouch(id, { date: "2026-11-05", kind: "reply", game: "bunny-bunker" });
   a.addTouch(id, { date: "2026-11-05", kind: "video", game: "" });
   a.close();
-  const b = new SqliteContacts(dir);
+  const b = open(dir);
   const [c] = b.all();
   assert.deepEqual(c, {
     ...ADA, id,
     fit: [{ game: "bunny-bunker", reason: "plays co-op" }, { game: "good-box", reason: "likes puzzles" }],
-    touches: [{ date: "2026-11-05", kind: "video", game: "" }, { date: "2026-11-05", kind: "reply", game: "bunny-bunker" }, { date: "2026-11-01", kind: "mail", game: "bunny-bunker" }],
+    touches: [{ date: "2026-11-05", kind: "video", game: "", note: "" }, { date: "2026-11-05", kind: "reply", game: "bunny-bunker", note: "" }, { date: "2026-11-01", kind: "mail", game: "bunny-bunker", note: "" }],
   });
   assert.deepEqual(b.get(id), c);
   assert.equal(b.get(99), null);
@@ -38,27 +42,27 @@ test("a contact with channels, fit and touches is read back after reopening", ()
 
 test("the file and its schema version are made on first open and kept on the next", () => {
   const dir = home();
-  const s = new SqliteContacts(dir);
+  const s = open(dir);
   assert.ok(!fs.existsSync(path.join(dir, "marketing.db")), "not created before first use");
   s.all();
   s.close();
   assert.ok(fs.existsSync(path.join(dir, "marketing.db")));
-  const b = new SqliteContacts(dir);
-  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 1);
+  const b = open(dir);
+  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 2);
   b.close();
 });
 
 test("a file from a newer schema is refused", () => {
   const dir = home();
-  const a = new SqliteContacts(dir);
-  a.db.exec("PRAGMA user_version = 2");
+  const a = open(dir);
+  a.db.exec("PRAGMA user_version = 3");
   a.close();
-  assert.throws(() => new SqliteContacts(dir).all(), /version 2/);
+  assert.throws(() => open(dir).all(), /version 3/);
 });
 
 test("update replaces fields and channels and keeps fit and touches; a second fit replaces the reason", () => {
   const dir = home();
-  const s = new SqliteContacts(dir);
+  const s = open(dir);
   const id = s.insert(ADA);
   s.setFit(id, "good-box", "old");
   s.addTouch(id, { date: "2026-11-01", kind: "mail" });
@@ -74,8 +78,8 @@ test("update replaces fields and channels and keeps fit and touches; a second fi
 
 test("two connections see each other's writes (CLI and server share the file)", () => {
   const dir = home();
-  const a = new SqliteContacts(dir);
-  const b = new SqliteContacts(dir);
+  const a = open(dir);
+  const b = open(dir);
   a.insert(ADA);
   assert.equal(b.all().length, 1);
   a.close();
@@ -84,10 +88,48 @@ test("two connections see each other's writes (CLI and server share the file)", 
 
 test("the ContactBook works over the store", () => {
   const dir = home();
-  const store = new SqliteContacts(dir);
+  const store = open(dir);
   const book = new ContactBook(store, { has: g => g === "good-box", list: () => [] }, () => new Date("2026-12-02T08:00:00"));
   book.add({ name: "Ada", types: ["press"], next: "2026-12-01" });
   assert.equal(book.list({ due: true }).length, 1);
   assert.throws(() => book.setFit(1, "x", "y"), /No profile/);
   store.close();
+});
+
+test("a touch keeps its note, and one whose ref is already logged is not added again", () => {
+  const s = open(home());
+  const id = s.insert(ADA);
+  s.addTouch(id, { date: "2026-11-01", kind: "mail", game: "good-box", note: "Hello", ref: "<a@example.com>" });
+  s.addTouch(id, { date: "2026-11-02", kind: "mail", game: "good-box", note: "Hello", ref: "<a@example.com>" });
+  s.addTouch(id, { date: "2026-11-02", kind: "video" });
+  s.addTouch(id, { date: "2026-11-02", kind: "video" });
+  assert.deepEqual(s.get(id).touches.map(t => [t.kind, t.note]), [["video", ""], ["video", ""], ["mail", "Hello"]]);
+  s.close();
+});
+
+test("a version 1 file is migrated in place and keeps its contacts and touches", () => {
+  const dir = home();
+  fs.mkdirSync(dir, { recursive: true });
+  const old = new DatabaseSync(path.join(dir, "marketing.db"));
+  old.exec(`
+    CREATE TABLE contacts (id INTEGER PRIMARY KEY, name TEXT NOT NULL, types TEXT NOT NULL, topic TEXT NOT NULL DEFAULT '',
+      email TEXT NOT NULL DEFAULT '', reach INTEGER, notes TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'active', next TEXT NOT NULL DEFAULT '');
+    CREATE TABLE channels (contact_id INTEGER NOT NULL REFERENCES contacts(id) ON DELETE CASCADE, position INTEGER NOT NULL, kind TEXT NOT NULL, url TEXT NOT NULL);
+    CREATE TABLE fit (contact_id INTEGER NOT NULL REFERENCES contacts(id) ON DELETE CASCADE, game TEXT NOT NULL, reason TEXT NOT NULL, PRIMARY KEY (contact_id, game));
+    CREATE TABLE touches (id INTEGER PRIMARY KEY, contact_id INTEGER NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+      date TEXT NOT NULL, kind TEXT NOT NULL, game TEXT NOT NULL DEFAULT '');
+    CREATE INDEX touches_contact ON touches(contact_id);
+    INSERT INTO contacts (name, types) VALUES ('Old Contact', 'press');
+    INSERT INTO touches (contact_id, date, kind, game) VALUES (1, '2026-10-01', 'mail', 'good-box');
+    PRAGMA user_version = 1;
+  `);
+  old.close();
+  const m = new MarketingDb(dir);
+  const store = new SqliteContacts(m);
+  assert.deepEqual(store.get(1).touches, [{ date: "2026-10-01", kind: "mail", game: "good-box", note: "" }]);
+  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 2);
+  assert.equal(new SqliteDrafts(m).all().length, 0);
+  store.addTouch(1, { date: "2026-11-01", kind: "mail", note: "S", ref: "<x@example.com>" });
+  assert.equal(store.get(1).touches.length, 2);
+  m.close();
 });

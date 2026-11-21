@@ -34,7 +34,7 @@ function touchForm(profiles, now) {
 }
 
 function touches(c, profiles, open, now) {
-  const rows = c.touches.map(t => `<li><span class="muted">${esc(t.date)}</span> · ${esc(t.kind)}${t.game ? " · " + esc(t.game) : ""}</li>`).join("");
+  const rows = c.touches.map(t => `<li><span class="muted">${esc(t.date)}</span> · ${esc(t.kind)}${t.game ? " · " + esc(t.game) : ""}${t.note ? " · " + esc(t.note) : ""}</li>`).join("");
   return `<div class="sect">Touches<span class="muted" style="text-transform:none;letter-spacing:0"> · ${c.touches.length}</span></div>
     ${rows ? `<ul class="log mono">${rows}</ul>` : `<div class="muted">No touches yet.</div>`}
     ${open ? touchForm(profiles, now) : `<div style="margin-top:6px"><button data-mk-touch>+ Touch</button></div>`}`;

@@ -45,6 +45,12 @@ Why: three Core rules read literally would fight most app frameworks. Decided by
   Why: a reload that rebuilds the view throws away what was typed since the last save, and nothing fails in a test.
 - **Data that is personal, shared across projects or queried by filters lives in one SQLite file in the app's data folder, through the runtime's built-in driver (`node:sqlite`), not in a project's git.** Only the store tier may import it (the boundary test's table says so), the schema carries a version (`PRAGMA user_version`) from the first table, and the file is opened on first use, so a command that never touches it creates nothing.
   Why: contact lists are personal data that must stay out of every repo and are read as filtered slices; the built-in driver keeps the app free of packages, and a version from day one makes the first migration a step instead of a guess.
+- **A local server checks every write request: the Host header must be the loopback name, and an `Origin` header, when sent, must equal `http://<host>`.** Reads stay open. Tests send a foreign Origin and a foreign Host.
+  Why: binding to 127.0.0.1 does not stop another site's page in the same browser from posting to it; once a route sent mail, one cross-site form could have sent a draft nobody approved.
+- **A store client for a network protocol (SMTP, IMAP, any socket) takes its `connect` function as an argument.** Tests pass one that opens a plain socket to a scripted server on 127.0.0.1 and check the exact dialogue; nothing in the Development run reaches the real service.
+  Why: a fake at the protocol level tests the parser and the error paths a mocked method would skip, with no account and no network.
+- **A hand check against made-up data sets the data-folder override once for the whole shell or script, never as a prefix on each command.**
+  Why: one command typed without the prefix opened the real data folder and created a database there; the next migration would have run on the designer's data.
 - **Performance tests sit in their own folder with their own script** (`test/performance/`, `npm run test:performance`), so the Development run never includes them.
   Why: a measurement with a bar (a 500-file tree read under 200 ms) belongs to the Performance category, which runs only when a task changes what it measures.
 

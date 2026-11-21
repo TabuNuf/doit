@@ -8,7 +8,7 @@ import { openEpic, closeEpic } from "./epicView.js";
 import { toggleFold } from "./epicList.js";
 import { docsClick, docsInput, refreshDocs } from "./docsView.js";
 import { claudeClick, refreshClaude } from "./claudeView.js";
-import { marketingClick, marketingChange, marketingFocusOut, marketingSubmit, refreshMarketing } from "./marketingView.js";
+import { marketingClick, marketingChange, marketingFocusOut, marketingSubmit, refreshMarketing, openMarketing } from "./marketingView.js";
 
 /** Loads what the current view shows beyond the board data. */
 const refreshView = () => S.view === "docs" ? refreshDocs() : S.view === "claude" ? refreshClaude() : S.view === "marketing" ? refreshMarketing() : undefined;
@@ -21,7 +21,7 @@ document.addEventListener("click", ev => {
   if (!b) { if (S.fOpen && !ev.target.closest(".pop")) { S.fOpen = false; render(); } return; }
   const d = b.dataset;
   const sel = () => task(S.sel);
-  if (d.view) { S.view = d.view; render(); return refreshView(); }
+  if (d.view) { S.view = d.view; render(); return d.view === "marketing" ? openMarketing() : refreshView(); }
   if (docsClick(d) || claudeClick(d) || marketingClick(d)) return;
   if ("projmenu" in d) { S.projOpen = !S.projOpen; return render(); }
   if (d.star) { const p = S.data.projects.find(x => x.id === d.star); return act(() => api("PATCH", `/api/projects/${encodeURIComponent(d.star)}`, { starred: !p.starred })); }

@@ -7,8 +7,8 @@ Doit is built from modules wired in one composition root. The general rules are 
 | Tier | Modules | May reference | Never references |
 |---|---|---|---|
 | Domain | `src/domain/` | itself only | `node:fs`, `node:http`, the store, the CLI, the server |
-| Adapters | `src/store/` | the domain, `node:fs`, `node:path`, `node:os`, `node:child_process` (git, for who last changed a document), `node:sqlite` (only here: `marketing.db`) | the CLI, the server |
-| Interface | `src/cli/`, `src/server/`, `web/` | the domain (the `Board`, `DocsLibrary`, `ClaudeView` and `ContactBook` facades and their value types) | the store, each other; `web/` only talks HTTP |
+| Adapters | `src/store/` | the domain, `node:fs`, `node:path`, `node:os`, `node:child_process` (git, for who last changed a document; `security`, to read the mail password from the Keychain), `node:tls` (only here: SMTP and IMAP), `node:sqlite` (only here: `marketing.db`) | the CLI, the server |
+| Interface | `src/cli/`, `src/server/`, `web/` | the domain (the `Board`, `DocsLibrary`, `ClaudeView`, `ContactBook` and `Mailroom` facades and their value types) | the store, each other; `web/` only talks HTTP |
 | Composition root | `src/root.js`, `bin/` | everything | |
 
 Module order, low to high: domain → store → cli, server → root.
@@ -36,10 +36,22 @@ Module order, low to high: domain → store → cli, server → root.
 - `domain/docs.js`: `DocsLibrary`, the docs facade: tree, read, save and the tasks linked to a document, over a `DocsSource` port and the `Board`; `checkDocPath` keeps paths inside the docs folder (`.md` only, no `..`, no hidden names). Pure.
 - `store/docsFolder.js`: `DocsFiles`, the `DocsSource` port on disk: the docs tree (leaving out `Archive/`, `Epics/Tasks/`, `Standard/`, folding `Epics/Completed/`), read, write, and the last change from `git log`.
 - `domain/contacts.js`: the `Contact` value and its vocabulary (types, statuses, channel kinds, touch kinds), validation that refuses an unknown value (reach is a non-negative whole follower count or empty), and the filters (`contactFilter`: type, game fit, status, reach at least n followers, due by date). Pure.
-- `domain/contactBook.js`: `ContactBook`, the contacts facade: list with filters, get, add, update, set fit, add touch, the profiles, and the sheet import (`importCsv(text)`, so an interface never calls the mapper). Over a `ContactSource` port (`all()`, `get(id)`, `insert(contact)`, `update(id, contact)`, `setFit(id, game, reason)`, `addTouch(id, touch)`) and a `ProfileShelf` port (`list()`, `has(game)`), with a clock for "due". A fit to a game with no profile is refused.
+- `domain/contactBook.js`: `ContactBook`, the contacts facade: list with filters, get, add, update, set fit, add touch, the profiles, and the sheet import (`importCsv(text)`, so an interface never calls the mapper). Over a `ContactSource` port (`all()`, `get(id)`, `insert(contact)`, `update(id, contact)`, `setFit(id, game, reason)`, `addTouch(id, touch)`, a touch with optional `note` and `ref`) and a `ProfileShelf` port (`list()`, `has(game)`), with a clock for "due". A fit to a game with no profile is refused.
 - `domain/contactImport.js`: the sheet import, pure: `parseCsv` (quotes, commas and newlines in quoted fields), `mapStreamers` (header aliases, BB1 and BB2 ignored, a reach count kept as the number, a band letter or other text left out of reach and noted as `Sheet reach: <cell>`, links to channels, Replied and Posted Video to touches). `ContactBook.import(rows)` matches by email, then YouTube link, and returns `{added, updated, skipped}`.
-- `store/sqliteContacts.js`: `SqliteContacts`, the `ContactSource` port on `marketing.db` in the data folder (`node:sqlite`): tables contacts, channels, fit, touches; `PRAGMA user_version` is 1 and the file is opened and the schema created on first use, so a command that never reads contacts leaves no file.
+- `store/sqliteContacts.js`: `SqliteContacts`, the `ContactSource` port on `marketing.db` in the data folder (`node:sqlite`): tables contacts, channels, fit, touches; the handle and the schema (`PRAGMA user_version` 2) come from `MarketingDb`, opened on first use, so a command that never reads contacts leaves no file. A touch carries a note and a ref (a ref is logged once).
 - `store/profileShelf.js`: `ProfileShelf`, the profile port: reads `<docs folder>/Profiles/*.md` of the marketing project (settings key `marketingProject`, default `polyspice-marketing`, resolved through `SettingsFile`), creates a profile from a template.
+- `domain/mail.js`: the mail vocabulary, pure: `parseTemplate`, `fillTemplate` (refuses a `{{...}}` left over with a `MailError`), the draft value and its states (draft, approved, sent, failed) with edit and approve rules, and `composeMail` (headers, RFC 2047 subject, base64 body, Message-ID).
+- `domain/mail.js` also decodes headers read from IMAP (`decodeHeader`, `parseMessageHeaders`: encoded words, From address, date, Message-ID).
+- `domain/mailroom.js`: `Mailroom`, the mail facade: templates, draft, edit, discard, approve and send (daily cap, touch, copy to Marketing), `sweep` (replies in Inbox logged as touches and moved to Marketing), `status`. Over ports for drafts, the `ContactBook`, templates, account, sender and mailbox. The root builds one `MarketingDb` per process (`makeMarketing`) and gives it to the contacts and the drafts store.
+- `store/marketingDb.js`: `MarketingDb`, the handle on `marketing.db` shared by `SqliteContacts` and `SqliteDrafts`: opens on first use, migrations (`user_version` 2), `atomic(fn)`, `close()`.
+- `store/sqliteDrafts.js`: `SqliteDrafts`, the drafts port on `marketing.db`: `all(filter)`, `get`, `insert`, `update`, `remove`, `sentOn(day)`.
+- `store/templateShelf.js`: `TemplateShelf`, reads `<docs folder>/Templates/*.md` of the marketing project: `list()`, `read(name)`.
+- `store/mailAccount.js`: `MailAccount`, the account from settings key `mail` and the app password from the Keychain (`security find-generic-password -s doit-mail -a <address> -w` through `execFile`); `read()` gives the account or `null`. The password is never stored or logged.
+- `store/smtpSender.js`: `SmtpSender`, a minimal SMTP client over `node:tls` (port 465, AUTH PLAIN); `send(account, message)` returns `{ok}` or `{ok: false, error}`, never throws.
+- `store/imapMailbox.js`: `ImapMailbox`, a minimal IMAP client over `node:tls`: `session(account, fn)` with select, search from, headers (never bodies), move, sent mailbox, copy by Message-ID. Errors come back as results.
+- `cli/mailCli.js`: `MailCli`, the mail commands (`templates`, `draft`, `drafts`, `mail sweep`), over the `Mailroom`. Nothing approves or sends. `Cli.run` returns a promise of the exit code when a command is async (`mail sweep`); `bin/doit.js` awaits it.
+- `server/mailRoutes.js`: `mailRoutes(mailroom)`, the `/api/drafts` (list, show, edit, discard, send) and `/api/mail` (sweep, status) routes; refusals are 400, a missing draft 404. `HttpServer` awaits async handlers and takes the `Mailroom` as its last argument.
+- `web/draftsPane.js`: the Drafts pane of the Marketing view (each draft as the mail will look, edit, approve and send, discard, status line); pure HTML and request builders like `contactDetail.js`. `marketingView.js` switches between the Contacts and Drafts panes and sweeps once when the view opens.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board`, output streams, the `ClaudeView` (for `morning`), the `ContactBook` and `readText(path)` (a file reader the root supplies, since the CLI tier has no `node:fs`); the contact commands go to `ContactsCli`.
 - `cli/contactsCli.js`: `ContactsCli`, the contact commands (`contacts`, `contact`, `fit`, `touch`, `profiles`), over the `ContactBook`.
 - `server/server.js`: `HttpServer`, the JSON API (including `GET /api/version`, the start commit) and the static page. Given a `Board`, the web folder, the commit, the `DocsLibrary` (the `/api/docs/` routes) and the `ClaudeView` (`GET /api/claude`), and `GET /api/events`, a server-sent event stream that sends `changed` on connect and on every event of the optional `changes` port (`subscribe(listener)` returning an unsubscribe; the root passes the `ChangeWatcher`); `close()` ends the open streams first and closes the port, since the server is its only user. `bin/server.js` reads the commit with `git rev-parse HEAD`. It also takes the `ContactBook` and adds the contact routes.
@@ -77,6 +89,15 @@ classDiagram
   class ContactsCli { +contacts() +contact() +fit() +touch() +profiles() }
   class SqliteContacts { +all() +get(id) +insert(c) +update(id, c) +setFit() +addTouch() }
   class ProfileShelf { +list() +has(game) +create(game, name) }
+  class Mailroom { +templates() +draft() +drafts() +edit() +discard() +approveAndSend() +send() +sweep() +status() }
+  class MarketingDb { +db() +atomic(fn) +close() }
+  class SqliteDrafts { +all(filter) +get(id) +insert(d) +update(id, d) +remove(id) +sentOn(day) }
+  class TemplateShelf { +list() +read(name) }
+  class MailAccount { +read() account }
+  class SmtpSender { +send(account, message) }
+  class ImapMailbox { +session(account, fn) }
+  class MailCli { +templates() +draft() +drafts() +mail() }
+  class MailRoutes { +mailRoutes(mailroom) }
   class TaskMover { +plan(task, tasks, placement) changes }
   class EpicMoves { +close() +move(project, epic, to) }
   class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +completeEpic() +parkEpic() +reopenEpic() +setEpicArchived() +closedEpics() +epicDocument() }
@@ -98,6 +119,20 @@ classDiagram
   ContactBook --> SqliteContacts : port
   ContactBook --> ProfileShelf : port
   ProfileShelf --> SettingsFile
+  SqliteContacts --> MarketingDb
+  SqliteDrafts --> MarketingDb
+  TemplateShelf --> SettingsFile
+  MailAccount --> SettingsFile
+  Mailroom --> SqliteDrafts : port
+  Mailroom --> ContactBook
+  Mailroom --> TemplateShelf : port
+  Mailroom --> MailAccount : port
+  Mailroom --> SmtpSender : port
+  Mailroom --> ImapMailbox : port
+  Cli --> MailCli
+  MailCli --> Mailroom
+  HttpServer --> MailRoutes
+  MailRoutes --> Mailroom
   Cli --> Board
   Cli --> ClaudeView
   Cli --> ContactsCli

@@ -43,12 +43,12 @@ test("importing the fixture twice gives five contacts and touches once", () => {
   const all = b.list();
   assert.equal(all.length, 5);
   const by = n => all.find(c => c.name === n);
-  assert.deepEqual(by("Pixel Pat").touches, [{ date: "2026-10-12", kind: "reply", game: "" }]);
+  assert.deepEqual(by("Pixel Pat").touches, [{ date: "2026-10-12", kind: "reply", game: "", note: "" }]);
   assert.equal(by("Moss Gamer").reach, 2500);
   assert.equal(by("Quiet Quinn").reach, 12000);
   assert.equal(by("Pixel Pat").reach, null);
   assert.equal(by("Pixel Pat").notes, "Likes cozy games, plays weekly\nSheet reach: B\nGenre: Co-op\nPlatform: PC");
-  assert.deepEqual(by("Moss Gamer").touches, [{ date: "2026-10-20", kind: "video", game: "" }]);
+  assert.deepEqual(by("Moss Gamer").touches, [{ date: "2026-10-20", kind: "video", game: "", note: "" }]);
   assert.deepEqual(by("Quiet Quinn").touches.map(t => t.kind).sort(), ["reply", "video"]);
   assert.deepEqual(by("Quiet Quinn").channels.map(c => c.kind), ["youtube", "twitch"]);
   assert.equal(by("Tiny Tom").notes, 'Said "maybe later"\nGenre: Platformer');

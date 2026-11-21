@@ -4,14 +4,15 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { contactRoutes } from "./contactRoutes.js";
+import { mailRoutes } from "./mailRoutes.js";
 
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png" };
 
 export class HttpServer {
   /** `commit` is the git commit the process started from (null when unknown); GET /api/version reports it.
    *  `changes` is a port, `subscribe(listener) -> unsubscribe` (and optionally `close()`), that fires when files change.
-   *  `contacts` is the ContactBook behind `/api/contacts` and `/api/profiles`. */
-  constructor(board, webDir, commit = null, docs = null, claude = null, changes = null, contacts = null) {
+   *  `contacts` is the ContactBook behind `/api/contacts` and `/api/profiles`; `mailroom` is the Mailroom behind `/api/drafts` and `/api/mail`. A handler may be async. */
+  constructor(board, webDir, commit = null, docs = null, claude = null, changes = null, contacts = null, mailroom = null) {
     this.changes = changes;
     this.streams = new Map();
     this.board = board;
@@ -39,6 +40,7 @@ export class HttpServer {
       ["GET", /^\/api\/claude$/, q => this.claude.panes(q.get("project") || "all")],
       ["PUT", /^\/api\/settings$/, (q, b) => { this.board.setKeepDays(b.keepCompletedDays); return this.board.settings(); }],
       ...(contacts ? contactRoutes(contacts) : []),
+      ...(mailroom ? mailRoutes(mailroom) : []),
     ];
   }
 
@@ -74,6 +76,7 @@ export class HttpServer {
   }
 
   async #api(req, res, url) {
+    if (!sameSite(req)) return json(res, 403, { error: "Refused: request from another site" });
     const path_ = decodeURIComponent(url.pathname);
     if (req.method === "GET" && path_ === "/api/events") return this.#events(req, res);
     for (const [method, re, fn] of this.routes) {
@@ -81,7 +84,7 @@ export class HttpServer {
       if (!m || method !== req.method) continue;
       try {
         const body = method === "GET" ? {} : await readJson(req);
-        return json(res, 200, fn(url.searchParams, body, m));
+        return json(res, 200, await fn(url.searchParams, body, m));
       } catch (e) {
         return json(res, e.status || 400, { error: e.message });
       }
@@ -98,6 +101,18 @@ export class HttpServer {
       send(res, 200, TYPES[path.extname(file)] || "application/octet-stream", data);
     });
   }
+}
+
+const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
+
+/** A write must come from the page itself: another site's page in the same browser could otherwise send mail or edit tasks.
+ *  The Host check stops DNS rebinding; the Origin check stops a cross-site form or fetch. */
+export function sameSite(req) {
+  const host = req.headers.host ?? "";
+  if (!LOCAL.test(host)) return false;
+  if (req.method === "GET" || req.method === "HEAD") return true;
+  const origin = req.headers.origin;
+  return !origin || origin === `http://${host}`;
 }
 
 function readJson(req) {

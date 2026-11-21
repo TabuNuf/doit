@@ -7,7 +7,7 @@ import path from "node:path";
 const ROOT = path.join(import.meta.dirname, "..");
 const ALLOWED = {
   domain: { tiers: ["domain"], node: [] },
-  store: { tiers: ["domain", "store"], node: ["node:fs", "node:path", "node:os", "node:child_process", "node:sqlite"] },
+  store: { tiers: ["domain", "store"], node: ["node:fs", "node:path", "node:os", "node:child_process", "node:tls", "node:sqlite"] },
   cli: { tiers: ["domain", "cli"], node: [] },
   server: { tiers: ["domain", "server"], node: ["node:http", "node:fs", "node:path"] },
 };
@@ -55,4 +55,10 @@ test("node:sqlite is allowed in the store only", () => {
   const sql = 'import { DatabaseSync } from "node:sqlite";\n';
   assert.deepEqual(violations([["src/store/x.js", sql]]), []);
   assert.equal(violations([["src/domain/x.js", sql], ["src/cli/x.js", sql], ["src/server/x.js", sql]]).length, 3);
+});
+
+test("node:tls and node:child_process are allowed in the store only", () => {
+  const imports = 'import tls from "node:tls";\nimport { execFile } from "node:child_process";\n';
+  assert.deepEqual(violations([["src/store/x.js", imports]]), []);
+  assert.equal(violations([["src/domain/x.js", imports], ["src/cli/x.js", imports], ["src/server/x.js", imports]]).length, 6);
 });

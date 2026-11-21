@@ -138,6 +138,7 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - `list [--project <id>] [--epic EPIC-<nnn>] [--state open|active|backlog|done|archived] [--owner ai|human]`: default open tasks of every project, never archived ones unless asked.
 - `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `epic close <project> <EPIC-nnn>` (archives the epic's task files, sets it Done, writes its `Closed:` date and moves it to Completed/), `sweep`, `morning` (sweeps and writes the morning report to the activity log, section Claude view).
 - Contacts (section Marketing): `contacts [--type t] [--fits <game>] [--status s] [--due] [--reach <n>] [--json]` (one line per contact: id, name, types, reach, status, next contact with `due` marked, the games it fits; due first, then largest reach), `--reach <n>` keeps contacts with a reach of at least n; `contacts import <file>` (the New Streamers CSV, where a follower count is kept and an A to E band letter is not a count, so it goes into notes as `Sheet reach: C` and reach stays empty; a re-import updates by email or YouTube link), `contact show <id> [--json]`, `contact add <name> --type a,b [--email] [--reach] [--topic] [--notes] [--status] [--next] [--channels kind=url,...]`, `contact set <id> key=value ...`, `fit <id> <game> <reason>`, `touch <id> mail|reply|video [--game] [--date]`, `profiles`. A refused value prints the message and exits 1.
+- Mail (section Marketing): `templates`, `draft add <contact id> --template <name> --game <game> --personal <text>` (prints the draft id and the filled mail), `draft show <id> [--json]`, `drafts [--state s] [--json]`, `mail sweep` (logs replies from contacts as touches and moves them to Marketing). Nothing in the CLI approves or sends: Tabu does that in the page.
 
 ## Running it
 
@@ -148,7 +149,8 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - The project list and settings: `~/Library/Application Support/Doit/settings.json` (`DOIT_HOME` overrides it). Kept until deleted.
 - The activity log: `activity.log` beside the settings, 30 days.
 - Tasks and epics: Markdown in each project's docs folder, tracked by that project's git. Nothing leaves the machine. No personal data beyond names Tabu types.
-- Contacts: `marketing.db` beside the settings (SQLite): names, emails, channel links and notes of marketing contacts. Personal data, kept only in the data folder and in no project's git.
+- Contacts: `marketing.db` beside the settings (SQLite): names, emails, channel links and notes of marketing contacts. Personal data, kept only in the data folder and in no project's git. Mail drafts are in the same file (table `drafts`: contact, game, template, personal lines, subject, body, state, sent time, Message-ID, error, whether the copy is labeled Marketing); a touch also carries a note (the mail subject) and a ref (the Message-ID, so a mail is never logged twice).
+- Mail account: settings key `mail` (`address`, `name`, `dailyCap`, default 20). The app password is in the macOS Keychain (generic password, service `doit-mail`, account the address), never in a file.
 
 ## Changelog
 
@@ -174,3 +176,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-21, EPIC-012: contacts are built in `marketing.db` (`node:sqlite`, Node 24), with game profiles read from the Polyspice Marketing project; Data names the file and its personal data.
 - 2026-11-21, EPIC-012: the CLI gets the contact commands (`contacts`, `contacts import`, `contact show|add|set`, `fit`, `touch`, `profiles`).
 - 2026-11-21, EPIC-012: reach is a follower count instead of the sheet's A to E band; Claude collects the counts while researching, which makes a band's manual estimate unnecessary.
+- 2026-11-21, EPIC-013: mail details decided: settings key `mail`, Keychain service `doit-mail`, a template is `Templates/<name>.md` in the marketing project (first line `Subject:`, placeholders `{{name}}`, `{{personal}}`, `{{game}}`), drafts live in `marketing.db` (schema version 2, touches gain note and ref).

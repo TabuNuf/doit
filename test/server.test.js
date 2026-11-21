@@ -109,3 +109,14 @@ test("GET /api/events sends changed on connect and after a task is written", asy
   s.board.update("game/T-014.2", { state: "progress" });
   assert.equal(await next(), "data: changed\n\n");
 });
+
+test("a write from another site or a foreign host name is refused", async t => {
+  const { sameSite } = await import("../src/server/server.js");
+  const req = (method, host, origin) => ({ method, headers: { host, ...(origin ? { origin } : {}) } });
+  assert.equal(sameSite(req("POST", "localhost:4317", "http://localhost:4317")), true);
+  assert.equal(sameSite(req("POST", "127.0.0.1:4317")), true);
+  assert.equal(sameSite(req("GET", "localhost:4317", "https://evil.example.com")), true);
+  assert.equal(sameSite(req("POST", "localhost:4317", "https://evil.example.com")), false);
+  assert.equal(sameSite(req("DELETE", "localhost:4317", "null")), false);
+  assert.equal(sameSite(req("GET", "evil.example.com:4317")), false);
+});
