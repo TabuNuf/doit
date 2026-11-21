@@ -75,12 +75,13 @@ const COMMANDS = {
   projects() {
     const ps = this.board.projects();
     if (!ps.length) return this.print("No projects. Add one: doit project add <name> <folder>");
-    for (const p of ps) this.print(`${p.id}  ${p.name}  ${p.kind || "-"}  ${p.path}/${p.docs}`);
+    for (const p of ps) this.print(`${p.id}  ${p.name}  ${p.kind || "-"}${p.marketed === false ? " (not marketed)" : ""}  ${p.path}/${p.docs}`);
   },
 
   project(pos, flags) {
+    if (pos[0] === "set" && /^marketed=/.test(pos[2] ?? "")) return this.print(`${pos[1]}: ${this.board.setProjectMarketed(pos[1], pos[2].slice(9)).marketed === false ? "not marketed" : "marketed"}`);
     if (pos[0] === "set" && /^kind=/.test(pos[2] ?? "")) return this.print(`${pos[1]}: ${this.board.setProjectKind(pos[1], pos[2].slice(5)).kind || "no kind"}`);
-    if (pos[0] !== "add") throw new Error("Usage: doit project add <name> <folder> [--docs Docs] | doit project set <id> kind=game|application|podcast");
+    if (pos[0] !== "add") throw new Error("Usage: doit project add <name> <folder> [--docs Docs] | doit project set <id> kind=game|application|podcast | doit project set <id> marketed=yes|no");
     const p = this.board.addProject({ name: pos[1], path: pos[2], docs: flags.docs });
     this.print(`Added ${p.id}: ${p.path}/${p.docs}`);
   },

@@ -12,6 +12,14 @@ export function checkKind(kind) {
   return k;
 }
 
+/** A marketed switch as a boolean: yes/no, true/false, on/off, 1/0; anything else is refused. */
+export function checkMarketed(value) {
+  const v = String(value ?? "").trim().toLowerCase();
+  if (["yes", "true", "on", "1"].includes(v)) return true;
+  if (["no", "false", "off", "0"].includes(v)) return false;
+  throw new Error(`Marketed must be yes or no: ${value}`);
+}
+
 /** Whole days from date a to date b, both "YYYY-MM-DD" (or longer, the date part is used). */
 export function daysBetween(a, b) {
   const d = s => Date.UTC(Number(s.slice(0, 4)), Number(s.slice(5, 7)) - 1, Number(s.slice(8, 10)));

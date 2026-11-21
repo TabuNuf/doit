@@ -54,6 +54,7 @@ export class ProfileShelf {
         byGame.set(f.slice(0, -3), parseProfile(f.slice(0, -3), fs.readFileSync(path.join(dir, f), "utf8")));
     }
     for (const p of this.settingsFile.read().projects) {
+      if (p.marketed === false) { byGame.delete(p.id); continue; } // not marketed: kept out of every Marketing list
       const file = path.join(p.path, p.docs, OWN);
       if (fs.existsSync(file)) {
         const own = parseProfile(p.id, fs.readFileSync(file, "utf8"));

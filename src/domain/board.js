@@ -1,7 +1,7 @@
 // Board: the one facade the CLI and the server use. It knows the rules, not the files.
 //
 // The source it is given (the store's port) provides:
-//   projects(), addProject({name, path, docs}), setStarred(projectId, bool) (a star pins it to the page's top bar), setKind(projectId, kind), settings(), saveSettings(partial),
+//   projects(), addProject({name, path, docs}), setStarred(projectId, bool) (a star pins it to the page's top bar), setKind(projectId, kind), setMarketed(projectId, bool), settings(), saveSettings(partial),
 //   load(projectId, {archived}) -> {epics, files: Map<id, fields>, archivedIds: Set<id>},
 //   epicDocument(projectId, epicId) -> {id, name, status, completed, text} | null,
 //   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status, {game, event}) -> epicId (the campaign lines are optional),
@@ -14,7 +14,7 @@
 
 import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask, matchesState, check, checkContact, oneLine } from "./task.js";
 import { applyChanges } from "./taskEdit.js";
-import { archiveReason, epicArchived, byRank, stamp, checkKind, DEFAULT_KEEP_DAYS } from "./rules.js";
+import { archiveReason, epicArchived, byRank, stamp, checkKind, checkMarketed, DEFAULT_KEEP_DAYS } from "./rules.js";
 import { TaskMover } from "./mover.js";
 import { EpicMoves } from "./epicMoves.js";
 import { describeChanges } from "./activity.js";
@@ -33,6 +33,7 @@ export class Board {
 
   projects() { return this.source.projects(); }
   starProject(id, starred) { this.#requireProject(id); return this.source.setStarred(id, Boolean(starred)); }
+  setProjectMarketed(id, marketed) { this.#requireProject(id); return this.source.setMarketed(id, checkMarketed(marketed)); }
   setProjectKind(id, kind) { this.#requireProject(id); return this.source.setKind(id, checkKind(kind)); }
 
   /** Calls the listener with a plain fact when a task with a contact is done; returns the unsubscribe. */

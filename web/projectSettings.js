@@ -18,12 +18,14 @@ export function kindPane(p) {
   const why = p.kind ? `Marketing lists ${esc(p.name)} as a ${esc(p.kind)}: it has a profile, campaigns and contacts that fit it.` : `${esc(p.name)} has no kind, so Marketing does not list it. Pick game, application or podcast to give it a profile and campaigns.`;
   return `<section class="pane" aria-label="Project settings"><div class="pane-h">Settings<span class="c">${esc(p.name)}</span></div><div class="pane-b detail">
     <dl class="kv"><dt>Kind</dt><dd><select id="ps-kind" aria-label="Kind of ${esc(p.name)}">${PROJECT_KINDS.map(([v, l]) => opt(v, l, p.kind || "")).join("")}</select></dd></dl>
-    <div class="muted">${why}</div></div></section>`;
+    ${p.kind ? `<label class="ps-marketed"><input type="checkbox" id="ps-marketed" ${p.marketed === false ? "" : "checked"}> Marketed</label>
+    <div class="muted">${p.marketed === false ? `${esc(p.name)} keeps its kind but is not marketed for now: Marketing leaves it out of its picker, + Campaign, Overview and fit.` : why}</div>` : `<div class="muted">${why}</div>`}</div></section>`;
 }
 
 /** The right column: the marketing profile form; `profile` is the project's entry of /api/profiles (or undefined). */
 export function profilePane(p, profile, msg = "") {
   const wrap = body => `<section class="pane" aria-label="Marketing profile"><div class="pane-h">Marketing profile</div><div class="pane-b detail">${body}</div></section>`;
+  if (p.kind && p.marketed === false) return wrap(`<div class="muted">${esc(p.name)} is not marketed, so it has no marketing profile. Tick Marketed to set one.</div>`);
   if (!p.kind) return wrap(`<div class="muted">A project with no kind has no marketing profile. Pick a kind to set one.</div>`);
   const f = profile && !profile.missing ? profile : { genres: [], platforms: [], needs: [], stage: "in development", release: "" };
   const note = profile && !profile.missing ? "Saving updates Marketing/Profile.md and keeps anything else written in it." : "There is no Marketing/Profile.md yet. Saving creates it from the template.";
@@ -42,6 +44,7 @@ export const settingsPanes = (p, profile, msg) => kindPane(p) + profilePane(p, p
 
 /** The requests the two controls send: the kind on the project, the profile fields under it. */
 export const kindRequest = (project, kind) => ({ method: "PATCH", path: `/api/projects/${encodeURIComponent(project)}`, body: { kind } });
+export const marketedRequest = (project, marketed) => ({ method: "PATCH", path: `/api/projects/${encodeURIComponent(project)}`, body: { marketed } });
 export const profileRequest = (project, v) => ({ method: "PUT", path: `/api/projects/${encodeURIComponent(project)}/profile`, body: { genres: v.genres, platforms: v.platforms, stage: v.stage, release: v.release, needs: v.needs } });
 
 const read = () => ({ genres: $("#ps-genres").value, platforms: $("#ps-platforms").value, stage: $("#ps-stage").value, release: $("#ps-release").value, needs: $("#ps-needs").value });
@@ -69,8 +72,8 @@ export function settingsClick(d) {
 
 /** A changed kind; true when the change was this select's. */
 export function settingsChange(ev) {
-  if (ev.target.id !== "ps-kind") return false;
-  const req = kindRequest(S.project, ev.target.value);
+  if (ev.target.id !== "ps-kind" && ev.target.id !== "ps-marketed") return false;
+  const req = ev.target.id === "ps-marketed" ? marketedRequest(S.project, ev.target.checked) : kindRequest(S.project, ev.target.value);
   act(async () => { await api(req.method, req.path, req.body); S.settings.msg = ""; await refreshProfiles(); });
   return true;
 }

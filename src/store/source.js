@@ -51,6 +51,11 @@ export class FileSource {
     return this.#changeProject(projectId, p => { if (kind) p.kind = kind; else delete p.kind; });
   }
 
+  /** Marks a project marketed (the default, stored as no key) or not marketed (`marketed: false`); its kind stays. */
+  setMarketed(projectId, marketed) {
+    return this.#changeProject(projectId, p => { if (marketed) delete p.marketed; else p.marketed = false; });
+  }
+
   #changeProject(projectId, change) {
     const data = this.settingsFile.read();
     const project = data.projects.find(p => p.id === projectId);
