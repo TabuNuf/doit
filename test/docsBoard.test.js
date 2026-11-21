@@ -20,7 +20,7 @@ async function setup(t) {
   const store = new Map();
   globalThis.localStorage = { getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };
   globalThis.fetch = async path => {
-    const json = path.startsWith("/api/docs/tree") ? TREE : path.startsWith("/api/docs/file") ? { text: "# Design", lastChange: null } : path.startsWith("/api/docs/linked") ? [TASK]
+    const json = path.startsWith("/api/docs/tree") ? TREE : path.startsWith("/api/docs/file") ? { text: "# Design", lastChange: null } : path.startsWith("/api/docs/linked") ? [TASK] : path.startsWith("/api/profiles") ? []
       : { projects: [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }], epics: [EPIC], tasks: [TASK], parkedEpics: [], closedEpics: [], settings: { keepCompletedDays: 14 } };
     return { ok: true, json: async () => json };
   };
@@ -88,4 +88,28 @@ test("the document layout keeps its column widths apart from the task layout", a
   assert.deepEqual(loadWidths("docs", storage), { left: 200, right: 500 });
   assert.deepEqual(loadWidths("board", storage), { left: 300, right: 400 });
   assert.notDeepEqual(VIEW_DEFAULTS.docs, VIEW_DEFAULTS.board);
+});
+
+test("the gear beside a project opens its settings in place with Board selected; a second click or a task brings the task layout back; no Settings button", async t => {
+  const { S, els, render, panes } = await setup(t);
+  const { settingsClick } = await import("../web/projectSettings.js");
+  S.project = "a";
+  render();
+  assert.match(panes(), /Alpha<button class="gear" data-settings="a" aria-pressed="false"/);
+  assert.doesNotMatch(els.get("#views").innerHTML, /Settings|data-settings/);
+  settingsClick({ settings: "a" });
+  await flush();
+  assert.equal(S.view, "board");
+  assert.match(els.get("#views").innerHTML, /aria-pressed="true" data-view="board"/);
+  assert.match(panes(), /aria-label="Project settings"[\s\S]*aria-label="Marketing profile"/);
+  assert.match(panes(), /data-settings="a" aria-pressed="true"/);
+  settingsClick({ settings: "a" });
+  render();
+  assert.match(panes(), /id="list"/);
+  settingsClick({ settings: "a" });
+  await flush();
+  S.settings.open = false; // events.js closes them on a task, epic or project pick
+  render();
+  assert.match(panes(), />Detail</);
+  assert.doesNotMatch(els.get("#views").innerHTML, /Settings/);
 });

@@ -3,6 +3,7 @@
 import { S, esc, projects, proj, color } from "./state.js";
 import { epicBtn, epicSections } from "./epicList.js";
 import { treeHtml } from "./docsView.js";
+import { gearButton, settingsShown } from "./projectSettings.js";
 
 function epics(p) {
   const adding = S.newEpic === p.id
@@ -17,7 +18,7 @@ const docs = p => `<div class="tree" aria-label="Documents of ${esc(p.name)}">${
 export function leftPane() {
   const ps = S.project === "all" ? projects() : [proj(S.project)];
   const groups = ps.map(p => {
-    return `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}</div>
+    return `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}${gearButton(p.id, settingsShown() && S.project === p.id)}</div>
       <div class="part-h">Epics</div>${epics(p)}<hr class="part-rule"><div class="part-h">Docs</div>${docs(p)}`;
   }).join("");
   return `<section class="pane"><div class="pane-h">Projects${S.epic ? `<button class="fsz" data-clear-epic style="text-transform:none">Show all</button>` : ""}</div>

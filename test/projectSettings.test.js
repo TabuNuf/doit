@@ -70,12 +70,11 @@ test("saving keeps the other content of an existing Profile.md and refuses a bad
   assert.equal((await api("/api/projects/game/profile", "PUT", { stage: "demo" })).status, 400, "a project without a kind");
 });
 
-test("a project with no kind gets a plain note and no form; the top bar button shows with one project picked", async () => {
-  const { profilePane, kindPane, settingsButton } = await import("../web/projectSettings.js");
+test("a project with no kind gets a plain note and no form; the gear sits beside the project name", async () => {
+  const { profilePane, kindPane, gearButton } = await import("../web/projectSettings.js");
   assert.doesNotMatch(profilePane({ id: "g", name: "G" }, undefined), /<form/);
   assert.match(profilePane({ id: "g", name: "G" }, undefined), /Pick a kind/);
   assert.match(profilePane({ id: "g", name: "G", kind: "game" }, { missing: true }), /Saving creates it from the template/);
   assert.match(kindPane({ id: "g", name: "G" }), /has no kind, so Marketing does not list it/);
-  assert.equal(settingsButton("all", false), "");
-  assert.match(settingsButton("doit", true), /data-settings aria-pressed="true"/);
+  assert.match(gearButton("doit", true), /data-settings="doit" aria-pressed="true"/);
 });

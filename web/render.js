@@ -12,7 +12,7 @@ import { setLayout } from "./resize.js";
 import { contactButton, ensureContactNames } from "./contactNames.js";
 import { renderMarkdown, inline } from "./markdown.js";
 import { headline } from "./headline.js";
-import { PROJECT_KINDS, settingsButton, settingsShown, settingsHtml } from "./projectSettings.js";
+import { PROJECT_KINDS, settingsShown, settingsHtml } from "./projectSettings.js";
 
 export { PROJECT_KINDS };
 
@@ -40,8 +40,7 @@ function renderTop() {
   const what = esc(`${due} of your tasks ${due === 1 ? "is" : "are"} due within 7 days. Finish or move the deadline of:\n${names}\nThe Claude view lists them under Waiting on you.`);
   const badge = due ? `<span class="badge" title="${what}">${due} due</span>` : "";
   $("#views").innerHTML = [["board", "Board", ""], ["claude", "Claude", badge], ["marketing", "Marketing", ""]]
-    .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${what.replace(/\n/g, " ")}"` : ""}>${l}${b}</button>`).join("")
-    + (S.view === "board" ? settingsButton(S.project, S.settings.open) : "");
+    .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${what.replace(/\n/g, " ")}"` : ""}>${l}${b}</button>`).join("");
   $("#projects").innerHTML = S.view === "marketing" ? marketingTabs(S.mk.pane, S.mk.game, S.mk.profiles) : projectBar();
   $("#modal").innerHTML = S.newProj ? `<form class="form" id="np" aria-label="New project">
     <label for="np-name">Project name<input id="np-name" required placeholder="Storm Haven"></label>

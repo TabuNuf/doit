@@ -1,6 +1,6 @@
 // A project's settings on the Board: its kind, and for a project with a kind its marketing profile
 // (genres, platforms, stage, release date, what it needs now), saved to <docs>/Marketing/Profile.md.
-// Opened from the Settings button in the top bar when one project is shown; the pure parts build HTML and requests.
+// Opened from the gear beside a project's name in the left pane, in place; the pure parts build HTML and requests.
 
 import { S, $, esc, api, act, load, toast, proj, redraw } from "./state.js";
 
@@ -10,8 +10,8 @@ export const STAGES = ["in development", "demo", "released"];
 const list = v => (v || []).join(", ");
 const opt = (v, l, sel) => `<option value="${esc(v)}" ${sel === v ? "selected" : ""}>${esc(l)}</option>`;
 
-/** The top bar's button; shown only while one project is picked on the Board. */
-export const settingsButton = (project, open) => project === "all" ? "" : `<button class="chip" data-settings aria-pressed="${open}" title="Kind and marketing profile of ${esc(project)}">Settings</button>`;
+/** The gear beside a project's name in the left pane; pressed while that project's settings are open. */
+export const gearButton = (project, open) => `<button class="gear" data-settings="${esc(project)}" aria-pressed="${open}" aria-label="Settings of ${esc(project)}" title="Kind and marketing profile of ${esc(project)}">\u2699</button>`;
 
 /** The middle column: what the project is. */
 export function kindPane(p) {
@@ -50,12 +50,19 @@ async function refreshProfiles() {
   try { S.settings.profiles = await api("GET", "/api/profiles"); } catch (e) { toast(e.message); }
 }
 
-/** Handles a click on the Settings button; true when it was one. */
+/** Handles a click on a project's gear: it opens that project's settings in place, a second click closes them; true when it was one. */
 export function settingsClick(d) {
   if (!("settings" in d)) return false;
-  S.settings.open = !S.settings.open; S.settings.msg = "";
-  if (!S.settings.open) { redraw(); return true; }
+  const was = S.settings.open && S.project === d.settings;
+  S.settings.open = !was; S.settings.msg = "";
+  if (was) { redraw(); return true; }
   S.docs.active = false;
+  if (S.project !== d.settings) {
+    S.project = d.settings; S.epic = null; S.epicView = null;
+    try { localStorage.setItem("doit.project", d.settings); } catch { /* storage off */ }
+    load().then(refreshProfiles).then(redraw);
+    return true;
+  }
   refreshProfiles().then(redraw);
   return true;
 }
