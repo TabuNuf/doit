@@ -14,6 +14,7 @@ export function contactRoutes(book) {
     ["GET", /^\/api\/contacts\/([^/]+)$/, (q, b, m) => book.get(m[1])],
     ["PATCH", /^\/api\/contacts\/([^/]+)$/, (q, b, m) => book.update(m[1], Object.fromEntries(FIELDS.filter(k => k in b).map(k => [k, b[k]])))],
     ["POST", /^\/api\/contacts\/([^/]+)\/fit$/, (q, b, m) => book.setFit(m[1], b.game, b.reason)],
+    ["DELETE", /^\/api\/contacts\/([^/]+)\/fit\/([^/]+)$/, (q, b, m) => book.removeFit(m[1], decodeURIComponent(m[2]))],
     ["POST", /^\/api\/contacts\/([^/]+)\/touch$/, (q, b, m) => book.addTouch(m[1], { kind: b.kind, game: b.game, date: b.date })],
     ["GET", /^\/api\/profiles$/, () => book.profiles()],
     ["PUT", /^\/api\/projects\/([^/]+)\/profile$/, (q, b, m) => book.saveProfile(m[1], b)],

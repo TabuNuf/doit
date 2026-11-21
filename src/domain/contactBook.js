@@ -2,7 +2,7 @@
 //
 // The ContactSource it is given (the store's port):
 //   all() -> contacts, get(id) -> contact | null, insert(contact) -> id, update(id, contact) (fields and channels),
-//   setFit(id, game, reason), addTouch(id, {date, kind, game, note, ref}) (a touch whose non-empty ref is already logged is not added again);
+//   setFit(id, game, reason), removeFit(id, game), addTouch(id, {date, kind, game, note, ref}) (a touch whose non-empty ref is already logged is not added again);
 //   a contact carries id, fit [{game, reason}], touches [{date, kind, game, note}] newest first.
 // The ProfileShelf it is given: list() -> profiles, has(game) -> bool.
 
@@ -67,6 +67,15 @@ export class ContactBook {
     const why = String(reason ?? "").replace(/\s+/g, " ").trim();
     if (!why) throw new ContactError("A fit needs a reason");
     this.source.setFit(c.id, g, why);
+    return this.get(c.id);
+  }
+
+  /** Drops the contact's fit for a game; a game it has no fit for is refused. */
+  removeFit(id, game) {
+    const c = this.get(id);
+    const g = String(game ?? "").trim();
+    if (!c.fit.some(f => f.game === g)) throw new ContactError(`Contact ${c.id} has no fit for "${game}"`);
+    this.source.removeFit(c.id, g);
     return this.get(c.id);
   }
 

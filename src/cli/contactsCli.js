@@ -6,7 +6,7 @@ const USAGE = {
   show: "doit contact show <id> [--json]",
   add: "doit contact add <name> --type a,b [--email] [--reach <followers>] [--genres a,b] [--about text] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]",
   set: "doit contact set <id> key=value ...   keys: name types topic email reach genres about special notes status next channels (special= clears the mark)",
-  fit: "doit fit <id> <game> <reason>",
+  fit: "doit fit <id> <game> <reason> | doit fit <id> <game> --remove",
   touch: "doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]",
   profile: "doit profile add <project> [--kind game|application|podcast]",
 };
@@ -71,7 +71,11 @@ export class ContactsCli {
     throw new Error(`Usage: ${USAGE.show}\n       ${USAGE.add}\n       ${USAGE.set}`);
   }
 
-  fit(pos) {
+  fit(pos, flags = {}) {
+    if (flags.remove) {
+      const c = this.book.removeFit(need(pos[0], USAGE.fit), need(pos[1], USAGE.fit));
+      return this.print(line(c));
+    }
     const c = this.book.setFit(need(pos[0], USAGE.fit), need(pos[1], USAGE.fit), pos.slice(2).join(" "));
     this.print(`${c.name} fits ${pos[1]}`);
   }

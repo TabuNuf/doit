@@ -44,6 +44,9 @@ test("contact add, set, show, fit, touch and the contacts list", t => {
   run("contact", "add", "Bit", "Blog", "--type", "press", "--reach", "300");
   assert.equal(run("contact", "set", "2", "status=dormant", "next=2026-12-01", "notes=Slow to reply").out, "2  Bit Blog  press  300  dormant  next 2026-12-01\n");
   assert.equal(run("fit", "1", "bunny-bunker", "plays", "cozy", "co-op").out, "Ada Plays fits bunny-bunker\n");
+  assert.equal(run("fit", "1", "bunny-bunker", "--remove").out, "1  Ada Plays  influencer+blogger  5000  active  due 2026-11-01\n");
+  assert.match(run("fit", "1", "bunny-bunker", "--remove").err, /no fit/);
+  run("fit", "1", "bunny-bunker", "plays", "cozy", "co-op");
   assert.equal(run("touch", "1", "mail", "--game", "bunny-bunker", "--date", "2026-11-10").out, "Ada Plays: mail 2026-11-10 bunny-bunker\n");
   assert.match(run("touch", "1", "reply").out, /Ada Plays: reply 2026-11-20/);
 

@@ -26,6 +26,7 @@ export const HELP = `doit: the task board, from the command line. Every command 
   doit contact add <name> --type a,b [--email] [--reach <followers>] [--genres a,b] [--about text] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]
   doit contact set <id> key=value ...             keys: name types topic email reach (a number, e.g. reach=12400) genres (a,b) about notes status next channels
   doit fit <id> <game> <reason>                   the contact fits a game (a profile's file name)
+  doit fit <id> <game> --remove                   drop the contact's fit for that game
   doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]
   doit profiles                                   the game profiles contacts can fit
   doit profile add <project> [--kind k]           write <docs>/Marketing/Profile.md in the project; the game is its id, the kind the project's

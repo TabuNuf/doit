@@ -9,6 +9,7 @@ export class MemoryContacts {
     const r = this.rows.find(x => x.id === id);
     r.fit = [...r.fit.filter(f => f.game !== game), { game, reason }];
   }
+  removeFit(id, game) { const r = this.rows.find(x => x.id === id); r.fit = r.fit.filter(f => f.game !== game); }
   addTouch(id, t) {
     if (t.ref && this.refs.has(t.ref)) return;
     if (t.ref) this.refs.add(t.ref);

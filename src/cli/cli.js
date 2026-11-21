@@ -205,7 +205,7 @@ function parse(argv) {
     const a = argv[i];
     if (a.startsWith("--")) {
       const key = a.slice(2);
-      if (key === "json" || key === "due") flags[key] = true;
+      if (["json", "due", "remove", "no-about"].includes(key)) flags[key] = true;
       else flags[key] = argv[++i];
     } else pos.push(a);
   }

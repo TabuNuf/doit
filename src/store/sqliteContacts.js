@@ -63,6 +63,8 @@ export class SqliteContacts {
       .run(id, game, reason);
   }
 
+  removeFit(id, game) { this.db.prepare("DELETE FROM fit WHERE contact_id = ? AND game = ?").run(id, game); }
+
   /** A touch whose non-empty `ref` is already logged is not added again. */
   addTouch(id, { date, kind, game = "", note = "", ref = "" }) {
     this.db.prepare("INSERT OR IGNORE INTO touches (contact_id, date, kind, game, note, ref) VALUES (?, ?, ?, ?, ?, ?)").run(id, date, kind, game, note, ref);

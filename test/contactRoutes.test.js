@@ -38,6 +38,11 @@ test("the contact routes list, show, update, fit and touch", async t => {
   const fit = await api("/api/contacts/1/fit", "POST", { game: "bunny-bunker", reason: "plays co-op" });
   assert.deepEqual(fit.body.fit, [{ game: "bunny-bunker", reason: "plays co-op" }]);
   assert.equal((await api("/api/contacts?fits=bunny-bunker")).body.length, 1);
+  assert.equal((await api("/api/contacts/1/fit/good-box", "DELETE")).status, 400);
+  const gone = await api("/api/contacts/1/fit/bunny-bunker", "DELETE");
+  assert.deepEqual(gone.body.fit, []);
+  assert.equal((await api("/api/contacts/9/fit/bunny-bunker", "DELETE")).status, 404);
+  await api("/api/contacts/1/fit", "POST", { game: "bunny-bunker", reason: "plays co-op" });
   const touch = await api("/api/contacts/1/touch", "POST", { kind: "mail", game: "good-box", date: "2026-11-10" });
   assert.deepEqual(touch.body.touches[0], { date: "2026-11-10", kind: "mail", game: "good-box", note: "" });
 
