@@ -41,6 +41,18 @@ test("filter by game fit", () => {
   assert.deepEqual(names(book().list({ fits: "good-box" })), ["Bit Blog"]);
 });
 
+test("filter by contacted, not contacted and no about", () => {
+  const b = book();
+  b.addTouch(1, { kind: "mail", game: "bunny-bunker", date: "2026-11-10" });
+  b.addTouch(2, { kind: "mail", game: "good-box", date: "2026-11-11" });
+  b.update(1, { about: "Cozy streamer" });
+  b.update(2, { about: "   " });
+  assert.deepEqual(names(b.list({ contacted: "bunny-bunker" })), ["Ada Plays"]);
+  assert.deepEqual(names(b.list({ notContacted: "bunny-bunker" })), ["Cog Con", "Bit Blog", "Echo", "Dim Tester"]);
+  assert.deepEqual(names(b.list({ contacted: "good-box", notContacted: "bunny-bunker" })), ["Bit Blog"]);
+  assert.deepEqual(names(b.list({ noAbout: true })), ["Cog Con", "Bit Blog", "Echo", "Dim Tester"]);
+});
+
 test("filter by status", () => {
   assert.deepEqual(names(book().list({ status: "dormant" })), ["Dim Tester"]);
 });

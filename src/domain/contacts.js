@@ -85,12 +85,15 @@ export function isDue(contact, today) {
   return contact.status === "active" && Boolean(contact.next) && contact.next <= today;
 }
 
-/** The filter as a checked predicate: {type, fits, genre, status, reach: at least n followers, due: true} all optional; every one given must match. */
+/** The filter as a checked predicate: {type, fits, contacted, notContacted (games: a touch for / none for that game), noAbout: true, genre, status, reach: at least n followers, due: true} all optional; every one given must match. */
 export function contactFilter(filter = {}, today) {
   const type = filter.type ? oneOf(filter.type, TYPES, "type") : null;
   const status = filter.status ? oneOf(filter.status, STATUSES, "status") : null;
   const reach = filter.reach === undefined || filter.reach === null || filter.reach === "" ? null : checkReach(filter.reach);
   const fits = filter.fits ? String(filter.fits).trim() : null;
+  const contacted = filter.contacted ? String(filter.contacted).trim() : null;
+  const notContacted = filter.notContacted ? String(filter.notContacted).trim() : null;
+  const noAbout = Boolean(filter.noAbout);
   const genre = filter.genre ? text(filter.genre).toLowerCase() : null;
   const due = Boolean(filter.due);
   // `except` leaves out contacts of any of these types (the Contacts tab: no festivals or conferences).
@@ -100,6 +103,9 @@ export function contactFilter(filter = {}, today) {
     && (!status || c.status === status)
     && (reach === null || (c.reach !== null && c.reach >= reach))
     && (!fits || c.fit.some(f => f.game === fits))
+    && (!contacted || c.touches.some(t => t.game === contacted))
+    && (!notContacted || !c.touches.some(t => t.game === notContacted))
+    && (!noAbout || !String(c.about ?? "").trim())
     && (!genre || (c.genres ?? []).some(g => g.toLowerCase() === genre))
     && (!due || isDue(c, today));
 }

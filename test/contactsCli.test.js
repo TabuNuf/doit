@@ -57,6 +57,9 @@ test("contact add, set, show, fit, touch and the contacts list", t => {
   assert.equal(JSON.parse(run("contact", "show", "2", "--json").out).notes, "Slow to reply");
 
   assert.equal(run("contacts", "--fits", "bunny-bunker").out, "1  Ada Plays  influencer+blogger  5000  active  due 2026-11-01  fits bunny-bunker\n");
+  assert.equal(run("contacts", "--contacted", "bunny-bunker").out.trim().split("\n").length, 1);
+  assert.match(run("contacts", "--not-contacted", "bunny-bunker").out, /^2  Bit Blog/);
+  assert.match(run("contacts", "--no-about").out, /^1  Ada Plays/);
   assert.equal(run("contacts", "--due").out.trim().split("\n").length, 1);
   assert.equal(run("contacts", "--type", "press", "--status", "dormant").out.trim().split("\n").length, 1);
   assert.equal(run("contacts", "--reach", "1000").out.trim().split("\n").length, 1);

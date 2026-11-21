@@ -20,7 +20,7 @@ export const HELP = `doit: the task board, from the command line. Every command 
   doit morning                                    sweep, then write the morning report to the activity log and print it
   doit log <name> <text>                          one line in the activity log under <name> (lower case, like festivals), for a scheduled run's summary
 
-  doit contacts [--type t] [--fits <game>] [--genre g] [--status active|dormant|archived] [--due] [--reach <n>] [--json]   one line per contact, due first; --reach n = at least n followers
+  doit contacts [--type t] [--fits <game>] [--contacted <game>] [--not-contacted <game>] [--no-about] [--genre g] [--status active|dormant|archived] [--due] [--reach <n>] [--json]   one line per contact, due first; --reach n = at least n followers; --contacted/--not-contacted keep contacts with/without a touch for the game; --no-about keeps those with no about text yet
   doit contacts import <file>                     import every column of the New Streamers CSV (email, channels, reach, genres, dates, Last Contact and BB1/BB2 as mail touches); re-import updates in place by email or channel
   doit contact show <id> [--json]
   doit contact add <name> --type a,b [--email] [--reach <followers>] [--genres a,b] [--about text] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]

@@ -2,7 +2,7 @@
 // Files are read through `readText(path)`, given by the root: the CLI tier does not touch the disk.
 
 const USAGE = {
-  contacts: "doit contacts [--type t] [--fits <game>] [--genre g] [--status s] [--due] [--reach <n>] [--json] | doit contacts import <file>",
+  contacts: "doit contacts [--type t] [--fits <game>] [--genre g] [--status s] [--contacted <game>] [--not-contacted <game>] [--no-about] [--due] [--reach <n>] [--json] | doit contacts import <file>",
   show: "doit contact show <id> [--json]",
   add: "doit contact add <name> --type a,b [--email] [--reach <followers>] [--genres a,b] [--about text] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]",
   set: "doit contact set <id> key=value ...   keys: name types topic email reach genres about special notes status next channels (special= clears the mark)",
@@ -45,7 +45,8 @@ export class ContactsCli {
 
   contacts(pos, flags) {
     if (pos[0] === "import") return this.#import(pos[1]);
-    const list = this.book.list({ type: flags.type, fits: flags.fits, genre: flags.genre, status: flags.status, reach: flags.reach, due: flags.due });
+    const list = this.book.list({ type: flags.type, fits: flags.fits, genre: flags.genre, status: flags.status, reach: flags.reach, due: flags.due,
+      contacted: flags.contacted, notContacted: flags["not-contacted"], noAbout: flags["no-about"] });
     if (flags.json) return this.print(JSON.stringify(list, null, 1));
     if (!list.length) return this.print("No contacts.");
     for (const c of list) this.print(line(c));

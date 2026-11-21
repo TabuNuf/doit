@@ -9,6 +9,7 @@ export function contactRoutes(book) {
     ["GET", /^\/api\/contacts$/, q => book.list({
       type: q.get("type") || undefined, except: q.get("except") || undefined, fits: q.get("fits") || undefined, genre: q.get("genre") || undefined, status: q.get("status") || undefined,
       reach: q.get("reach") || undefined, due: on(q.get("due")),
+      contacted: q.get("contacted") || undefined, notContacted: q.get("notContacted") || undefined, noAbout: on(q.get("noAbout")),
     })],
     ["GET", /^\/api\/genres$/, () => book.genres()],
     ["GET", /^\/api\/contacts\/([^/]+)$/, (q, b, m) => book.get(m[1])],
