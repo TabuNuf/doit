@@ -1,6 +1,6 @@
 # EPIC-013: Mail
 
-Status: Planned
+Status: Active
 Goal: Tabu sends personal pitch mails to contacts from Doit through the Workspace account, from Claude's drafts that Tabu approves, and replies show on the contact without opening Gmail.
 Design: Design.md, section Marketing (step 3)
 
