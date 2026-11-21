@@ -22,7 +22,7 @@ Design: Design.md, section Tasks (Live updates)
 - [x] T-017.2 Store: `store/changeWatcher.js`, `ChangeWatcher` over `SettingsFile` and `EpicWorktrees`: watches the folders above, debounces, rebuilds its list on a settings or worktree change, `subscribe` and `close` (done when: tests in a temp `DOIT_HOME` see one event for three quick writes, an event for a file in a project added after start, and none after `close`)
 - [x] T-017.3 Server and root: `GET /api/events` as `text/event-stream`, `changed` on connect and on every watcher event, streams ended on `close()`; `makeServer` builds the watcher (done when: a server test reads `changed` on connect and again after a task is written through the `Board`)
 - [x] T-017.4 Web: `EventSource` in `events.js`, the 10 s `setInterval` removed, a pure `reloadHeld(state, active)` in `state.js` and a pending flag that reloads when the hold ends (done when: web tests cover the hold for a text input, textarea, drag and open menu, and no hold for a select or checkbox)
-- [ ] T-017.5 Launcher check and docs: `check-server.sh` and the stay-open app unaffected by the open stream; Design.md's Data and Running it sections still true (done when: `test/launcher.test.js` passes and, in the app, `doit set doit/T-017.5 state=progress` moves the row within a second)
+- [x] T-017.5 Launcher check and docs: `check-server.sh` and the stay-open app unaffected by the open stream; Design.md's Data and Running it sections still true (done when: `test/launcher.test.js` passes and, in the app, `doit set doit/T-017.5 state=progress` moves the row within a second)
 
 ## Test plan
 
@@ -32,9 +32,8 @@ Design: Design.md, section Tasks (Live updates)
 
 ## Check in play
 
-- T-017.4: with a dropdown just used and focus still on it, a CLI change shows within a second.
-- T-017.4: typing in a task's description, a CLI change waits and shows when the field loses focus; the typed text is kept.
-- T-017.5: `doit set doit/T-017.5 state=progress` in the terminal moves the row within a second.
+- T-017.4: with a dropdown just used and focus still on it, a CLI change shows within a second. (Checked by Claude in a browser, Notes.)
+- T-017.4: typing in a task's description, a CLI change waits and shows when the field loses focus; the typed text is kept. (The hold was checked by Claude; keeping typed text was not.)
 - T-017.5: change a task's state from the terminal and watch the row move; edit a Design doc from the terminal with the Docs view open and see it re-render.
 - T-017.5: quit and restart the server with the page open; the page reconnects and reloads once.
 
@@ -42,9 +41,20 @@ Design: Design.md, section Tasks (Live updates)
 
 Decisions and deviations, newest first.
 
+- T-017.5: the launcher scripts needed no change; a new launcher test runs `bin/server.js` with an event stream open and checks `stop-server.sh` returns within 3 s.
+- T-017.4: a focused select no longer holds a reload, as Design.md says; `reloadHeld` takes a third `dragging` argument, since the drag state lives in `ordering.js` and `epicMove.js`.
+- T-017.3: `HttpServer` takes the changes port as its sixth constructor argument, and its `close()` closes the port too.
+- T-017.2: a new worktree makes no event in any watched folder, so the watcher also rescans its folder list every 5 s (unref'd timer). Detecting a new worktree is not covered by a test.
 - 2026-11-21, checked in a browser on the epic's server (port 4318): a CLI state change reloaded the page within 1.5 s; with a dropdown focused, a CLI comment showed within 1.5 s; with the description box focused, a CLI comment waited and showed when focus left. Reconnect after a server restart not checked by hand.
 - Open: 12 projects are registered, some inside Unity projects; only their docs folders are watched, so Unity's Library churn never fires.
 
 ## Close audit
 
+- `Docs/Architecture.md`, class diagram and module list against the code: the server line did not say `close()` closes the port, and the watcher line said nothing of the 5 s rescan. Fix now, fixed in the close commit.
+- Boundaries: `store/changeWatcher.js` imports only `node:fs` and `node:path`; `server/server.js` reaches the watcher only through the port; the boundaries test passes. Nothing found.
+- `web/events.js` 136 lines, `web/state.js` 103, `server/server.js` 114, `store/changeWatcher.js` 74: all under 300. Nothing found.
+
 ## For the standard
+
+- `App/README.md`, Pages over local files: a page over files other tools change learns of changes by server-sent events from a recursive folder watcher, not a timer; only typing, dragging or an open menu or form holds the reload. The edit-box and drag rules now say "a reload" instead of "a timed reload". The duplicated "Decided so far" section was removed.
+- `CHANGELOG.md`: one line.
