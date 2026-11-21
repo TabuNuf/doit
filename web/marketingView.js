@@ -3,6 +3,7 @@
 
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail.js";
+import { festivalPath, gamePane, festivalsPane } from "./festivalsPane.js";
 import { draftsPane, draftEditRequest, sendQuestion, sweepSummary } from "./draftsPane.js";
 
 export const TYPES = ["influencer", "blogger", "press", "publisher", "tester", "festival", "conference"];
@@ -50,8 +51,16 @@ export function listPane(contacts, sel, draftCount = null) {
   return `<section class="pane" aria-label="Contacts"><div class="pane-h">Contacts<span class="c">${contacts.length}</span><button data-mk-pane="drafts" class="pane-close">Drafts${draftCount === null ? "" : ` (${draftCount})`}</button></div><div class="pane-b">${body}</div></section>`;
 }
 
+export const MK_TABS = [["contacts", "Contacts"], ["drafts", "Drafts"], ["festivals", "Festivals"]];
+
+/** Marketing's own tabs, shown in the top bar where the project chips are on the other views. */
+export function marketingTabs(pane) {
+  return MK_TABS.map(([id, label]) => `<button class="chip" data-mk-pane="${id}" aria-pressed="${pane === id}">${label}</button>`).join("");
+}
+
 export function marketingPanes() {
   const m = S.mk;
+  if (m.pane === "festivals") return gamePane(m.festGame, m.profiles) + festivalsPane(m.fest, m.sel) + detailPane(m.detail, m.profiles, m.touchOpen, today());
   const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length);
   return filterPane(m.f, m.profiles) + middle + detailPane(m.detail, m.profiles, m.touchOpen, today());
 }
@@ -69,6 +78,7 @@ export async function refreshMarketing() {
   const m = S.mk;
   try {
     [m.profiles, m.contacts, m.drafts, m.status] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f)), api("GET", "/api/drafts"), api("GET", "/api/mail/status")]);
+    if (m.pane === "festivals") m.fest = await api("GET", festivalPath(m.festGame));
     m.detail = m.sel ? await api("GET", `/api/contacts/${encodeURIComponent(m.sel)}`).catch(() => null) : null;
     if (!m.detail) { m.sel = null; m.touchOpen = false; }
     redraw();
@@ -88,7 +98,7 @@ async function send(req) {
 export function marketingClick(d) {
   const m = S.mk;
   if (d.contact) { m.sel = d.contact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
-  if (d.mkPane) { m.pane = d.mkPane; redraw(); return true; }
+  if (d.mkPane) { m.pane = d.mkPane; redraw(); if (m.pane === "festivals") refreshMarketing(); return true; }
   if (d.mkSend) { sendDraft(d.mkSend); return true; }
   if (d.mkDiscard) { discardDraft(d.mkDiscard); return true; }
   if ("mkTouch" in d) { m.touchOpen = true; redraw(); $("#mk-tk-kind")?.focus(); return true; }
@@ -120,6 +130,7 @@ const FILTERS = { "mk-game": "game", "mk-type": "type", "mk-reach": "reach", "mk
 /** A changed filter or detail field; true when the change was one. */
 export function marketingChange(ev) {
   const el = ev.target;
+  if (el.id === "mk-fgame") { S.mk.festGame = el.value; refreshMarketing(); return true; }
   if (FILTERS[el.id]) { S.mk.f[FILTERS[el.id]] = el.value; refreshMarketing(); return true; }
   const dr = draftEditRequest(el, S.mk.drafts);
   if (dr) { saveDraft(dr); return true; }

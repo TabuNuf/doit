@@ -48,6 +48,14 @@ export class ClaudeView {
     return lines;
   }
 
+  /** One line under a name that is not a task (like `festivals`) in the activity log, for a scheduled run's summary. */
+  note(topic, text) {
+    const t = String(topic ?? "").trim(), what = String(text ?? "").trim();
+    if (!/^[a-z][a-z-]*$/.test(t)) throw new Error(`The log name is lower case letters and dashes, like "festivals": ${topic}`);
+    if (!what) throw new Error("Nothing to log");
+    this.activity.record({ ref: t, what });
+  }
+
   /** The three panes for one project or "all"; each card carries its last logged change. */
   panes(project = "all") {
     const { tasks } = this.board.view({ project });

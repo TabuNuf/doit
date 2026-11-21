@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
-const VERSION = 2;
+const VERSION = 3;
 
 const SCHEMA_V1 = `
   CREATE TABLE contacts (
@@ -43,6 +43,17 @@ const V2 = `
   CREATE INDEX drafts_contact ON drafts(contact_id);
 `;
 
+// v3: the event of a festival or conference contact (one row per contact; lists are comma separated).
+const V3 = `
+  CREATE TABLE events (
+    contact_id INTEGER PRIMARY KEY REFERENCES contacts(id) ON DELETE CASCADE,
+    year INTEGER NOT NULL, starts TEXT NOT NULL DEFAULT '', ends TEXT NOT NULL DEFAULT '', deadline TEXT NOT NULL DEFAULT '',
+    cost TEXT NOT NULL DEFAULT '', place TEXT NOT NULL DEFAULT '', genres TEXT NOT NULL DEFAULT '', stages TEXT NOT NULL DEFAULT '',
+    platforms TEXT NOT NULL DEFAULT '', state TEXT NOT NULL DEFAULT 'watching'
+  );
+  CREATE INDEX events_deadline ON events(deadline);
+`;
+
 export class MarketingDb {
   constructor(dir) {
     this.dir = dir;
@@ -76,6 +87,7 @@ export class MarketingDb {
     this.atomic(() => {
       if (v < 1) this.db.exec(SCHEMA_V1);
       if (v < 2) this.db.exec(V2);
+      if (v < 3) this.db.exec(V3);
       this.db.exec(`PRAGMA user_version = ${VERSION}`);
     });
   }
