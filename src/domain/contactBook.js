@@ -12,6 +12,8 @@ const day = d => {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 };
 
+const linkKey = url => String(url).trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "");
+
 export class ContactBook {
   constructor(source, shelf, now = () => new Date()) {
     this.source = source;
@@ -64,6 +66,54 @@ export class ContactBook {
   }
 
   profiles() { return this.shelf.list(); }
+
+  /** Rows from `mapStreamers`: a row matches a contact by email, else by YouTube link, and then updates it;
+   *  a row with no name and no link is skipped. A touch is added once (same kind and date; with no date, same kind). */
+  import(rows) {
+    const report = { added: 0, updated: 0, skipped: 0 };
+    for (const row of rows) {
+      const channels = row.channels ?? [];
+      const name = row.name || channels[0]?.url || "";
+      if (!name) { report.skipped++; continue; }
+      try {
+        const known = this.#match(row.email, channels);
+        const input = { ...row, name };
+        const id = known ? this.#merge(known, input) : this.add(input).id;
+        known ? report.updated++ : report.added++;
+        for (const t of row.touches ?? []) this.#touchOnce(id, t);
+      } catch (e) {
+        if (!(e instanceof ContactError)) throw e;
+        report.skipped++;
+      }
+    }
+    return report;
+  }
+
+  #match(email, channels) {
+    const all = this.source.all();
+    const mail = String(email ?? "").trim().toLowerCase();
+    const byMail = mail && all.find(c => c.email.toLowerCase() === mail);
+    if (byMail) return byMail;
+    const yt = channels.filter(c => c.kind === "youtube").map(c => linkKey(c.url));
+    return all.find(c => c.channels.some(x => x.kind === "youtube" && yt.includes(linkKey(x.url)))) ?? null;
+  }
+
+  /** Fills what the row has; what it lacks stays. Channels are added by url, notes replaced. */
+  #merge(known, row) {
+    const { fit, touches, id, due, ...fields } = known;
+    const have = new Set(known.channels.map(c => linkKey(c.url)));
+    const more = (row.channels ?? []).filter(c => !have.has(linkKey(c.url)));
+    this.source.update(id, makeContact({
+      ...fields, name: row.name, email: row.email || known.email, reach: row.reach || known.reach,
+      notes: row.notes || known.notes, types: [...new Set([...known.types, ...row.types])], channels: [...known.channels, ...more],
+    }));
+    return id;
+  }
+
+  #touchOnce(id, { kind, date }) {
+    const have = this.get(id).touches.some(t => t.kind === kind && !t.game && (!date || t.date === date));
+    if (!have) this.addTouch(id, { kind, date });
+  }
 
   #id(id) {
     const n = Number(id);

@@ -3,19 +3,7 @@ import assert from "node:assert/strict";
 import { ContactBook } from "../src/domain/contactBook.js";
 import { reachBands } from "../src/domain/contacts.js";
 
-/** An in-memory ContactSource. */
-export class MemoryContacts {
-  constructor() { this.rows = []; }
-  all() { return this.rows.map(r => structuredClone(r)); }
-  get(id) { const r = this.rows.find(x => x.id === id); return r ? structuredClone(r) : null; }
-  insert(c) { const id = this.rows.length + 1; this.rows.push({ ...structuredClone(c), id, fit: [], touches: [] }); return id; }
-  update(id, c) { Object.assign(this.rows.find(x => x.id === id), structuredClone(c)); }
-  setFit(id, game, reason) {
-    const r = this.rows.find(x => x.id === id);
-    r.fit = [...r.fit.filter(f => f.game !== game), { game, reason }];
-  }
-  addTouch(id, t) { const r = this.rows.find(x => x.id === id); r.touches = [t, ...r.touches]; }
-}
+import { MemoryContacts } from "./memoryContacts.js";
 
 const shelf = { list: () => [{ game: "bunny-bunker" }, { game: "good-box" }], has: g => ["bunny-bunker", "good-box"].includes(g) };
 

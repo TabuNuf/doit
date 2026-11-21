@@ -38,7 +38,10 @@ test("a contact with channels, fit and touches is read back after reopening", ()
 
 test("the file and its schema version are made on first open and kept on the next", () => {
   const dir = home();
-  new SqliteContacts(dir).close();
+  const s = new SqliteContacts(dir);
+  assert.ok(!fs.existsSync(path.join(dir, "marketing.db")), "not created before first use");
+  s.all();
+  s.close();
   assert.ok(fs.existsSync(path.join(dir, "marketing.db")));
   const b = new SqliteContacts(dir);
   assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 1);
@@ -50,7 +53,7 @@ test("a file from a newer schema is refused", () => {
   const a = new SqliteContacts(dir);
   a.db.exec("PRAGMA user_version = 2");
   a.close();
-  assert.throws(() => new SqliteContacts(dir), /version 2/);
+  assert.throws(() => new SqliteContacts(dir).all(), /version 2/);
 });
 
 test("update replaces fields and channels and keeps fit and touches; a second fit replaces the reason", () => {

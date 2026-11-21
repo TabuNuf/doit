@@ -30,14 +30,24 @@ const SCHEMA = `
 
 export class SqliteContacts {
   constructor(dir) {
+    this.dir = dir;
     this.file = path.join(dir, "marketing.db");
-    fs.mkdirSync(dir, { recursive: true });
-    this.db = new DatabaseSync(this.file);
-    this.db.exec("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 3000");
-    this.#migrate();
+    this.handle = null;
   }
 
-  close() { this.db.close(); }
+  /** Opened on first use, so a command that never touches contacts leaves no file behind. */
+  get db() {
+    if (!this.handle) {
+      fs.mkdirSync(this.dir, { recursive: true });
+      const db = new DatabaseSync(this.file);
+      db.exec("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 3000");
+      this.handle = db;
+      try { this.#migrate(); } catch (e) { this.close(); throw e; }
+    }
+    return this.handle;
+  }
+
+  close() { this.handle?.close(); this.handle = null; }
 
   all() {
     const by = (sql, key = r => r.contact_id) => {

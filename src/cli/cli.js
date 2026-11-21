@@ -19,10 +19,14 @@ const HELP = `doit: the task board, from the command line. Every command archive
 
 States: todo, progress, backlog, done, archived. "open" = todo + progress + backlog. Archived is never listed unless asked.`;
 
+import { ContactsCli } from "./contactsCli.js";
+
 export class Cli {
-  constructor(board, out, err, claude = null) {
+  /** `contacts` is the ContactBook and `readText(path)` reads a file; the contact commands need both. */
+  constructor(board, out, err, claude = null, contacts = null, readText = null) {
     this.board = board;
     this.claude = claude;
+    this.contactCommands = contacts && new ContactsCli(contacts, s => this.print(s), readText);
     this.out = out;
     this.err = err;
   }
@@ -42,6 +46,11 @@ export class Cli {
   }
 
   print(s) { this.out.write(s + "\n"); }
+
+  contact(name, pos, flags) {
+    if (!this.contactCommands) throw new Error("Contacts are not available here");
+    this.contactCommands[name](pos, flags);
+  }
 }
 
 const COMMANDS = {
@@ -131,6 +140,8 @@ const COMMANDS = {
   sweep() { this.print(`Archived ${this.board.sweep()}`); },
 
   morning() { for (const line of this.claude.morning()) this.print(line); },
+
+  contacts(pos, flags) { this.contact("contacts", pos, flags); },
 };
 
 function row(t) {

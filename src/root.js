@@ -1,5 +1,6 @@
 // Composition root: builds every module and hands the board to an interface.
 
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Board } from "./domain/board.js";
@@ -43,7 +44,8 @@ export function makeContacts({ home = dataDir(), now } = {}) {
 export function makeCli(options = {}) {
   const log = makeActivity(options);
   const board = makeBoard({ ...options, log });
-  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now));
+  const readText = file => fs.readFileSync(file, "utf8");
+  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now), makeContacts(options), readText);
 }
 
 export function makeServer(options = {}) {
