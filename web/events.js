@@ -1,6 +1,6 @@
 // Every listener on the page, and the 10 s reload.
 
-import { S, $, keyOf, tabOf, api, act, load, patch, task } from "./state.js";
+import { S, $, keyOf, tabOf, api, act, load, patch, task, reloadHeld } from "./state.js";
 import { render } from "./render.js";
 import { nudge, dragKey } from "./ordering.js";
 import { epicDragging } from "./epicMove.js";
@@ -115,13 +115,22 @@ document.addEventListener("focusout", ev => {
   act(async () => { await api("PATCH", `/api/tasks/${t.project}/${t.id}`, { description: ev.target.value }); });
 });
 
-// Reload from disk every 10 s so Claude's changes show, unless the user is typing or dragging.
-setInterval(() => {
-  const a = document.activeElement;
-  const typing = a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type !== "checkbox" && a.type !== "radio") || a.tagName === "SELECT");
-  if (typing || dragKey || epicDragging() || S.newProj || S.newTask || S.newEpic !== null || S.fOpen || S.projOpen || document.visibilityState !== "visible") return;
-  // An open edit box keeps its text: the Docs view is not reloaded while editing.
-  if (S.view !== "docs" || !S.docs.editing) load().then(refreshView);
-}, 10000);
+// The server says "changed" on any disk change. Reload at once unless the user is mid-edit, else
+// remember it and reload when the hold ends.
+let pending = false;
+const held = () => reloadHeld(S, document.activeElement, Boolean(dragKey || epicDragging()));
+function reloadNow() {
+  pending = false;
+  load().then(refreshView);
+}
+function maybeReload() {
+  if (!pending || document.visibilityState !== "visible" || held()) return;
+  reloadNow();
+}
+const onChanged = () => { pending = true; maybeReload(); };
+if (typeof EventSource !== "undefined") new EventSource("/api/events").onmessage = onChanged;
+// Each way a hold can end; the cheap tick catches forms and menus closed by a click.
+for (const ev of ["focusout", "pointerup", "dragend", "visibilitychange"]) document.addEventListener(ev, () => setTimeout(maybeReload, 0));
+setInterval(maybeReload, 500);
 
 load();

@@ -161,3 +161,21 @@ test("switching to the Claude view loads the selected project", async () => {
     assert.equal(S.project, "game");
   } finally { delete globalThis.fetch; }
 });
+
+test("a reload is held for text entry, drags and open menus, not for selects or checkboxes", async () => {
+  const { reloadHeld } = await import("../web/state.js");
+  const st = (o = {}) => ({ newProj: false, newTask: false, newEpic: null, fOpen: false, projOpen: false, view: "board", docs: { editing: false }, ...o });
+  assert.equal(reloadHeld(st(), null), false);
+  assert.equal(reloadHeld(st(), { tagName: "INPUT", type: "text" }), true);
+  assert.equal(reloadHeld(st(), { tagName: "INPUT", type: "search" }), true);
+  assert.equal(reloadHeld(st(), { tagName: "TEXTAREA" }), true);
+  assert.equal(reloadHeld(st(), { tagName: "SELECT" }), false);
+  assert.equal(reloadHeld(st(), { tagName: "INPUT", type: "checkbox" }), false);
+  assert.equal(reloadHeld(st(), { tagName: "INPUT", type: "radio" }), false);
+  assert.equal(reloadHeld(st(), { tagName: "BUTTON" }), false);
+  assert.equal(reloadHeld(st(), null, true), true);
+  for (const k of ["newProj", "newTask", "fOpen", "projOpen"]) assert.equal(reloadHeld(st({ [k]: true }), null), true, k);
+  assert.equal(reloadHeld(st({ newEpic: "" }), null), true);
+  assert.equal(reloadHeld(st({ view: "docs", docs: { editing: true } }), null), true);
+  assert.equal(reloadHeld(st({ view: "board", docs: { editing: true } }), null), false);
+});
