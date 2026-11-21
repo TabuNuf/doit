@@ -46,7 +46,7 @@ Why: one board shows what Claude is doing in each project and what is left for t
 ## Epic rules
 
 - One file per epic: `EPIC-<nnn>-<short-name>.md`. Numbers only go up.
-- At most two epics are `Active` at a time, each in its own worktree (Branches, below); the conformance epic counts as one. An epic's tasks are worked top to bottom.
+- At most two epics are `Active` at a time, each in its own worktree (Branches, below); the conformance epic counts as one. A second starts only on `<Designer>`'s yes (Parallel work, below). An epic's tasks are worked top to bottom.
   Why: the docs merge as text, but a scene or asset that both epics change merges badly, and a designer can follow two queues of questions at most.
 - A second epic's plan has a **Touches** list: the files it will change that merge badly as text, which the stack layer names (in Unity: scenes, prefabs, UXML and USS, config assets and asmdefs). An item that is also on the first epic's Touches list, or already changed on its branch (`git diff main...epic/<first> --name-only`), blocks the second epic until the first closes. Design docs, the class diagram and source code files are not on the list.
   Why: text merges mechanically and a scene conflict costs more than a few days' wait; the check is one git command at planning time.
@@ -125,6 +125,22 @@ Filled when the epic closes: what moved into <Docs>/Standard (file and rule), or
   Why: an epic closed in its worktree but read from the main checkout stayed in the open list until the merge, which is when the close was already over.
 - Stable branches are not epic branches: see `02-Working.md`, Versions and releases.
 
+## Parallel work
+
+Two things in flight at once are allowed, but only when `<Designer>` knows and has said yes.
+Why: worktrees hide work from each other. Each session sees only its own checkout, so a second epic or a Quick fix started beside an unfinished one was found only at the merge, as a conflict.
+
+- Every session starts with the list of open work: each epic worktree with its commits not on main and its uncommitted files, epic branches not merged and without a worktree, and uncommitted files in the main checkout. A SessionStart hook prints it (`Tools/Claude/open_work.py`, from `Core/Starter/`). Where the hook is missing, run the script before starting anything.
+  Why: a hook runs whether or not a session remembers the rule.
+- Before starting new work while that list shows work other than this session's own, Claude names it to `<Designer>`: what is open, where, how old, and which files the new work would touch that the open work also changed. The new work starts only on `<Designer>`'s yes. New work is a new epic set `Active`, a Quick implement, a rolling bug epic task, a `Standard: pull` or a release.
+  Why: the designer follows two queues at most and needs to know when they are following two.
+- One yes covers the session. Work that appears on the list later in the session asks again.
+  Why: a question on every Quick fix gets answered without being read.
+- Continuing the work this session started in needs no yes: the next task of the epic whose worktree the session was started in.
+- Work with no commit for over a week, or uncommitted files in the main checkout that no session claims, is named the same way as leftover. `<Designer>` decides whether to finish it, park it or drop it.
+  Why: an abandoned worktree still counts towards the two active epics and still conflicts at the next merge.
+- The stack's worktree tool enforces the limit: it refuses a second epic's worktree unless told the designer said yes (Unity: `worktree.py new --parallel`), and refuses a third always. Claude passes that flag only after the yes.
+
 ## Closing an epic
 
 1. **Merge main in.** After the last task, merge main into the branch and commit any conflict resolution as `EPIC-<nnn>: merge main`; rebuild the generated docs if the merge touched them.
@@ -153,7 +169,9 @@ Why: drift left for "later" piles up across releases; a list that must be empty 
 - A question goes in the epic file and in chat, one question at a time, with a recommendation.
 - An unattended run commits each task and pushes nothing; its `DONE` or `BLOCKED` line names the branch and how many commits wait for a push.
 - A run blocked on a decision ends with `BLOCKED: EPIC-<nnn>` and the question; a finished one with `DONE: EPIC-<nnn>`.
-- The chat is named after the task (the branch after the epic, Branches above): `T-015.2: Island style guide`, so past work is easy to find. A session on an epic is started in the epic's worktree, never in the main checkout.
+- A session on an epic names its chat `EPIC-<nnn>: <what it is about>` as its first step: the epic number, then fewer than 7 plain words a reader understands without opening the epic, such as `EPIC-015: Island style guide`. Never the number alone, never a task id or the branch's short name. Claude sets it itself with the app's rename tool (`set_session_title` in the Claude desktop app); where the session has none, it gives `<Designer>` the line to paste into `/rename`. A session started on one task of the epic is named the same way.
+  Why: chats named only with an epic number could not be told apart in the session list without opening each one.
+- A session on an epic is started in the epic's worktree, never in the main checkout.
   Why: a session works on the files of the folder it starts in, and in Unity its MCP binding, and so the editor it drives, comes from that folder too (`Unity/02-Project.md`, Worktrees).
 - `<Designer>` tries an epic's work in that epic's worktree editor or a build from it until it merges: playtest rounds on the epic, the epic's "Check in play" list, tuning a config asset. The main editor shows main.
   Why: the work exists nowhere else until the merge, and the main editor stays on what players have.

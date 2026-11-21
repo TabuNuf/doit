@@ -16,6 +16,8 @@ A turn costs more than a file: every tool call re-sends the whole conversation. 
 
 ## Workflow
 
+A hook lists the open work at session start (worktrees, unmerged epic branches, uncommitted files on main). Starting anything beside work that is not this session's own needs <Designer>'s yes first, once per session (`<Docs>/Standard/Core/01-Tasks.md`, Parallel work). A session on an epic first names its chat `EPIC-<nnn>: <fewer than 7 plain words>`, never the number alone (Running an epic).
+
 1. Design input: update the design doc and its Changelog.
 2. Plan: an epic with small tasks, each with "done when", and a Test plan in batches of 3 to 5. When it goes `Active`, first `python3 <central>/Tools/sync_standard.py update <Docs>/Standard` on main (`<central>` from `<Docs>/Standard/Subscription.txt`) and commit any pull as `Standard: pull <short commit>`; then make its worktree and branch `epic/<nnn>-<short-name>` (the stack's tool below); the main checkout stays on main. At most two epics are active, and a second needs a Touches list that overlaps the first's in nothing (`<Docs>/Standard/Core/01-Tasks.md`, Epic rules).
 3. Before coding a task: update the class diagram, check it against `Core/03-Design.md` and the boundaries in `Architecture.md`.
