@@ -17,6 +17,7 @@ const refreshView = () => S.view === "board" ? refreshDocs() : S.view === "claud
 
 document.addEventListener("click", ev => {
   const b = ev.target.closest("button, .row");
+  if ("editdesc" in (b?.dataset || {}) || (ev.target.closest(".desc-view") && !ev.target.closest("a"))) return editDescription();
   if (S.projOpen && !ev.target.closest(".projmenu")) { S.projOpen = false; if (!b) return render(); }
   if (!b) { if (S.fOpen && !ev.target.closest(".pop")) { S.fOpen = false; render(); } return; }
   const d = b.dataset;
@@ -118,9 +119,17 @@ document.addEventListener("focusout", ev => {
   if (marketingFocusOut(ev)) return;
   if (ev.target.id !== "desc") return;
   const t = task(S.sel);
-  if (!t || ev.target.value === t.description) return;
+  const editing = S.descEdit;
+  S.descEdit = null;
+  if (!t || ev.target.value === t.description) { if (editing) render(); return; }
   act(async () => { await api("PATCH", `/api/tasks/${t.project}/${t.id}`, { description: ev.target.value }); });
 });
+
+function editDescription() {
+  S.descEdit = S.sel;
+  render();
+  $("#desc")?.focus();
+}
 
 // The server says "changed" on any disk change. Reload at once unless the user is mid-edit, else
 // remember it and reload when the hold ends.

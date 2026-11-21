@@ -10,6 +10,8 @@ import { claudePanes } from "./claudeView.js";
 import { marketingPanes, marketingTabs } from "./marketingView.js";
 import { setLayout } from "./resize.js";
 import { contactButton, ensureContactNames } from "./contactNames.js";
+import { renderMarkdown, inline } from "./markdown.js";
+import { headline } from "./headline.js";
 
 /* ---------- Render ---------- */
 
@@ -78,7 +80,7 @@ export function rowHtml(t, i, sec) {
   const contact = t.contact ? contactButton(t.contact) : "";
   const projPill = S.project === "all" ? `<span class="pill"><span class="dot" style="background:${color(t.project)}"></span>${esc(proj(t.project).name)}</span>` : "";
   return `<div class="row" tabindex="0" role="option" aria-selected="${S.sel === keyOf(t)}" data-id="${k}" data-sec="${sec}" draggable="${open}">
-    ${grip}${rank}<span class="tdot ${t.type}" title="${t.type === "bug" ? "Bug" : "Task"}"></span><span class="mono muted">${t.id}</span><span class="title">${esc(t.title)}</span>
+    ${grip}${rank}<span class="tdot ${t.type}" title="${t.type === "bug" ? "Bug" : "Task"}"></span><span class="mono muted">${t.id}</span><span class="title">${inline(headline(t.title).head)}</span>
     <span class="pills">${st}${due}${contact}${projPill}${left}${arch}<span class="own" title="${t.owner === "ai" ? "Claude" : "You"}">${t.owner === "ai" ? "🤖" : "🧑"}</span></span></div>`;
 }
 
@@ -143,15 +145,26 @@ function fontCtl() {
   return `<span class="fsz"><button data-fs="-1" aria-label="Smaller text">A−</button><span class="mono">${S.font}</span><button data-fs="1" aria-label="Larger text">A+</button></span>`;
 }
 
+// The description reads as markdown; a click (or Edit) turns it into the text box, which saves on leaving.
+function descSection(t) {
+  if (S.descEdit !== keyOf(t) && t.description) {
+    return `<div class="sect">Description<button class="lnk" data-editdesc aria-label="Edit the description">Edit</button></div>
+    <div class="doc desc-view" title="Click to edit">${renderMarkdown(t.description)}</div>`;
+  }
+  return `<div class="sect">Description<span id="saved"></span></div>
+    <textarea id="desc" class="desc-in" aria-label="Description" placeholder="No description yet. Click to write one.">${esc(t.description)}</textarea>`;
+}
+
 function detailPane() {
   const t = S.sel && task(S.sel);
   if (!t && S.epicView) return epicViewPane(fontCtl());
   if (!t) return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b"><div class="empty">Select a task.</div></div></section>`;
   const dl = t.deadline ? daysLeft(t.deadline) : null;
   const where = t.state === "archived" ? "Archive/Tasks" : "Epics/Tasks";
+  const { head, rest } = headline(t.title);
   return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b detail">
     <div class="mono muted">${t.id} · ${esc(t.epicName)}</div>
-    <h2>${esc(t.title)}</h2>
+    <h2>${inline(head)}</h2>
     <div class="pills" style="justify-content:flex-start"><span class="pill"><span class="tdot ${t.type}"></span>${t.type === "bug" ? "Bug" : "Task"}</span><span class="pill">${t.owner === "ai" ? "🤖 Claude" : "🧑 You"}</span><span class="pill"><span class="dot" style="background:${color(t.project)}"></span>${esc(proj(t.project).name)}</span></div>
     <dl class="kv">
       <dt>State</dt><dd><select id="st" aria-label="State">${STATES.map(([v, l]) => `<option value="${v}" ${t.state === v ? "selected" : ""}>${l}</option>`).join("")}</select></dd>
@@ -167,8 +180,8 @@ function detailPane() {
       ${t.source ? `<dt>Source</dt><dd>${esc(t.source)}</dd>` : ""}
       ${t.state === "archived" && t.archived ? `<dt>Archived</dt><dd class="warnline">${esc(t.archived)}</dd>` : ""}
     </dl>
-    <div class="sect">Description<span id="saved"></span></div>
-    <textarea id="desc" class="desc-in" aria-label="Description" placeholder="No description yet. Click to write one.">${esc(t.description)}</textarea>
+    ${rest ? `<div class="sect">Spec</div><div class="doc spec">${renderMarkdown(rest)}</div>` : ""}
+    ${descSection(t)}
     <div class="sect">Done when</div>
     <p>${esc(t.doneWhen || "Not written yet.")}</p>
     <div class="sect">Comments<span class="muted" style="text-transform:none;letter-spacing:0"> · ${t.comments.length}</span></div>

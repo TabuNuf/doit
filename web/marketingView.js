@@ -4,6 +4,7 @@
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail.js";
 import { channelRemove, channelAdd } from "./contactChannels.js";
+import { lastPill } from "./contactHistory.js";
 import { festivalPath, eventsInfoPane, festivalsPane } from "./festivalsPane.js";
 import { overviewPanes } from "./weekPane.js";
 import { campaignsFor, profilePane, campaignsPane } from "./campaignsPane.js";
@@ -45,7 +46,7 @@ export function contactRow(c, sel) {
   const next = c.next ? `<span class="pill due ${c.due ? "late" : ""}" title="Next contact ${esc(c.next)}">${c.due ? "due " : ""}${esc(fmtDate(c.next))}</span>` : "";
   return `<button class="mk-row" data-contact="${esc(c.id)}" aria-pressed="${String(sel) === String(c.id)}">
     <span class="title">${esc(c.name)}</span>
-    <span class="pills">${c.types.map(t => `<span class="pill">${esc(t)}</span>`).join("")}${c.reach !== null && c.reach !== undefined ? `<span class="pill mono" title="Reach ${esc(c.reach)}">${esc(compactCount(c.reach))}</span>` : ""}<span class="pill${c.status === "active" ? "" : " ai"}">${esc(c.status)}</span>${next}</span></button>`;
+    <span class="pills">${c.types.map(t => `<span class="pill">${esc(t)}</span>`).join("")}${c.reach !== null && c.reach !== undefined ? `<span class="pill mono" title="Reach ${esc(c.reach)}">${esc(compactCount(c.reach))}</span>` : ""}<span class="pill${c.status === "active" ? "" : " ai"}">${esc(c.status)}</span>${lastPill(c)}${next}</span></button>`;
 }
 
 /** The list column: a Due group when any contact is due, then the rest. */
@@ -76,7 +77,7 @@ export function marketingTabs(pane, game = "", profiles = []) {
 
 export function marketingPanes() {
   const m = S.mk;
-  const detail = () => detailPane(m.detail, m.profiles, m.touchOpen, today());
+  const detail = () => detailPane(m.detail, m.profiles, m.touchOpen, today(), m.history);
   if (m.pane === "overview") return overviewPanes(m.week, m.sel, m.game);
   if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game)) + detail();
   if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + detail(); }
@@ -101,6 +102,7 @@ export async function refreshMarketing() {
     if (EVENT_TAB[m.pane]) m.fest = await api("GET", festivalPath(m.game, EVENT_TAB[m.pane]));
     if (m.pane === "campaigns") m.campaigns = (await api("GET", "/api/board?project=all")).epics;
     m.detail = m.sel ? await api("GET", `/api/contacts/${encodeURIComponent(m.sel)}`).catch(() => null) : null;
+    m.history = m.detail ? await api("GET", `/api/contacts/${encodeURIComponent(m.sel)}/history`).catch(() => null) : null;
     if (!m.detail) { m.sel = null; m.touchOpen = false; }
     redraw();
   } catch (e) { toast(e.message); }

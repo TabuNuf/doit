@@ -73,3 +73,19 @@ test("without an account the send is refused with 400 and the sweep is skipped",
   assert.equal((await api("/api/mail/sweep", "POST")).body.skipped, "Mail is not set up");
   assert.equal((await api("/api/mail/status")).body.ready, false);
 });
+
+test("a contact's history lists its touches and sent mail newest first, each once", async t => {
+  const { api } = await withDraft(t);
+  await api("/api/contacts/1/touch", "POST", { kind: "video", game: "good-box", date: "2026-10-01" });
+  await api("/api/drafts/1/send", "POST");
+  await api("/api/contacts/1/touch", "POST", { kind: "reply", game: "good-box", date: "2026-11-30" });
+  const h = await api("/api/contacts/1/history");
+  assert.equal(h.status, 200);
+  assert.deepEqual(h.body.map(e => [e.date, e.kind, e.game, e.note]), [
+    ["2026-11-30", "reply", "good-box", ""],
+    ["2026-11-20", "mail", "good-box", "Good Box for Ada"],
+    ["2026-10-01", "video", "good-box", ""],
+  ]);
+  assert.equal((await api("/api/contacts/1")).body.last, "2026-11-30");
+  assert.equal((await api("/api/contacts/9/history")).status, 404);
+});

@@ -47,3 +47,24 @@ test("an empty channel list and no About show plain text and an add row", () => 
   assert.match(html, /placeholder="Who they are and what they cover\."/);
   assert.doesNotMatch(html, /doit /);
 });
+
+test("the pane lists history in date order with a sent draft and shows Last contact; the list row carries it too", async () => {
+  const { listPane } = await import("../web/marketingView.js");
+  const c = { id: 4, name: "Cy", types: ["press"], topic: "", email: "", reach: null, genres: [], about: "", notes: "", status: "active", next: "", due: false, channels: [], fit: [], last: "2026-10-05",
+    touches: [{ date: "2026-10-05", kind: "mail", game: "good-box", note: "Hello" }] };
+  const log = [
+    { date: "2026-11-02", kind: "reply", game: "good-box", note: "Re: Hello", draft: false },
+    { date: "2026-10-20", kind: "mail", game: "bunny-bunker", note: "Demo", draft: true },
+    { date: "2026-10-05", kind: "mail", game: "good-box", note: "Hello", draft: false },
+  ];
+  const html = detailPane(c, [], false, "2026-11-21", log);
+  assert.ok(html.indexOf("2026-11-02") < html.indexOf("2026-10-20") && html.indexOf("2026-10-20") < html.indexOf("2026-10-05"));
+  assert.match(html, /bunny-bunker · Demo <span class="pill" title="A draft sent from Doit">sent draft/);
+  assert.match(html, /<dt>Last contact<\/dt><dd>2026-11-02<\/dd>/, "the pane takes the newest of touches and drafts");
+  assert.match(html, /History<span[^>]*> · 3</);
+  assert.match(detailPane(c, [], false, "2026-11-21"), /<dt>Last contact<\/dt><dd>2026-10-05<\/dd>/, "before the history loads, the touches' own date");
+  assert.match(detailPane({ ...c, last: "", touches: [] }, [], false, "2026-11-21", []), /No contact yet: no mail, reply or video is logged/);
+  const row = listPane([c], null);
+  assert.match(row, /class="pill mono" title="Last contact 2026-10-05: [^"]*">last 2026-10-05</);
+  assert.doesNotMatch(listPane([{ ...c, last: "" }], null), /last 20/);
+});

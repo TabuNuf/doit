@@ -108,6 +108,14 @@ export function byReach(a, b) {
   return (b.reach ?? -1) - (a.reach ?? -1) || a.name.localeCompare(b.name);
 }
 
+/** A contact's history, newest first: every touch and every sent draft ({sentAt, game, subject}). A sent draft that its send already logged as a touch (same day, game and subject) shows once. */
+export function historyOf(touches, sentDrafts) {
+  const day = d => String(d.sentAt).slice(0, 10);
+  const logged = d => touches.some(t => t.kind === "mail" && t.date === day(d) && t.game === d.game && t.note === d.subject);
+  const drafts = sentDrafts.filter(d => !logged(d)).map(d => ({ date: day(d), kind: "mail", game: d.game, note: d.subject, draft: true }));
+  return [...touches.map(t => ({ ...t, draft: false })), ...drafts].sort((a, b) => b.date.localeCompare(a.date));
+}
+
 /** The newest touch date, or "" when there is none. */
 export function lastContact(touches) {
   return touches.reduce((best, t) => (t.date > best ? t.date : best), "");

@@ -6,6 +6,7 @@ export function mailRoutes(mailroom) {
     ["GET", /^\/api\/drafts$/, q => mailroom.drafts({ state: q.get("state") || undefined })],
     ["GET", /^\/api\/drafts\/([^/]+)$/, (q, b, m) => mailroom.getDraft(m[1])],
     ["PATCH", /^\/api\/drafts\/([^/]+)$/, (q, b, m) => mailroom.edit(m[1], { subject: b.subject, body: b.body, personal: b.personal })],
+    ["GET", /^\/api\/contacts\/([^/]+)\/history$/, (q, b, m) => mailroom.history(m[1])],
     ["POST", /^\/api\/drafts\/([^/]+)\/send$/, (q, b, m) => mailroom.approveAndSend(m[1])],
     ["DELETE", /^\/api\/drafts\/([^/]+)$/, (q, b, m) => { mailroom.discard(m[1]); return {}; }],
     ["POST", /^\/api\/mail\/sweep$/, () => mailroom.sweep()],

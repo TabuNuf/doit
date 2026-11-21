@@ -261,3 +261,9 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mk-status { font-size: 12px; margin-bottom: 8px; }
 /* The game or podcast picker that leads the Marketing top bar. */
 .mk-pick { font: inherit; font-size: 13px; padding: 3px 8px; border: 1px solid var(--accent); border-radius: 2px; background: var(--panel); color: var(--ink); max-width: 220px; }
+.detail .spec, .detail .desc-view { font-size: 1em; max-width: none; }
+.detail .spec p, .detail .desc-view p { margin: 0 0 .6em; }
+.detail .desc-view { min-height: 2em; padding: 6px 8px; border: 1px solid transparent; border-radius: 2px; cursor: text; }
+.detail .desc-view:hover { border-color: var(--line); }
+.detail h2 code, .row .title code { font-size: .9em; }
+.detail .sect button { margin-left: 8px; font-size: 11px; text-transform: none; letter-spacing: 0; padding: 0 6px; }

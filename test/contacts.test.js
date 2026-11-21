@@ -122,3 +122,22 @@ test("genres: set as tags without repeats, filtered without case, listed", () =>
   assert.deepEqual(b.genres(), ["horror", "Indie", "Puzzle"]);
   assert.equal(b.get(1).last, "");
 });
+
+test("history: touches and sent drafts newest first, a draft its send already logged shows once", async () => {
+  const { historyOf, lastContact } = await import("../src/domain/contacts.js");
+  const touches = [
+    { date: "2026-11-02", kind: "reply", game: "good-box", note: "Re: hi" },
+    { date: "2026-10-05", kind: "mail", game: "good-box", note: "Hello" },
+  ];
+  const drafts = [
+    { sentAt: "2026-10-05T09:00:00", game: "good-box", subject: "Hello" },
+    { sentAt: "2026-10-20T09:00:00", game: "bunny-bunker", subject: "Demo" },
+  ];
+  assert.deepEqual(historyOf(touches, drafts).map(h => [h.date, h.kind, h.game, h.note, h.draft]), [
+    ["2026-11-02", "reply", "good-box", "Re: hi", false],
+    ["2026-10-20", "mail", "bunny-bunker", "Demo", true],
+    ["2026-10-05", "mail", "good-box", "Hello", false],
+  ]);
+  assert.equal(lastContact(touches), "2026-11-02");
+  assert.equal(lastContact([]), "");
+});

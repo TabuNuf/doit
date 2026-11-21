@@ -5,6 +5,7 @@
 // account (async read() -> {address, name, password, dailyCap} | null), sender (async send(account, {from, to, text}) ->
 // {ok, error?}), mailbox (async session(account, fn) -> {ok, value} | {ok: false, error}), a clock and a random id function.
 
+import { historyOf } from "./contacts.js";
 import { MailError, parseTemplate, fillTemplate, makeDraft, editDraft, approveDraft, markSent, markFailed, composeMail } from "./mail.js";
 
 const MARKETING = "Marketing";
@@ -44,6 +45,12 @@ export class Mailroom {
 
   /** Newest first; `state` and `contact` are optional filters. */
   drafts({ state, contact } = {}) { return this.store.all({ state: state || undefined, contact }).map(d => this.#view(d)); }
+
+  /** A contact's history, newest first: its touches and its sent drafts, each {date, kind, game, note, draft}. */
+  history(contact) {
+    const c = this.book.get(contact);
+    return historyOf(c.touches, this.store.all({ state: "sent", contact: c.id }));
+  }
 
   getDraft(id) { return this.#view(this.#get(id)); }
 
