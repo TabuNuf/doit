@@ -54,5 +54,5 @@ export function makeServer(options = {}) {
   const board = makeBoard({ ...options, log });
   const home = options.home ?? dataDir();
   const changes = new ChangeWatcher(new SettingsFile(home), new EpicWorktrees(), home);
-  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home, board }), new ClaudeView(board, log, options.now), changes);
+  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home, board }), new ClaudeView(board, log, options.now), changes, makeContacts({ ...options, home }));
 }
