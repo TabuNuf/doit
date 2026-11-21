@@ -1,6 +1,6 @@
 # EPIC-017: Live updates
 
-Status: Planned
+Status: Active
 Goal: A change Claude or Tabu makes anywhere shows on the open page within about a second, with no refresh.
 Design: Design.md, section Tasks (Live updates)
 
