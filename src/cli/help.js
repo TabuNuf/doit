@@ -5,7 +5,7 @@ export const HELP = `doit: the task board, from the command line. Every command 
   doit projects                                   list projects
   doit project add <name> <folder> [--docs Docs]  register a project (creates folders it lacks)
   doit project set <id> kind=game|application|podcast   what the project is (kind= clears it); Marketing offers games, applications and podcasts
-  doit project set <id> marketed=yes|no                 no: keep the kind but leave Marketing (picker, + Campaign, Overview, fit)
+  doit project set <id> marketed=yes|no                 no: keep the kind but leave Marketing (+ Campaign, For lists, Overview, fit)
   doit epics <project>                            open epics with done/total
   doit epic add <project> <name> [--status Planned|Active|Parked]
   doit epic close <project> <EPIC-nnn>            archive the epic's task files, set it Done, move it to Completed/
