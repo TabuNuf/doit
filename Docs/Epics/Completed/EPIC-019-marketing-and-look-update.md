@@ -1,6 +1,7 @@
 # EPIC-019: Marketing and look update
 
-Status: Active
+Status: Done
+Closed: 2026-11-21
 Goal: The logo shows in the board and on the launcher, the Claude badge says what it counts, and the Marketing view is picked per game with Campaigns first and real contacts in it.
 Design: Design.md, sections Look, Claude view, Docs and Marketing
 Source: Tabu's walkthrough recording of 2026-11-21 (Bandicam_20261121_101006)
