@@ -2,7 +2,7 @@
 // which tasks cite a document, not the files. Pure: the DocsSource port does the I/O.
 //
 // The source it is given provides, per project id and docs-relative path:
-//   tree(project) -> nested {type, name, path, children?} nodes
+//   tree(project) -> nested {type, name, path, children?, folded?} nodes
 //   read(project, path) -> text | null, write(project, path, text),
 //   lastChange(project, path) -> {author, date} | null
 

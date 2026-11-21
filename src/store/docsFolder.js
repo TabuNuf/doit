@@ -6,13 +6,13 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { DocsError } from "../domain/docs.js";
 
-// Epics have their own list in the left pane, so their folder is not a doc folder.
-const LEFT_OUT = new Set(["Archive", "Epics", "Standard"]);
+const LEFT_OUT = new Set(["Archive", "Epics/Tasks", "Standard"]);
+const FOLDED = new Set(["Epics/Completed"]);
 
 export class DocsFiles {
   constructor(settingsFile) { this.settingsFile = settingsFile; }
 
-  /** Nested folders and .md files: folders first, then by name with numbers in order. */
+  /** Nested folders and .md files: folders first, then by name with numbers in order; folded ones are listed but closed. */
   tree(projectId) {
     const { root } = this.#project(projectId);
     const walk = rel => {
@@ -23,7 +23,7 @@ export class DocsFiles {
         if (e.isDirectory()) {
           if (LEFT_OUT.has(p)) continue;
           const children = walk(p);
-          if (children.length) folders.push({ type: "folder", name: e.name, path: p, children });
+          if (children.length || FOLDED.has(p)) folders.push({ type: "folder", name: e.name, path: p, ...(FOLDED.has(p) ? { folded: true } : {}), children });
         } else if (e.isFile() && e.name.endsWith(".md")) files.push({ type: "file", name: e.name, path: p });
       }
       // Numbers compare as numbers, so release folders read 0.8, 0.9, 0.10.

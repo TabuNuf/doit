@@ -51,12 +51,16 @@ test("paths outside the docs folder or not Markdown are refused", async t => {
   assert.equal(checkDocPath("Specs//Net.md"), "Specs/Net.md");
 });
 
-test("the tree leaves out Archive, Epics, Standard and hidden folders", async t => {
+test("the tree leaves out Archive, Epics/Tasks, Standard and hidden folders, and folds Epics/Completed", async t => {
   const s = await docsSetup(t);
   const { status, body } = await s.api("/api/docs/tree?project=game");
   assert.equal(status, 200);
-  assert.deepEqual(body.map(n => n.name), ["Specs", "Design.md"]);
-  assert.deepEqual(body[0].children.map(n => n.path), ["Specs/Net.md"]);
+  assert.deepEqual(body.map(n => n.name), ["Epics", "Specs", "Design.md"]);
+  const epics = body[0];
+  assert.deepEqual(epics.children.map(n => n.name), ["Completed", "Parked", "EPIC-009-bugs.md", "EPIC-014-online-lobby.md"]);
+  assert.equal(epics.children.find(n => n.name === "Completed").folded, true);
+  assert.ok(!epics.children.some(n => n.name === "Tasks"));
+  assert.deepEqual(body[1].children.map(n => n.path), ["Specs/Net.md"]);
 });
 
 test("lastChange reads author and date from git, and is null outside git", async t => {
