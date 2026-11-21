@@ -1,6 +1,7 @@
 # EPIC-014: Festivals
 
-Status: Active
+Status: Done
+Closed: 2026-11-21
 Goal: Tabu sees the festivals, events and conferences that fit each game, with their deadlines, and never the ones that do not.
 Design: Design.md, section Marketing (step 4)
 
