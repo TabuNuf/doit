@@ -4,9 +4,9 @@
 import { mapStreamers } from "../domain/contactImport.js";
 
 const USAGE = {
-  contacts: "doit contacts [--type t] [--fits <game>] [--status s] [--due] [--reach C+] [--json] | doit contacts import <file>",
+  contacts: "doit contacts [--type t] [--fits <game>] [--status s] [--due] [--reach <n>] [--json] | doit contacts import <file>",
   show: "doit contact show <id> [--json]",
-  add: "doit contact add <name> --type a,b [--email] [--reach A-E] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]",
+  add: "doit contact add <name> --type a,b [--email] [--reach <followers>] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]",
   set: "doit contact set <id> key=value ...   keys: name types topic email reach notes status next channels",
   fit: "doit fit <id> <game> <reason>",
   touch: "doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]",
@@ -111,5 +111,5 @@ export class ContactsCli {
 function line(c) {
   const next = c.next ? `${c.due ? "due" : "next"} ${c.next}` : "-";
   const fits = c.fit.length ? `  fits ${c.fit.map(f => f.game).join(", ")}` : "";
-  return `${c.id}  ${c.name}  ${c.types.join("+")}  ${c.reach || "-"}  ${c.status}  ${next}${fits}`;
+  return `${c.id}  ${c.name}  ${c.types.join("+")}  ${c.reach ?? "-"}  ${c.status}  ${next}${fits}`;
 }

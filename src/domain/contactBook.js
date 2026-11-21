@@ -104,7 +104,7 @@ export class ContactBook {
     const have = new Set(known.channels.map(c => linkKey(c.url)));
     const more = (row.channels ?? []).filter(c => !have.has(linkKey(c.url)));
     this.source.update(id, makeContact({
-      ...fields, name: row.name, email: row.email || known.email, reach: row.reach || known.reach,
+      ...fields, name: row.name, email: row.email || known.email, reach: row.reach ?? known.reach,
       notes: row.notes || known.notes, types: [...new Set([...known.types, ...row.types])], channels: [...known.channels, ...more],
     }));
     return id;

@@ -50,7 +50,7 @@ export function detailPane(c, profiles, touchOpen, now) {
     <dl class="kv">
       <dt>Status</dt><dd><select id="mk-status" aria-label="Status">${STATUSES.map(s => opt(s, s, c.status)).join("")}</select></dd>
       <dt>Next contact</dt><dd><input type="date" id="mk-next" value="${esc(c.next)}" aria-label="Next contact date">${c.due ? ` <span class="pill due late">due</span>` : ""}</dd>
-      <dt>Reach</dt><dd>${esc(c.reach || "-")}</dd>
+      <dt>Reach</dt><dd><input type="number" id="mk-reach-n" min="0" step="1" value="${esc(c.reach ?? "")}" aria-label="Reach in followers" placeholder="-"></dd>
       <dt>Email</dt><dd>${c.email ? esc(c.email) : "-"}</dd>
     </dl>
     <div class="sect">Channels</div>${channels(c.channels)}
@@ -65,6 +65,7 @@ export function editRequest(el, c) {
   const path = `/api/contacts/${encodeURIComponent(c.id)}`;
   if (el.id === "mk-status" && el.value !== c.status) return { method: "PATCH", path, body: { status: el.value } };
   if (el.id === "mk-next" && el.value !== c.next) return { method: "PATCH", path, body: { next: el.value } };
+  if (el.id === "mk-reach-n" && (el.value === "" ? null : Number(el.value)) !== c.reach) return { method: "PATCH", path, body: { reach: el.value === "" ? null : Number(el.value) } };
   if (el.id === "mk-notes" && el.value !== c.notes) return { method: "PATCH", path, body: { notes: el.value } };
   return null;
 }

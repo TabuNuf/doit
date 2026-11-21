@@ -10,7 +10,7 @@ const VERSION = 1;
 const SCHEMA = `
   CREATE TABLE contacts (
     id INTEGER PRIMARY KEY, name TEXT NOT NULL, types TEXT NOT NULL, topic TEXT NOT NULL DEFAULT '',
-    email TEXT NOT NULL DEFAULT '', reach TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '', reach INTEGER, notes TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'active', next TEXT NOT NULL DEFAULT ''
   );
   CREATE TABLE channels (

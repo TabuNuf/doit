@@ -23,6 +23,12 @@ export const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;"
 export const keyOf = t => `${t.project}/${t.id}`;
 export const today = () => new Date().toISOString().slice(0, 10);
 export const daysLeft = d => Math.round((Date.parse(d) - Date.parse(today())) / 864e5);
+/** A follower count in few characters: 950, 12k, 1.3M; "" when empty. */
+export const compactCount = n => {
+  if (n === null || n === undefined) return "";
+  const f = (v, u) => (v >= 10 ? String(Math.round(v)) : String(Math.round(v * 10) / 10)) + u;
+  return n >= 1e6 ? f(n / 1e6, "M") : n >= 1e3 ? f(n / 1e3, "k") : String(n);
+};
 export const fmtDate = d => new Date(d.slice(0, 10) + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 export const tabOf = st => (st === "done" || st === "archived") ? st : "open";
 export const secOf = st => st === "backlog" ? "backlog" : "active";

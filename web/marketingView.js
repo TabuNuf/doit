@@ -1,13 +1,13 @@
 // The Marketing view: filters, the contacts list (due ones on top) and the selected contact's detail.
 // The server filters and ranks; the page sends the filters and keeps due contacts above the rest.
 
-import { S, $, esc, api, redraw, toast, today, fmtDate } from "./state.js";
+import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail.js";
 
 export const TYPES = ["influencer", "blogger", "press", "publisher", "tester", "festival", "conference"];
-export const REACH_OPTIONS = [["", "Any reach"], ["A", "A"], ["B+", "B and larger"], ["C+", "C and larger"], ["D+", "D and larger"], ["E+", "E and larger"]];
+export const REACH_OPTIONS = [["", "Any"], ["100", "100"], ["1000", "1 000"], ["10000", "10 000"], ["100000", "100 000"]];
 
-/** The list request for the chosen filters; `+` in a reach is encoded. */
+/** The list request for the chosen filters. */
 export function contactPath(f) {
   const q = new URLSearchParams();
   if (f.game) q.set("fits", f.game);
@@ -27,7 +27,7 @@ export function filterPane(f, profiles) {
   return `<section class="pane" aria-label="Filters"><div class="pane-h">Filters</div><div class="pane-b form mk-filters">
     ${select("mk-game", "Game", [any("Any game"), ...profiles.map(p => [p.game, p.name || p.game])], f.game)}
     ${select("mk-type", "Type", [any("Any type"), ...TYPES.map(t => [t, t])], f.type)}
-    ${select("mk-reach", "Reach", REACH_OPTIONS, f.reach)}
+    ${select("mk-reach", "Reach at least", REACH_OPTIONS, f.reach)}
     ${select("mk-fstatus", "Status", [any("Any status"), ...STATUSES.map(s => [s, s])], f.status)}
     <button data-mk-clear>Clear filters</button></div></section>`;
 }
@@ -36,7 +36,7 @@ export function contactRow(c, sel) {
   const next = c.next ? `<span class="pill due ${c.due ? "late" : ""}" title="Next contact ${esc(c.next)}">${c.due ? "due " : ""}${esc(fmtDate(c.next))}</span>` : "";
   return `<button class="mk-row" data-contact="${esc(c.id)}" aria-pressed="${String(sel) === String(c.id)}">
     <span class="title">${esc(c.name)}</span>
-    <span class="pills">${c.types.map(t => `<span class="pill">${esc(t)}</span>`).join("")}${c.reach ? `<span class="pill mono" title="Reach">${esc(c.reach)}</span>` : ""}<span class="pill${c.status === "active" ? "" : " ai"}">${esc(c.status)}</span>${next}</span></button>`;
+    <span class="pills">${c.types.map(t => `<span class="pill">${esc(t)}</span>`).join("")}${c.reach !== null && c.reach !== undefined ? `<span class="pill mono" title="Reach ${esc(c.reach)}">${esc(compactCount(c.reach))}</span>` : ""}<span class="pill${c.status === "active" ? "" : " ai"}">${esc(c.status)}</span>${next}</span></button>`;
 }
 
 /** The list column: a Due group when any contact is due, then the rest. */

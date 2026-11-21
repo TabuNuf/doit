@@ -25,7 +25,7 @@ Design: Design.md, section Marketing (steps 1 and 2)
 - [x] T-012.7 Server: `/api/contacts` routes for list with filters, show, update, fit and touch, and `/api/profiles` (done when: server tests cover each route and a refused value returns 400)
 - [x] T-012.8 Web: a Marketing view beside Board, Docs and Claude: contacts list with filters for game, type, reach and status, due contacts on top (done when: web tests render the list from a fixture; the view shows in the app with filters working)
 - [x] T-012.9 Web: contact detail pane: channels as links, fit per game with reason, touches newest first, edit status, next contact date and notes, add a touch (done when: web tests cover the edits; a status change in the app persists after reload)
-- [ ] T-012.10 Reach as a number: the A to E bands go; reach is a follower count in domain, store, import, CLI (--reach <n> means at least n), server and web (a Reach at least filter, the count on rows and detail, editable in the detail pane) (done when: tests refuse a negative or non-number reach, filter by at least n, sort largest first with unknown last, and import a count as is and a band letter into notes; no A to E left in src or web)
+- [x] T-012.10 Reach as a number: the A to E bands go; reach is a follower count in domain, store, import, CLI (--reach <n> means at least n), server and web (a Reach at least filter, the count on rows and detail, editable in the detail pane) (done when: tests refuse a negative or non-number reach, filter by at least n, sort largest first with unknown last, and import a count as is and a band letter into notes; no A to E left in src or web)
 
 ## Test plan
 
@@ -43,6 +43,7 @@ Design: Design.md, section Marketing (steps 1 and 2)
 
 Decisions and deviations, newest first.
 
+- T-012.10: a reach cell reads as a count when it is digits with space or comma thousands separators, or a number with k or M ("12k", "1.2M"); anything else (a band letter) leaves reach empty and adds `Sheet reach: <cell>` to the notes. A re-import with an empty notes cell keeps the old notes, so an old `Sheet reach:` line stays when the sheet later gives a count. The reach filter takes the same number formats; an empty filter is no filter. The schema stays at version 1, changed in place.
 - 2026-11-21: reach is a follower count, not a band (Design.md Changelog). T-012.10 replaces the bands in domain, store, import, CLI, server and web; the T-012.2, .5, .6 and .8 notes on bands are history.
 
 - T-012.9: fit is shown per game with its reason but not edited on the page (the plan asks for display only); a touch's game picker lists the profiles. Channel urls link only as http(s) (a bare host gets https://); other schemes show as text.

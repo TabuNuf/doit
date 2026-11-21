@@ -1,6 +1,6 @@
 // The sheet import, pure: CSV text in, contact rows out. The New Streamers tab is the first source.
 
-import { REACH, CHANNEL_KINDS } from "./contacts.js";
+import { CHANNEL_KINDS } from "./contacts.js";
 
 /** CSV text to rows of cells: quotes, doubled quotes, commas and newlines inside quotes, CRLF, a leading BOM. */
 export function parseCsv(input) {
@@ -48,12 +48,12 @@ export function channelKind(url) {
   return hit || "website";
 }
 
-/** A reach cell: a band letter, or a follower count mapped through the band floors; "" when below the smallest band. */
+/** A reach cell as a count: "12400", "12,400", "12 400", "12k", "1.2M"; null for empty or anything that is not a count (a letter). */
 export function reachOf(cell) {
-  const s = cell.trim().toUpperCase();
-  if (REACH.some(r => r.band === s)) return s;
-  const n = Number(s.replace(/[\s,]/g, "").replace(/K$/, "000"));
-  return REACH.find(r => n > r.over)?.band || "";
+  const m = String(cell).trim().replace(/(\d)[ ,](?=\d{3}\b)/g, "$1").match(/^(\d+(?:\.\d+)?)\s*([kKmM]?)$/);
+  if (!m) return null;
+  const n = Math.round(Number(m[1]) * ({ k: 1e3, m: 1e6 }[m[2].toLowerCase()] || 1));
+  return Number.isSafeInteger(n) ? n : null;
 }
 
 const YES = new Set(["yes", "y", "x", "true", "1", "✓"]);
@@ -71,9 +71,11 @@ export function mapStreamers(text) {
     const touches = [];
     if (YES.has((f.replied || "").toLowerCase())) touches.push({ kind: "reply", date: when });
     if (YES.has((f.video || "").toLowerCase())) touches.push({ kind: "video", date: when });
-    const notes = [f.notes, f.genre && `Genre: ${f.genre}`, f.platform && `Platform: ${f.platform}`].filter(Boolean).join("\n");
+    const reach = reachOf(f.reach || "");
+    const sheetReach = reach === null && f.reach ? `Sheet reach: ${f.reach}` : "";
+    const notes = [f.notes, sheetReach, f.genre && `Genre: ${f.genre}`, f.platform && `Platform: ${f.platform}`].filter(Boolean).join("\n");
     return {
-      name: f.name || "", email: f.email || "", reach: reachOf(f.reach || ""), notes,
+      name: f.name || "", email: f.email || "", reach, notes,
       types: ["influencer"], channels: urls.map(url => ({ kind: channelKind(url), url })), touches,
     };
   });

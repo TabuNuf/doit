@@ -9,7 +9,7 @@ import { ContactBook } from "../src/domain/contactBook.js";
 function home() { return path.join(fs.mkdtempSync(path.join(os.tmpdir(), "doit-contacts-")), "home"); }
 
 const ADA = {
-  name: "Ada Plays", types: ["influencer", "blogger"], topic: "", email: "ada@example.test", reach: "B", notes: "Likes co-op.\nSecond line.",
+  name: "Ada Plays", types: ["influencer", "blogger"], topic: "", email: "ada@example.test", reach: 12400, notes: "Likes co-op.\nSecond line.",
   status: "active", next: "2026-12-01",
   channels: [{ kind: "youtube", url: "https://youtube.example.test/ada" }, { kind: "bluesky", url: "https://bsky.example.test/ada" }],
 };

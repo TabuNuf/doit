@@ -2,10 +2,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const contact = (id, over = {}) => ({ id, name: `Person ${id}`, types: ["influencer"], topic: "", email: "", reach: "C", notes: "", status: "active", next: "", due: false, channels: [], fit: [], touches: [], ...over });
+const contact = (id, over = {}) => ({ id, name: `Person ${id}`, types: ["influencer"], topic: "", email: "", reach: 2500, notes: "", status: "active", next: "", due: false, channels: [], fit: [], touches: [], ...over });
 const FIXTURE = [
-  contact(1, { name: "Quiet One", reach: "A" }),
-  contact(2, { name: "Overdue <b>", reach: "D", next: "2026-01-02", due: true, types: ["press", "blogger"] }),
+  contact(1, { name: "Quiet One", reach: 20000 }),
+  contact(2, { name: "Overdue <b>", reach: 950, next: "2026-01-02", due: true, types: ["press", "blogger"] }),
   contact(3, { name: "Asleep", status: "dormant" }),
 ];
 
@@ -24,17 +24,17 @@ test("the list puts due contacts first and marks them", async () => {
 test("a row shows name, types, reach, status and next date", async () => {
   const { contactRow, listPane } = await import("../web/marketingView.js");
   const html = contactRow(FIXTURE[1], null);
-  for (const s of ["press", "blogger", ">D<", ">active<", "2 Jan"]) assert.ok(html.includes(s), s);
+  for (const s of ["press", "blogger", ">950<", ">active<", "2 Jan"]) assert.ok(html.includes(s), s);
   assert.match(listPane([], null), /No contact matches/);
 });
 
-test("filters become query parameters, with a reach plus encoded", async () => {
+test("filters become query parameters, with a reach count", async () => {
   const { contactPath, filterPane } = await import("../web/marketingView.js");
   assert.equal(contactPath({ game: "", type: "", reach: "", status: "" }), "/api/contacts");
-  assert.equal(contactPath({ game: "storm-haven", type: "press", reach: "C+", status: "active" }), "/api/contacts?fits=storm-haven&type=press&reach=C%2B&status=active");
-  const html = filterPane({ game: "storm-haven", type: "", reach: "C+", status: "" }, [{ game: "storm-haven", name: "Storm Haven" }]);
+  assert.equal(contactPath({ game: "storm-haven", type: "press", reach: "1000", status: "active" }), "/api/contacts?fits=storm-haven&type=press&reach=1000&status=active");
+  const html = filterPane({ game: "storm-haven", type: "", reach: "1000", status: "" }, [{ game: "storm-haven", name: "Storm Haven" }]);
   assert.match(html, /<option value="storm-haven" selected>Storm Haven/);
-  assert.match(html, /<option value="C\+" selected>C and larger/);
+  assert.match(html, /<option value="1000" selected>1 000/);
 });
 
 test("the detail pane shows channels as safe links, fit with reason, and touches in the order given", async () => {
