@@ -107,6 +107,8 @@ When sitting down for outreach the order is festivals first, then people, then c
 4. **Festivals and conferences.** Contacts of type festival or conference with dates, application deadline, cost, criteria (genre, required stage such as a demo or unreleased game) and a watching state, so they come and go without being deleted. Only those matching a game profile show. Sources: Steam, Epic, GOG and itch event pages and howtomarketagame.com/festivals, gathered by a scheduled Claude task rather than code in the app.
 5. **Campaigns.** A campaign is an epic in the Polyspice Marketing project with a `Game:` line naming its profile, optionally tied to a festival or a release (Bunny Bunker at Next Fest). Its tasks point at contacts.
 
+**The Marketing top bar.** In the Marketing view the project chips and the Projects menu are gone, since contacts, drafts and festivals belong to no project. In their place are Marketing's own tabs: Contacts, Drafts, and each later part as it is built (Festivals, Campaigns). The Board, Docs and Claude views keep the projects.
+
 Left out: following people on social media to answer their posts. The platforms' APIs are closed or unstable; a recurring "check these people" task stands in for it.
 
 **Open questions.**
@@ -177,3 +179,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-21, EPIC-012: the CLI gets the contact commands (`contacts`, `contacts import`, `contact show|add|set`, `fit`, `touch`, `profiles`).
 - 2026-11-21, EPIC-012: reach is a follower count instead of the sheet's A to E band; Claude collects the counts while researching, which makes a band's manual estimate unnecessary.
 - 2026-11-21, EPIC-013: mail details decided: settings key `mail`, Keychain service `doit-mail`, a template is `Templates/<name>.md` in the marketing project (first line `Subject:`, placeholders `{{name}}`, `{{personal}}`, `{{game}}`), drafts live in `marketing.db` (schema version 2, touches gain note and ref).
+- 2026-11-21, EPIC-014: in the Marketing view the top bar shows Marketing's tabs (Contacts, Drafts, Festivals, Campaigns) instead of the projects (section Marketing).
