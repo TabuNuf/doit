@@ -1,6 +1,7 @@
 # EPIC-015: Campaigns
 
-Status: Active
+Status: Done
+Closed: 2026-11-21
 Goal: A campaign (a release, Next Fest, a festival) turns into a short list of contacts and steps, and each week Doit tells Tabu the few things to do for it.
 Design: Design.md, section Marketing (step 5)
 
@@ -30,10 +31,14 @@ Design: Design.md, section Marketing (step 5)
 ## Check in play
 
 - T-015.5: make a campaign for one game, Add contacts, tick one task and see the touch on the contact; read This week.
+- T-015.5: the This week pane at a narrow window width (checked in tests and at desktop width only).
 
 ## Notes
 
 Decisions and deviations, newest first.
+
+- Close: the standard pulled at activation (f16132b3) builds an epic on main with no worktree, so EPIC-015 was built on main; the project CLAUDE.md follows it. Checked in a throwaway data folder on port 4399: `campaign add`, Add contacts made one task per fitting contact, the task row shows the contact's name and opens This week, a tick logged one mail touch and a re-tick none. The pane's narrow-screen layout was not checked.
+- T-015.6: found in the in-app check: after Add contacts the epic document kept its old Tasks list until reloaded. It is read again after the post.
 
 - T-015.5: `POST /api/campaigns/:project/:epic/contacts` answers `{refs}`. The page reads contact names through the new `web/contactNames.js` (one `/api/contacts` fetch, ids shown until it lands). The This week pane spans the top of the panes grid (CSS `:has`, max height 200 px); it reloads with the Marketing view and a failed `/api/outreach` leaves it on Loading. `render.js` exports `rowHtml` for the test.
 
@@ -46,4 +51,12 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+Diff read from 5fc172a^ to 3db5c80 against Architecture.md, Core/03-Design.md and the boundaries. Audit tests 246 of 246.
+
+- Fix now: Add contacts left the epic document stale (T-015.6, fixed). No boundary broken: domain stays pure, Board tells Outreach only plain facts through `subscribe`, wired in the root; the class diagram names `DoneNotifier`, `taskLoader`, `Outreach`, `OutreachPlan`, `CampaignCli` and `OutreachRoutes`.
+- Fix before release: `Outreach.taskDone` swallows every `addTouch` error by retrying without the game (EPIC-018, T-018.1). `Board` sits at 245 of its 250 lines and `Cli` at 253 (EPIC-018, T-018.2).
+- Deliberate: none.
+
 ## For the standard
+
+Nothing new: a side effect across facades through plain facts wired in the root is already the rule in Core/03-Design.md. The build-on-main change came from the standard itself.
