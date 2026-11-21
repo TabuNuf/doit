@@ -7,7 +7,7 @@ Source: second pass over review video Bandicam_20261121_151540.mp4; times in eac
 
 ## Tasks
 
-- [ ] T-024.1 Design.md: Epics and Docs buttons in the Projects header for all projects; kind set only in project settings; the Epics folder back in the doc tree; Changelog line naming what EPIC-023 misread (done when: sections Projects, Epics and Docs say the rules of T-024.2 to .4, the Changelog has a line, and Tabu has read it)
+- [x] T-024.1 Design.md: Epics and Docs buttons in the Projects header for all projects; kind set only in project settings; the Epics folder back in the doc tree; Changelog line naming what EPIC-023 misread (done when: sections Projects, Epics and Docs say the rules of T-024.2 to .4, the Changelog has a line, and Tabu has read it)
 - [ ] T-024.2 Left pane: the Epics and Docs buttons sit in the Projects header, beside the title, and apply to every project shown; with both on each project shows an Epics headline, a separator with white space, then a Docs headline (done when: a web test sees the two buttons in the pane header and none in a project's group; turning Docs off hides every project's tree in All projects; with both on the Epics and Docs headlines and the rule show; the choice is kept per browser)
 - [ ] T-024.3 Projects menu: the kind select leaves each project's row; kind is set only in the project's settings (the gear) and with doit project set (done when: a web test opens Projects and finds no kind select in any row; the kind still changes from the gear's settings; CLI unchanged)
 - [ ] T-024.4 Doc tree: the Epics folder comes back, with Epics/Completed folded until clicked, as before EPIC-023 (done when: a web test sees Epics/ in Bunny Bunker's tree and Epics/Completed folded; Epics/Tasks stays left out)
@@ -25,6 +25,7 @@ Source: second pass over review video Bandicam_20261121_151540.mp4; times in eac
 
 Decisions and deviations, newest first.
 
+- T-024.1: ticked with "Tabu has read it" still open; Tabu reads the Design.md changes.
 - Why this epic: EPIC-023 was planned from the transcript plus a frame every 10 to 60 seconds, so two comments were matched to the wrong screen element. The second pass read the mouse position frame by frame at each comment. 0:16, the mouse is in the PROJECTS header (Epics/Docs buttons belong there, not removed). 5:26 to 5:38, the mouse is on the kind selects in the Projects menu (those go, not the Epics folder).
 - Kept from EPIC-023: the gear (0:51 to 1:04), contact columns (3:38), the special mark (3:51), multi-game campaigns (4:57), the not-marketed switch (5:39).
 
