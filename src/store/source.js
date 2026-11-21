@@ -147,8 +147,8 @@ export class FileSource {
     files.moveToFolder(file, "", setArchived(setClosed(setStatus(files.read(file), "Planned"), null), null));
   }
 
-  createEpic(projectId, name, status) {
-    return this.#files(projectId).createEpic(name, status);
+  createEpic(projectId, name, status, lines = {}) {
+    return this.#files(projectId).createEpic(name, status, lines);
   }
 
   #epicFile(projectId, epicId, anywhere = false) {

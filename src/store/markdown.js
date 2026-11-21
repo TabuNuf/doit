@@ -1,12 +1,16 @@
 // Epic files and task files as text. Pure: text in, values out, and back.
 
 const LINE = /^- \[( |x|X)\] (T-\d+\.\d+) (.*?)(?: \(done when: (.*)\))?\s*$/;
-const FIELDS = ["state", "owner", "type", "rank", "deadline", "created", "updated", "completed", "source", "archived", "blocks"];
+const FIELDS = ["state", "owner", "type", "rank", "deadline", "created", "updated", "completed", "source", "archived", "blocks", "contact"];
 
 export function parseEpic(text) {
   const head = /^# (EPIC-\d+):\s*(.*)$/m.exec(text);
   if (!head) return null;
   const status = /^Status:\s*(\w+)/m.exec(text);
+  // A campaign's Game: and Event: lines sit in the header, above the first section.
+  const header = text.split(/^## /m)[0];
+  const game = /^Game:[ \t]*(.+?)\s*$/m.exec(header);
+  const event = /^Event:[ \t]*(.+?)\s*$/m.exec(header);
   const lines = [];
   for (const raw of text.split("\n")) {
     const m = LINE.exec(raw);
@@ -15,7 +19,7 @@ export function parseEpic(text) {
   }
   const archivedOn = /^Archived:\s*(\d{4}-\d{2}-\d{2})/m.exec(text);
   const closed = /^Closed:\s*(\d{4}-\d{2}-\d{2})/m.exec(text);
-  return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", closed: closed ? closed[1] : null, archivedOn: archivedOn ? archivedOn[1] : null, lines };
+  return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", closed: closed ? closed[1] : null, archivedOn: archivedOn ? archivedOn[1] : null, game: game ? game[1] : null, event: event ? event[1] : null, lines };
 }
 
 /** Writes `Closed: <date>` on the line under Status, replacing an earlier one; a null date removes it. */
@@ -71,11 +75,13 @@ export function appendLine(text, line) {
   return rows.join("\n");
 }
 
-export function epicTemplate(id, name, status) {
+/** `extra` may carry `game` and `event`: the campaign lines written under Status. */
+export function epicTemplate(id, name, status, extra = {}) {
+  const campaign = (extra.game ? `Game: ${extra.game}\n` : "") + (extra.event ? `Event: ${extra.event}\n` : "");
   return `# ${id}: ${name}
 
 Status: ${status}
-Goal: <one sentence, the outcome for the user>
+${campaign}Goal: <one sentence, the outcome for the user>
 Design: Design.md, section <name>
 
 ## Tasks
@@ -103,7 +109,7 @@ export function parseTaskFile(text) {
       if (i < 0) continue;
       const key = row.slice(0, i).trim(), value = row.slice(i + 1).trim();
       if (!FIELDS.includes(key) || value === "") continue;
-      fields[key] = key === "rank" ? Number(value) : value;
+      fields[key] = key === "rank" || key === "contact" ? Number(value) : value;
     }
   }
   const desc = /## Description\n([\s\S]*?)(?=\n## Comments|$)/.exec(body);

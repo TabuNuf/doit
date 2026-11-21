@@ -57,6 +57,7 @@ export function defaultsFor(epic, line) {
     completed: null,
     source: null,
     blocks: null,
+    contact: null,
     archived: line.ticked ? "Finished before Doit tracked it" : null,
     description: "",
     comments: [],
@@ -76,6 +77,7 @@ export function makeTask(projectId, epic, line, file) {
     doneWhen: line.doneWhen,
     ticked: line.ticked,
     hasFile: Boolean(file),
+    game: epic.game ?? null,
     ...fields,
   };
 }
@@ -99,4 +101,12 @@ export function check(allowed, value, name) {
 
 export function oneLine(s) {
   return String(s || "").replace(/\s+/g, " ").trim();
+}
+
+/** A contact id: a whole number from 1, or empty (null). */
+export function checkContact(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  if (!Number.isInteger(n) || n < 1) throw new Error(`Contact must be a whole-number contact id: ${value}`);
+  return n;
 }

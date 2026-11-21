@@ -60,11 +60,11 @@ export class ProjectFiles {
     return (nums.length ? Math.max(...nums) : 0) + 1;
   }
 
-  createEpic(name, status) {
+  createEpic(name, status, lines = {}) {
     const id = "EPIC-" + String(this.nextEpicNumber()).padStart(3, "0");
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "epic";
     const dir = status === "Parked" ? path.join(this.epics, "Parked") : this.epics;
-    this.write(path.join(dir, `${id}-${slug}.md`), epicTemplate(id, name, status));
+    this.write(path.join(dir, `${id}-${slug}.md`), epicTemplate(id, name, status, lines));
     return id;
   }
 

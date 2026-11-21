@@ -4,30 +4,37 @@
 //   projects(), addProject({name, path, docs}), setStarred(projectId, bool) (a star pins it to the page's top bar), settings(), saveSettings(partial),
 //   load(projectId, {archived}) -> {epics, files: Map<id, fields>, archivedIds: Set<id>},
 //   epicDocument(projectId, epicId) -> {id, name, status, completed, text} | null,
-//   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status) -> epicId,
+//   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status, {game, event}) -> epicId (the campaign lines are optional),
 //   closedEpics(projectId) -> [{id, name, status, closed, done, total}] for Epics/Completed/, closed "YYYY-MM-DD" or null,
 //   completeEpic(projectId, epicId, closed, archived) sets the epic Done, writes its close date (and archive date) and files it as completed,
 //   parkEpic(projectId, epicId), reopenEpic(projectId, epicId) (Planned, in Epics/, no Closed/Archived lines),
 //   setEpicArchived(projectId, epicId, date|null) on a completed epic; load() epics carry completed, parked, archivedOn
+// `subscribe(listener)`: a listener gets a plain fact when a task with a contact is done (the root hands it to Outreach).
 // `record(ref, what)` is told every change to a task in words (the activity log); the root hands it in.
 
-import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask, matchesState, check, oneLine } from "./task.js";
+import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask, matchesState, check, checkContact, oneLine } from "./task.js";
 import { archiveReason, epicArchived, byRank, stamp, DEFAULT_KEEP_DAYS } from "./rules.js";
 import { TaskMover } from "./mover.js";
 import { EpicMoves } from "./epicMoves.js";
 import { describeChanges } from "./activity.js";
+import { loadTasks } from "./taskLoader.js";
+import { DoneNotifier } from "./doneNotifier.js";
 
 export class Board {
   constructor(source, now = () => new Date(), record = () => {}) {
     this.source = source;
     this.now = now;
     this.record = record;
+    this.done = new DoneNotifier();
     this.mover = new TaskMover();
     this.moves = new EpicMoves(source, now, (task, what) => this.#write(task, what));
   }
 
   projects() { return this.source.projects(); }
   starProject(id, starred) { this.#requireProject(id); return this.source.setStarred(id, Boolean(starred)); }
+
+  /** Calls the listener with a plain fact when a task with a contact is done; returns the unsubscribe. */
+  subscribe(listener) { return this.done.subscribe(listener); }
 
   settings() { return { keepCompletedDays: DEFAULT_KEEP_DAYS, ...this.source.settings() }; }
 
@@ -92,7 +99,7 @@ export class Board {
     for (const id of ids) {
       for (const e of this.source.closedEpics(id)) closedEpics.push({ project: id, ...e, archived: !!e.archivedOn || epicArchived(e.closed, today, keep) });
       const loaded = this.#load(id, archived);
-      for (const e of loaded.epics.filter(x => !x.completed)) (e.parked ? parkedEpics : epics).push({ project: id, id: e.id, name: e.name, status: e.status, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
+      for (const e of loaded.epics.filter(x => !x.completed)) (e.parked ? parkedEpics : epics).push({ project: id, id: e.id, name: e.name, status: e.status, game: e.game ?? null, event: e.event ?? null, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
       tasks.push(...loaded.tasks.filter(t => archived || t.state !== "archived"));
     }
     tasks.sort(byRank);
@@ -118,8 +125,9 @@ export class Board {
     return task;
   }
 
-  addTask({ project, epic, title, owner = "ai", type = "task", doneWhen = "", deadline = null, state = "todo", description = "", source = null }) {
+  addTask({ project, epic, title, owner = "ai", type = "task", doneWhen = "", deadline = null, state = "todo", description = "", source = null, contact = null }) {
     this.#requireProject(project);
+    const contactId = checkContact(contact);
     if (!title || !title.trim()) throw new Error("A task needs a title");
     check(OWNERS, owner, "owner"); check(TYPES, type, "type"); check(STATES, state, "state");
     const loaded = this.#load(project, true);
@@ -132,7 +140,7 @@ export class Board {
     const ranks = loaded.tasks.filter(t => tabOf(t.state) === "open" && sectionOf(t.state) === sectionOf(state)).map(t => t.rank);
     const now = stamp(this.now());
     const task = makeTask(project, e, line, {
-      state, owner, type, deadline: deadline || null, description, source,
+      state, owner, type, deadline: deadline || null, description, source, contact: contactId,
       rank: (ranks.length ? Math.max(...ranks) : 0) + 1000, created: now, updated: now,
     });
     this.#write(task, `added (${owner}, ${state})`);
@@ -160,6 +168,7 @@ export class Board {
           if (value && !/^T-\d+\.\d+$/.test(value)) throw new Error("Blocks must name a task, like T-014.3");
           task.blocks = value || null;
           break;
+        case "contact": task.contact = checkContact(value); break;
         case "title": if (!String(value).trim()) throw new Error("A task needs a title"); task.title = oneLine(value); break;
         case "doneWhen": task.doneWhen = oneLine(value); break;
         case "description": task.description = String(value); break;
@@ -169,6 +178,7 @@ export class Board {
     task.updated = now;
     task.created ||= now;
     this.#write(task, describeChanges(before, task));
+    if (task.state === "done" && before.state !== "done") this.done.announce(task, now);
     return task;
   }
 
@@ -191,11 +201,13 @@ export class Board {
     return task;
   }
 
-  addEpic(project, name, status = "Planned") {
+  /** `options` is a status, or {status, game, event} for a campaign. */
+  addEpic(project, name, options = "Planned") {
+    const { status = "Planned", game = null, event = null } = typeof options === "string" ? { status: options } : options;
     this.#requireProject(project);
     if (!name || !name.trim()) throw new Error("An epic needs a name");
     check(["Parked", "Planned", "Active"], status, "status");
-    return this.source.createEpic(project, name.trim(), status);
+    return this.source.createEpic(project, name.trim(), status, { game, event });
   }
 
   #changeState(task, state, now) {
@@ -219,22 +231,7 @@ export class Board {
     if (what) this.record(`${task.project}/${task.id}`, what);
   }
 
-  #load(projectId, archived) {
-    const { epics, files, archivedIds } = this.source.load(projectId, { archived });
-    const tasks = [];
-    for (const epic of epics) {
-      for (const line of epic.lines) {
-        if (!archived && archivedIds.has(line.id)) continue;
-        // A closed epic's tasks show until archived, but only those Doit tracks with a file.
-        if (!archived && epic.completed && !files.has(line.id)) continue;
-        const task = makeTask(projectId, epic, line, files.get(line.id) || null);
-        // The Archive/ folder decides: a file moved there by hand still says its old state.
-        if (archivedIds.has(line.id) && task.state !== "archived") { task.state = "archived"; task.archived ||= "Moved to the archive"; }
-        tasks.push(task);
-      }
-    }
-    return { epics, tasks };
-  }
+  #load(projectId, archived) { return loadTasks(this.source, projectId, archived); }
 
   #projectIds(project) {
     if (project === "all") return this.projects().map(p => p.id);
