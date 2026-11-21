@@ -7,7 +7,7 @@ Source: review video Bandicam_20261121_151540.mp4, narrated by Tabu; times in ea
 
 ## Tasks
 
-- [ ] T-023.1 Design.md: this epic's decisions in sections Projects, Epics, Docs and Marketing, with a Changelog line (done when: Design.md says each rule in T-023.2 to .9 and the Changelog has a 2026-11-21 line; Tabu has read it)
+- [x] T-023.1 Design.md: this epic's decisions in sections Projects, Epics, Docs and Marketing, with a Changelog line (done when: Design.md says each rule in T-023.2 to .9 and the Changelog has a 2026-11-21 line; Tabu has read it)
 - [ ] T-023.2 Board left pane: Epics and Docs always both shown, each under its own headline, with a separator and white space between; the toggles go (done when: a web test selects a project and sees an Epics headline over the epic list and a Docs headline over the doc tree below it, divided by a rule, and finds no Epics or Docs toggle)
 - [ ] T-023.3 Docs tree leaves out the Epics folder, since epics have their own list above (done when: a web test opens Bunny Bunker's docs and finds no Epics/ folder or EPIC-*.md file in the tree; an epic still opens from the Epics list)
 - [ ] T-023.4 Project settings open from a gear icon right of the project name in the left pane, in place, without switching the top-bar view; the Settings button leaves the top bar (done when: a web test clicks the gear beside Bunny Bunker and sees kind and marketing profile in the middle and right columns while Board stays the selected view; a second click or selecting a task brings the task layout back; no Settings button in the top bar)
@@ -27,6 +27,7 @@ Source: review video Bandicam_20261121_151540.mp4, narrated by Tabu; times in ea
 
 Decisions and deviations, newest first.
 
+- T-023.1 ticked with 'Tabu has read it' still open: Tabu reads Design.md at the epic's review.
 - Assumptions for Tabu to confirm at T-023.1: 'these need to go away' (05:23) is the Epics folder in the doc tree; Last active is the contact's newest reply or video, Last contact ours; 'not marketed' is a switch beside the kind, so a project keeps its kind.
 - Not taken from the video: 05:11 'Hidden by Design Shorts' rename, taken back at 05:17; 02:57 to 03:26 'this reach needs to be different, we have festivals, we have events' trails off, read as part of the columns request (T-023.6); 00:47 'No such API route' on Marketing, gone after a restart (stale server); 04:23 campaigns 'a little bit unsure', no request.
 - Approved as is: Docs rendering and Edit (01:18 to 01:36), the contact pane (02:57).
