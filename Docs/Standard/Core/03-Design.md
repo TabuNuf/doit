@@ -107,6 +107,15 @@ Why: a coupling review in Box Trainer found each of these, and an epic removed t
 - **Every enum a table must cover has a coverage test.** For each enum whose members need a row elsewhere (a name, an icon, a voice line, a cost), a test walks the members and fails on a missing one, with an explicit list of members that need none and the reason. Check it by adding a probe member and watching it fail.
   Why: in Box Trainer a ground kind added to its enum alone compiled, showed no name and was priced as free ground, and no test failed.
 
+## Interface
+
+The stack layer says where each piece lives and which test holds it (Unity: `Unity/01-UI.md`; apps: `App/README.md`, Styling).
+
+- **Colours are tokens in two tiers: a palette named for the colour, and roles named for the use.** A palette token holds the literal (`--teal-700: #1f5c5a`); a role points at one (`--color-accent: var(--teal-700)`). Every rule outside the token file uses roles only. Sizes, type and spacing stay one tier of steps (`--space-md`), since their names already say the use.
+  Why: with one tier, a token's name had to be either the value or the use. Named for the use, changing the palette meant editing every literal; named for the value, a restyle meant renaming across sheets. With roles over a palette, a palette change or a second theme (high contrast, colour-blind) redefines roles in one file. Decided by `<Designer>`, 2026-11-21.
+- **Every component and every shared look is shown in one gallery, in each of its variants and states.** A new component, variant or state goes into the gallery in the task that adds it, and a test fails on one the gallery leaves out.
+  Why: a component was seen only where some screen used it, in the one state that screen's sample showed, so the set could not be reviewed as a set or picked from before writing a new block. Decided by `<Designer>`, 2026-11-21.
+
 ## Code
 
 - Comments state intent, one or two lines. Never restate the code.

@@ -32,6 +32,8 @@ Why: three Core rules read literally would fight most app frameworks. Decided by
 
 - **Every colour in a stylesheet is a token, defined for light and for dark; a test fails on a literal colour outside the token blocks.** Component rules use `var(--name)` only, and a script that sets colours picks from the same tokens.
   Why: a literal colour in a component rule looks right in the theme it was written in and wrong in the other, and nothing fails. Doit's restyle found seven such literals, among them the bug and task dots and the white text on warnings; a 30-line test reading the stylesheet now catches the next one.
+- **The light and dark blocks redefine roles, never the palette** (`Core/03-Design.md`, Interface). The palette is defined once; each theme block points the roles at it.
+  Why: two themes are the second tier's first use, and a theme block that wrote literals would be the one-tier file again.
 
 ## Pages over local files
 
@@ -74,7 +76,8 @@ Each item becomes a rule here, with its why, or a line in that project's `Deviat
 3. **The worktree tool.** `git worktree add` may be enough; an app with local servers or ports may need a script like `Unity/Starter/Tools/Worktree/worktree.py`.
 4. **The build agent's commands.** `Starter/.claude/agents/batch-builder.md` has placeholders for the build and the test of one file or suite; what the first project fills in, and any tool the agent turns out to need, comes back here.
 5. **Release and deploy.** How a version is built, checked and shipped (`Core/02-Working.md`, Versions and releases, holds the version rules).
-6. **The rest of a Starter.** It holds only the build agent today; code and config the next app should copy on day one go beside it.
+6. **Where the gallery lives** (`Core/03-Design.md`, Interface): a page of the app that shows every component in each state, and the test that holds it to the component list.
+7. **The rest of a Starter.** It holds only the build agent today; code and config the next app should copy on day one go beside it.
 
 ## Decided so far
 
