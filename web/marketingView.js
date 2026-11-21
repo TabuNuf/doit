@@ -50,8 +50,16 @@ export function listPane(contacts, sel, draftCount = null) {
   return `<section class="pane" aria-label="Contacts"><div class="pane-h">Contacts<span class="c">${contacts.length}</span><button data-mk-pane="drafts" class="pane-close">Drafts${draftCount === null ? "" : ` (${draftCount})`}</button></div><div class="pane-b">${body}</div></section>`;
 }
 
+export const MK_TABS = [["contacts", "Contacts"], ["drafts", "Drafts"], ["festivals", "Festivals"]];
+
+/** Marketing's own tabs, shown in the top bar where the project chips are on the other views. */
+export function marketingTabs(pane) {
+  return MK_TABS.map(([id, label]) => `<button class="chip" data-mk-pane="${id}" aria-pressed="${pane === id}">${label}</button>`).join("");
+}
+
 export function marketingPanes() {
   const m = S.mk;
+  if (m.pane === "festivals") return `<section class="pane" aria-label="Festivals"><div class="pane-h">Festivals</div><div class="pane-b"><div class="empty">Festivals come next.</div></div></section>`;
   const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length);
   return filterPane(m.f, m.profiles) + middle + detailPane(m.detail, m.profiles, m.touchOpen, today());
 }

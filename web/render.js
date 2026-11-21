@@ -7,7 +7,7 @@ import { epicViewPane } from "./epicView.js";
 import { epicBtn, epicSections } from "./epicList.js";
 import { docsPanes } from "./docsView.js";
 import { claudePanes } from "./claudeView.js";
-import { marketingPanes } from "./marketingView.js";
+import { marketingPanes, marketingTabs } from "./marketingView.js";
 import { setLayout } from "./resize.js";
 
 /* ---------- Render ---------- */
@@ -30,7 +30,7 @@ function renderTop() {
   const badge = due ? `<span class="badge" title="Your tasks due within 7 days">${due}</span>` : "";
   $("#views").innerHTML = [["board", "Board", ""], ["docs", "Docs", ""], ["claude", "Claude", badge], ["marketing", "Marketing", ""]]
     .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${due} of your tasks due within 7 days"` : ""}>${l}${b}</button>`).join("");
-  $("#projects").innerHTML = projectBar();
+  $("#projects").innerHTML = S.view === "marketing" ? marketingTabs(S.mk.pane) : projectBar();
   $("#modal").innerHTML = S.newProj ? `<form class="form" id="np" aria-label="New project">
     <label for="np-name">Project name<input id="np-name" required placeholder="Storm Haven"></label>
     <label for="np-path">Folder<input id="np-path" required placeholder="~/Unity/Storm-Haven" style="width:240px"></label>
