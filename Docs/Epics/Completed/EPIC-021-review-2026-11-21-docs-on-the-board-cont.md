@@ -1,6 +1,7 @@
 # EPIC-021: Review 2026-11-21: docs on the board, contacts and marketing
 
-Status: Active
+Status: Done
+Closed: 2026-11-21
 Goal: Docs live in each project's board, every warning says how to fix it, contacts carry everything the sheet held and can be edited in the page, and Marketing works from projects rather than profiles.
 Design: Design.md, sections Docs, Claude view, Projects and Marketing (T-021.1 updates them first)
 Source: review video Bandicam_20261121_111550.mp4, narrated by Tabu; times in each task's description
