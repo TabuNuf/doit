@@ -33,6 +33,16 @@ export function profileTemplate(name, kind = "game") {
   return `# ${name}\n\nKind: ${kind}\nGenres: \nPlatforms: \nStage: in development\nRelease: \nNeeds: \n`;
 }
 
+/** The profile text with each `Key: value` line set (added at the end when missing); every other line stays as it was. */
+export function applyProfile(text, values) {
+  let out = text.endsWith("\n") || !text ? text : text + "\n";
+  for (const [key, value] of Object.entries(values)) {
+    const line = new RegExp(`^${key}:.*$`, "im");
+    out = line.test(out) ? out.replace(line, () => `${key}: ${value}`) : `${out}${key}: ${value}\n`;
+  }
+  return out;
+}
+
 export class ProfileShelf {
   constructor(settingsFile) { this.settingsFile = settingsFile; }
 
@@ -67,6 +77,20 @@ export class ProfileShelf {
     if (fs.existsSync(file)) throw new ContactError(`${projectId} already has a profile: ${file}`);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, profileTemplate(p.name, kind));
+    return { ...parseProfile(p.id, fs.readFileSync(file, "utf8")), project: p.id, file };
+  }
+
+  /** Sets the profile fields of a project that has a kind, creating `<docs>/Marketing/Profile.md` from the template when missing.
+   *  `fields` has genres, platforms, needs (arrays), stage and release; other content of an existing file stays. */
+  save(projectId, fields) {
+    const p = this.settingsFile.read().projects.find(x => x.id === projectId);
+    if (!p) throw new ContactError(`No project ${projectId}`);
+    if (!p.kind) throw new ContactError(`${projectId} has no kind: set its kind first, a profile belongs to a game, application or podcast`);
+    const file = path.join(p.path, p.docs, OWN);
+    const text = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : profileTemplate(p.name, p.kind);
+    const f = fields;
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, applyProfile(text, { Kind: p.kind, Genres: f.genres.join(", "), Platforms: f.platforms.join(", "), Stage: f.stage, Release: f.release, Needs: f.needs.join(", ") }));
     return { ...parseProfile(p.id, fs.readFileSync(file, "utf8")), project: p.id, file };
   }
 

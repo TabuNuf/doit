@@ -13,7 +13,7 @@ export function contactLine(c, sel) {
 
 export function festivalLine(f, sel) {
   const left = f.daysLeft === 0 ? "today" : `${f.daysLeft} days left`;
-  return `<button class="mk-row" data-contact="${esc(f.id)}" data-mk-to="festivals" aria-pressed="${String(sel) === String(f.id)}"><span class="title">${esc(f.name)} ${esc(f.year)}</span>
+  return `<button class="mk-row" data-contact="${esc(f.id)}" data-mk-to="${f.platform ? "events" : "festivals"}" aria-pressed="${String(sel) === String(f.id)}"><span class="title">${esc(f.name)} ${esc(f.year)}</span>
     <span class="pills"><span class="pill mono due">${esc(fmtDate(f.deadline))} · ${left}</span>${f.games.map(g => `<span class="pill">${esc(g)}</span>`).join("")}</span></button>`;
 }
 

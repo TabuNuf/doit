@@ -1,7 +1,7 @@
 // The contact routes of the JSON API, as [method, pattern, handler] rows for HttpServer.
 // A refused value reaches the client as a ContactError: 400 for the value, 404 for a missing contact.
 
-const FIELDS = ["name", "types", "topic", "email", "reach", "genres", "about", "notes", "status", "next", "channels"];
+const FIELDS = ["name", "types", "topic", "email", "reach", "genres", "about", "notes", "status", "next", "channels", "event"];
 const on = v => v === "1" || v === "true";
 
 export function contactRoutes(book) {
@@ -16,5 +16,6 @@ export function contactRoutes(book) {
     ["POST", /^\/api\/contacts\/([^/]+)\/fit$/, (q, b, m) => book.setFit(m[1], b.game, b.reason)],
     ["POST", /^\/api\/contacts\/([^/]+)\/touch$/, (q, b, m) => book.addTouch(m[1], { kind: b.kind, game: b.game, date: b.date })],
     ["GET", /^\/api\/profiles$/, () => book.profiles()],
+    ["PUT", /^\/api\/projects\/([^/]+)\/profile$/, (q, b, m) => book.saveProfile(m[1], b)],
   ];
 }

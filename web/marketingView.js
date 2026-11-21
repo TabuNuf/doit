@@ -6,9 +6,11 @@ import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail
 import { channelRemove, channelAdd } from "./contactChannels.js";
 import { lastPill } from "./contactHistory.js";
 import { festivalPath, eventsInfoPane, festivalsPane } from "./festivalsPane.js";
+import { eventPane, eventEditRequest } from "./eventDetail.js";
 import { overviewPanes } from "./weekPane.js";
-import { campaignsFor, profilePane, campaignsPane } from "./campaignsPane.js";
+import { campaignsFor, profilePane, campaignsPane, campaignForm, campaignRequest } from "./campaignsPane.js";
 import { openEpic } from "./epicView.js";
+import { openSettingsFor } from "./projectSettings.js";
 import { draftsPane, draftEditRequest, sendQuestion, sweepSummary } from "./draftsPane.js";
 
 /** The types a person or outlet has; festivals and conferences have their own tabs. */
@@ -68,12 +70,12 @@ export function listPane(contacts, sel, draftCount = null, game = null, filtered
 }
 
 export const MK_TABS = [["campaigns", "Campaigns"], ["contacts", "Contacts"], ["festivals", "Festivals"], ["events", "Events"], ["drafts", "Drafts"], ["overview", "Overview"]];
-/** The event type each event tab lists. */
-const EVENT_TAB = { festivals: "festival", events: "conference" };
+/** The `platform` each event tab asks for: Events are the store events (Steam, Epic, GOG, itch), Festivals every other. */
+const EVENT_TAB = { festivals: "0", events: "1" };
 
 /** The picker: the profiles, grouped as games, applications and podcasts. */
 export function gamePicker(game, profiles) {
-  const opt = p => `<option value="${esc(p.game)}" ${p.game === game ? "selected" : ""}>${esc(p.name || p.game)}${p.missing ? " (no profile)" : ""}</option>`;
+  const opt = p => `<option value="${esc(p.game)}" ${p.game === game ? "selected" : ""}>${esc(p.name || p.game)}</option>`;
   const group = (label, kind) => { const ps = profiles.filter(p => (p.kind || "game") === kind); return ps.length ? `<optgroup label="${label}">${ps.map(opt).join("")}</optgroup>` : ""; };
   return `<select id="mk-pick" class="mk-pick" aria-label="Game or podcast" title="The game, application or podcast every tab shows"><option value="">Any game or podcast</option>${group("Games", "game")}${group("Applications", "application")}${group("Podcasts", "podcast")}</select>`;
 }
@@ -87,8 +89,8 @@ export function marketingPanes() {
   const m = S.mk;
   const detail = () => detailPane(m.detail, m.profiles, m.touchOpen, today(), m.history);
   if (m.pane === "overview") return overviewPanes(m.week, m.sel, m.game);
-  if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game)) + detail();
-  if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + detail(); }
+  if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game), m.newCampaign ? campaignForm(m.profiles, m.game, m.events) : "") + detail();
+  if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + eventPane(m.detail && m.detail.event ? m.detail : null, title === "Events" ? "Event" : "Festival"); }
   const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length, pickedGame(m), Object.values(m.f).some(Boolean));
   return filterPane(m.f, m.genres) + middle + detail();
 }
@@ -153,6 +155,8 @@ export function marketingClick(d) {
   const m = S.mk;
   if (d.taskContact) { S.view = "marketing"; m.pane = "contacts"; m.sel = d.taskContact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
   if (d.contact) { if (d.mkTo) m.pane = d.mkTo; m.sel = d.contact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
+  if (d.mkSettings) { openSettingsFor(d.mkSettings); return true; }
+  if ("mkNewcamp" in d) { m.newCampaign = !m.newCampaign; if (m.newCampaign) openCampaignForm(); else redraw(); return true; }
   if (d.mkPane) { m.pane = d.mkPane; m.fest = null; redraw(); refreshMarketing(); return true; }
   if (d.campaign) { S.view = "board"; S.project = d.campaign.split("/")[0]; S.tab = "open"; openEpic(d.campaign); return true; }
   if (d.mkSend) { sendDraft(d.mkSend); return true; }
@@ -192,9 +196,10 @@ export function marketingChange(ev) {
   if (FILTERS[el.id]) { S.mk.f[FILTERS[el.id]] = el.value; refreshMarketing(); return true; }
   const dr = draftEditRequest(el, S.mk.drafts);
   if (dr) { saveDraft(dr); return true; }
-  const req = S.view === "marketing" && S.mk.detail && el.id !== "mk-notes" && el.id !== "mk-about" && editRequest(el, S.mk.detail);
+  const d = S.view === "marketing" && S.mk.detail;
+  const req = d && (el.id.startsWith("ev-") ? d.event && eventEditRequest(el, d) : el.id !== "mk-notes" && el.id !== "mk-about" && editRequest(el, d));
   if (req) send(req);
-  return Boolean(req) || el.id.startsWith("mk-");
+  return Boolean(req) || el.id.startsWith("mk-") || el.id.startsWith("ev-");
 }
 
 /** Notes and About save when the field loses focus; true when the event was one of them. */
@@ -205,8 +210,22 @@ export function marketingFocusOut(ev) {
   return true;
 }
 
+/** Opens the + Campaign form once the open events it offers are loaded. */
+async function openCampaignForm() {
+  try { S.mk.events = await api("GET", "/api/festivals"); } catch (e) { toast(e.message); }
+  redraw(); $("#mk-cp-name")?.focus();
+}
+
+/** Starts the campaign: the request, then the list with the new one on it. */
+async function startCampaign() {
+  const req = campaignRequest({ project: $("#mk-cp-project").value, name: $("#mk-cp-name").value, event: $("#mk-cp-event").value });
+  try { await api(req.method, req.path, req.body); S.mk.newCampaign = false; S.mk.game = $("#mk-cp-project").value; } catch (e) { toast(e.message); }
+  return refreshMarketing();
+}
+
 /** The add-touch form; true when the form was this one. */
 export function marketingSubmit(f) {
+  if (f.id === "mk-campaign") { startCampaign(); return true; }
   if (f.id !== "mk-touch" || !S.mk.detail) return false;
   send(touchRequest(S.mk.detail, { kind: $("#mk-tk-kind").value, game: $("#mk-tk-game").value, date: $("#mk-tk-date").value }, today()));
   return true;

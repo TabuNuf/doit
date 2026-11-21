@@ -49,3 +49,15 @@ export function daysLeft(date, today) {
   if (!date) return null;
   return Math.round((Date.parse(date + "T00:00:00Z") - Date.parse(today + "T00:00:00Z")) / 86400000);
 }
+
+const PLATFORM_WHERES = ["steam", "epic", "gog", "itch"];
+/** True for an event run by a store (Steam, Epic, GOG, itch): the Events tab; every other festival or conference is under Festivals. */
+export const isPlatformEvent = event => PLATFORM_WHERES.includes(event?.where);
+
+/** The profile fields from input: lists trimmed (an array or a comma separated string), a known stage, a date or none. */
+export function checkProfile(input = {}) {
+  const list = v => [...new Set((Array.isArray(v) ? v : String(v ?? "").split(",")).map(s => String(s).trim()).filter(Boolean))];
+  const stage = String(input.stage ?? "").trim().toLowerCase();
+  if (!GAME_STAGES.includes(stage)) throw new ContactError(`Unknown stage "${input.stage ?? ""}"; use ${GAME_STAGES.join(", ")}`);
+  return { genres: list(input.genres), platforms: list(input.platforms), needs: list(input.needs), stage, release: input.release ? checkDate(input.release, "Release date") : "" };
+}

@@ -32,7 +32,7 @@ export function draftCard(d) {
 
 /** The pane: a switch back to the contacts, the status line, the sweep result and the drafts. */
 export function draftsPane(drafts, status, sweepLine) {
-  const body = !drafts ? `<div class="empty">Loading…</div>` : drafts.length ? drafts.map(draftCard).join("") : `<div class="empty">No drafts. Claude writes them with <span class="mono">doit draft add</span>.</div>`;
+  const body = !drafts ? `<div class="empty">Loading…</div>` : drafts.length ? drafts.map(draftCard).join("") : `<div class="empty">No drafts yet. Claude writes mail drafts here for you to read, approve and send; none are waiting.</div>`;
   return `<section class="pane" aria-label="Drafts"><div class="pane-h">Drafts<span class="c">${drafts ? drafts.length : ""}</span><button data-mk-pane="contacts" class="pane-close">Contacts</button></div>
     <div class="pane-b"><div class="muted mk-status">${statusLine(status)}</div>${sweepLine ? `<div class="muted mk-status">${esc(sweepLine)}</div>` : ""}${body}</div></section>`;
 }

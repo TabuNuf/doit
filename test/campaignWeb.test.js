@@ -96,9 +96,9 @@ test("the Campaigns tab shows the picked game's profile and its campaign epics, 
   assert.match(campaignsPane([]), /No campaign/);
   const profiles = [{ game: "box-trainer", name: "Box Trainer", kind: "game", stage: "demo", release: "", genres: ["puzzle"], platforms: [], needs: ["wishlists"], project: "box-trainer" }];
   assert.match(profilePane("box-trainer", profiles), /<h2>Box Trainer<\/h2>.*puzzle.*wishlists.*Marketing\/Profile\.md/s);
-  assert.match(profilePane("", profiles), /Pick a game or podcast/);
-  assert.match(profilePane("", []), /doit profile add/);
-  assert.match(profilePane("doit", [{ game: "doit", name: "Doit", kind: "application", missing: true }]), /application.*No Marketing\/Profile\.md yet.*doit profile add doit/s);
+  assert.match(profilePane("", profiles), /Pick a game, application or podcast/);
+  assert.match(profilePane("", []), /No project has a kind yet/);
+  assert.match(profilePane("doit", [{ game: "doit", name: "Doit", kind: "application", missing: true }]), /application.*no marketing profile yet.*data-mk-settings="doit"/s);
 });
 
 test("an open campaign epic shows Add contacts; a plain or closed one does not", async () => {

@@ -35,7 +35,7 @@ export const HELP = `doit: the task board, from the command line. Every command 
   doit festival set <id> state=watching|applied|accepted|declined|past
 
   doit templates                                  the mail templates (Templates/ in the marketing docs)
-  doit campaign add <project> <name> --game <game> [--event <festival id|YYYY-MM-DD>]   a campaign epic (Active) for a game profile; prints its id
+  doit campaign add <project> <name> [--game <game>] [--event <festival id|YYYY-MM-DD>]   a campaign epic (Active) in the project for a game, application or podcast (the project itself when it has a kind, else --game names a profile); prints its id
   doit campaign contacts <project> <EPIC-nnn> [--limit n]   one "Reach out to" task per fitting contact (default 10), largest reach first
   doit outreach [--json]                          this week: contacts to reach, festival deadlines within 14 days, campaign steps
   doit draft add <contact id> --template <name> --game <game> --personal <text>   fill a template into a draft, print it

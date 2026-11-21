@@ -28,7 +28,8 @@ test("the Festivals pane lists days left, cost, state and the criteria-unknown m
   assert.match(eventsInfoPane("Festivals", "", []), /pick a game in the top bar/);
   assert.equal(festivalPath(""), "/api/festivals");
   assert.equal(festivalPath("good-box"), "/api/festivals?game=good-box");
-  assert.equal(festivalPath("good-box", "conference"), "/api/festivals?game=good-box&type=conference");
+  assert.equal(festivalPath("good-box", "1"), "/api/festivals?game=good-box&platform=1");
+  assert.equal(festivalPath("", "0"), "/api/festivals?platform=0");
 });
 
 test("GET /api/festivals matches a game by deadline and leaves out events past their deadline", async t => {

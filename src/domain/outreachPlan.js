@@ -1,6 +1,7 @@
 // The weekly outreach list and the contact pick for a campaign. Pure: today and every input are passed in.
 
 import { daysBetween } from "./rules.js";
+import { isPlatformEvent } from "./events.js";
 
 const open = t => t.state === "todo" || t.state === "progress";
 const reachOf = c => c.reach ?? 0;
@@ -23,7 +24,7 @@ export function planWeek({ contacts = [], festivals = [], tasks = [], today, cap
     contacts: out.slice(0, caps.contacts),
     festivals: festivals
       .filter(f => (!f.event.state || f.event.state === "watching") && f.event.deadline && f.games?.length)
-      .map(f => ({ id: f.id, name: f.name, year: f.event.year, deadline: f.event.deadline, daysLeft: daysBetween(today, f.event.deadline), games: f.games }))
+      .map(f => ({ id: f.id, name: f.name, year: f.event.year, deadline: f.event.deadline, daysLeft: daysBetween(today, f.event.deadline), games: f.games, platform: isPlatformEvent(f.event) }))
       .filter(f => f.daysLeft >= 0 && f.daysLeft <= window)
       .sort((a, b) => a.deadline.localeCompare(b.deadline) || a.name.localeCompare(b.name)),
     steps: campaign.filter(t => !t.contact).slice(0, caps.steps).map(t => ({ ref: `${t.project}/${t.id}`, title: t.title, game: t.game })),

@@ -25,9 +25,9 @@ export class Outreach {
     return planWeek({ contacts: this.book.list({}), festivals: [...festivals.values()], tasks, today: this.book.today() });
   }
 
-  /** A campaign epic for a game (a profile), optionally tied to a festival id or a date. Returns the epic id. */
-  addCampaign(project, name, { game, event } = {}) {
-    if (!this.book.profiles().some(p => p.game === game)) throw new Error(`No profile for game "${game ?? ""}"`);
+  /** A campaign epic in `project` for a game (a profile; by default the project itself, which needs a kind), optionally tied to a festival id or a date. Returns the epic id. */
+  addCampaign(project, name, { game = project, event } = {}) {
+    if (!this.book.profiles().some(p => p.game === game)) throw new Error(`No profile for game "${game}": a game, application or podcast is a project with a kind, or a profile file`);
     const when = event ? this.#checkEvent(String(event).trim()) : null;
     return this.board.addEpic(project, name, { status: "Active", game, event: when });
   }

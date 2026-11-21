@@ -1,13 +1,13 @@
-// The Festivals and Events tabs of the Marketing view: festivals or conferences that fit the picked game, by deadline.
+// The Festivals and Events tabs of the Marketing view: festivals, conferences and store events that fit the picked game, by deadline.
 // The server does the matching; the page shows what it sends.
 
 import { esc, fmtDate } from "./state.js";
 
-/** The list request: one game's matching events of a type (festival or conference), or every open one. */
-export function festivalPath(game, type = "") {
+/** The list request: one game's matching events, or every open one. `platform` "1" asks for the store events (Events tab), "0" for the rest (Festivals tab). */
+export function festivalPath(game, platform = "") {
   const q = new URLSearchParams();
   if (game) q.set("game", game);
-  if (type) q.set("type", type);
+  if (platform) q.set("platform", platform);
   const s = q.toString();
   return "/api/festivals" + (s ? "?" + s : "");
 }

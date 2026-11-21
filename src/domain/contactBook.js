@@ -9,7 +9,7 @@
 import { makeContact, contactFilter, byReach, isDue, checkDate, checkTouchKind, lastContact, genresOf, ContactError } from "./contacts.js";
 import { mapStreamers, mergeNotes } from "./contactImport.js";
 import { EventMatch } from "./eventMatch.js";
-import { daysLeft, checkWatchState, checkYear } from "./events.js";
+import { daysLeft, checkWatchState, checkYear, checkProfile, isPlatformEvent } from "./events.js";
 
 const day = d => {
   const p = n => String(n).padStart(2, "0");
@@ -82,6 +82,9 @@ export class ContactBook {
 
   profiles() { return this.shelf.list(); }
 
+  /** Saves the profile fields of a project with a kind (see `checkProfile`). */
+  saveProfile(project, input) { return this.shelf.save(project, checkProfile(input)); }
+
   /** A profile template in a project's own Marketing folder; `kind` defaults to the project's kind, else game. */
   addProfile(project, kind) { return this.shelf.createFor(project, kind); }
 
@@ -89,8 +92,9 @@ export class ContactBook {
    *  `state` keeps one watching state; by default the past ones are left out.
    *  `fits` (a game) keeps the events whose criteria match that game's profile, each with `match`, and drops those past their deadline.
    *  `type` keeps the events of that type (festival or conference).
+   *  `platform` true keeps the store events (where steam, epic, gog or itch), false every other one.
    *  `open` drops events past their deadline without a game (a game always does). `deadlineWithin` (days) keeps deadlines from today to that many days ahead. */
-  festivals({ fits, deadlineWithin, state, type, open = false } = {}) {
+  festivals({ fits, deadlineWithin, state, type, platform, open = false } = {}) {
     const today = this.today();
     const profile = fits ? this.shelf.list().find(p => p.game === String(fits).trim()) : null;
     if (fits && !profile) throw new ContactError(`No profile for game "${fits}"`);
@@ -101,6 +105,7 @@ export class ContactBook {
       .map(c => ({ ...c, due: isDue(c, today), daysLeft: daysLeft(c.event.deadline, today), match: profile ? this.matcher.check(profile, c) : null }))
       .filter(c => (want ? c.event.state === want : c.event.state !== "past")
         && (!type || c.types.includes(type))
+        && (platform === undefined || isPlatformEvent(c.event) === platform)
         && (!profile || c.match.match)
         && (!(profile || open) || c.daysLeft === null || c.daysLeft >= 0)
         && (within === null || (c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= within)))

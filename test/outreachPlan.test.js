@@ -37,7 +37,7 @@ test("festivals: the 14-day window includes today and day 14, not 15 or yesterda
     fest(6, "2026-11-22", { event: { year: 2027, deadline: "2026-11-22", state: "applied" } }), fest(7, "2026-11-21", { event: { year: 2027, deadline: "2026-11-21" } }), fest(8, "")];
   const out = plan({ festivals }).festivals;
   assert.deepEqual(out.map(f => f.id), [3, 7, 1]);
-  assert.deepEqual(out[2], { id: 1, name: "F1", year: 2027, deadline: "2026-12-04", daysLeft: 14, games: ["bb"] });
+  assert.deepEqual(out[2], { id: 1, name: "F1", year: 2027, deadline: "2026-12-04", daysLeft: 14, games: ["bb"], platform: false });
   assert.equal(out[0].daysLeft, 0);
 });
 

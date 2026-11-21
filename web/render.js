@@ -12,6 +12,9 @@ import { setLayout } from "./resize.js";
 import { contactButton, ensureContactNames } from "./contactNames.js";
 import { renderMarkdown, inline } from "./markdown.js";
 import { headline } from "./headline.js";
+import { PROJECT_KINDS, settingsButton, settingsShown, settingsHtml } from "./projectSettings.js";
+
+export { PROJECT_KINDS };
 
 /* ---------- Render ---------- */
 
@@ -25,6 +28,7 @@ export function render() {
   if (docLayout) { $("#panes").innerHTML = leftPane() + docsPanes(fontCtl()); return; }
   if (S.view === "claude") { $("#panes").innerHTML = claudePanes(); return; }
   if (S.view === "marketing") { $("#panes").innerHTML = marketingPanes(); return; }
+  if (settingsShown()) { $("#panes").innerHTML = leftPane() + settingsHtml(); return; }
   $("#panes").innerHTML = leftPane() + listPane() + detailPane();
   bindDrag();
   bindEpicDrag();
@@ -36,7 +40,8 @@ function renderTop() {
   const what = esc(`${due} of your tasks ${due === 1 ? "is" : "are"} due within 7 days. Finish or move the deadline of:\n${names}\nThe Claude view lists them under Waiting on you.`);
   const badge = due ? `<span class="badge" title="${what}">${due} due</span>` : "";
   $("#views").innerHTML = [["board", "Board", ""], ["claude", "Claude", badge], ["marketing", "Marketing", ""]]
-    .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${what.replace(/\n/g, " ")}"` : ""}>${l}${b}</button>`).join("");
+    .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${what.replace(/\n/g, " ")}"` : ""}>${l}${b}</button>`).join("")
+    + (S.view === "board" ? settingsButton(S.project, S.settings.open) : "");
   $("#projects").innerHTML = S.view === "marketing" ? marketingTabs(S.mk.pane, S.mk.game, S.mk.profiles) : projectBar();
   $("#modal").innerHTML = S.newProj ? `<form class="form" id="np" aria-label="New project">
     <label for="np-name">Project name<input id="np-name" required placeholder="Storm Haven"></label>
@@ -46,9 +51,6 @@ function renderTop() {
     <div class="muted" style="font-size:12px;width:100%">Creates Epics/, Epics/Tasks, Parked/ and Completed/ in the docs folder if they are missing, and a rolling bug epic when the project has no epics. Nothing existing is overwritten.</div>
     ${S.npErr ? `<div class="err">${esc(S.npErr)}</div>` : ""}</form>` : "";
 }
-
-/** What a project is, as the server accepts it; "" is no kind. */
-export const PROJECT_KINDS = [["", "no kind"], ["game", "game"], ["application", "application"], ["podcast", "podcast"]];
 
 /** The kind picker on a project's row in the Projects menu. */
 export const kindSelect = p => `<select class="kind" data-kind-of="${esc(p.id)}" aria-label="Kind of ${esc(p.name)}" title="What this project is; Marketing offers games, applications and podcasts">${PROJECT_KINDS.map(([v, l]) => `<option value="${v}" ${(p.kind || "") === v ? "selected" : ""}>${l}</option>`).join("")}</select>`;

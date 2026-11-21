@@ -26,7 +26,7 @@ test("the Marketing view shows its tabs where the other views show the projects"
   S.mk.profiles = [{ game: "box-trainer", name: "Box Trainer", kind: "game" }, { game: "doit", name: "Doit", kind: "application", missing: true, genres: [], platforms: [], needs: [] }, { game: "hbd", name: "Hidden by Design", kind: "podcast" }];
   S.mk.game = "hbd"; S.mk.pane = "campaigns";
   render();
-  assert.match(els.get("#projects").innerHTML, /<optgroup label="Games"><option value="box-trainer" >Box Trainer<\/option><\/optgroup><optgroup label="Applications"><option value="doit" >Doit \(no profile\)<\/option><\/optgroup><optgroup label="Podcasts"><option value="hbd" selected>Hidden by Design/);
+  assert.match(els.get("#projects").innerHTML, /<optgroup label="Games"><option value="box-trainer" >Box Trainer<\/option><\/optgroup><optgroup label="Applications"><option value="doit" >Doit<\/option><\/optgroup><optgroup label="Podcasts"><option value="hbd" selected>Hidden by Design/);
   S.mk.profiles = []; S.mk.game = "";
 
   for (const view of ["board", "claude"]) {

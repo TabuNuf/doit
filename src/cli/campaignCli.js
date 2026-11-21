@@ -1,7 +1,7 @@
 // The campaign and outreach commands of the doit CLI, over Outreach.
 
 const USAGE = {
-  add: "doit campaign add <project> <name> --game <game> [--event <festival id|YYYY-MM-DD>]",
+  add: "doit campaign add <project> <name> [--game <game>] [--event <festival id|YYYY-MM-DD>]",
   contacts: "doit campaign contacts <project> <EPIC-nnn> [--limit n]",
 };
 
@@ -17,7 +17,7 @@ export class CampaignCli {
   campaign(pos, flags) {
     const [sub, ...rest] = pos;
     if (sub === "add") {
-      const id = this.outreach.addCampaign(need(rest[0], USAGE.add), need(rest.slice(1).join(" "), USAGE.add), { game: need(flags.game, USAGE.add), event: flags.event });
+      const id = this.outreach.addCampaign(need(rest[0], USAGE.add), need(rest.slice(1).join(" "), USAGE.add), { game: flags.game, event: flags.event });
       return this.print(id);
     }
     if (sub === "contacts") {

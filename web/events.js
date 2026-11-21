@@ -8,6 +8,7 @@ import { openEpic, closeEpic, addContacts } from "./epicView.js";
 import { toggleFold } from "./epicList.js";
 import { docsClick, docsInput, docsLeave, refreshDocs } from "./docsView.js";
 import { claudeClick, refreshClaude } from "./claudeView.js";
+import { settingsClick, settingsChange, settingsSubmit } from "./projectSettings.js";
 import { marketingKey, marketingClick, marketingChange, marketingFocusOut, marketingSubmit, refreshMarketing, openMarketing } from "./marketingView.js";
 
 /** Loads what the current view shows beyond the board data. */
@@ -23,8 +24,9 @@ document.addEventListener("click", ev => {
   const d = b.dataset;
   const sel = () => task(S.sel);
   docsLeave(d);
+  if (d.id || d.cyc || d.reopen || d.openEpic || d.p || d.view || "clearEpic" in d) S.settings.open = false;
   if (d.view) { S.view = d.view; render(); return d.view === "marketing" ? openMarketing() : refreshView(); }
-  if (docsClick(d) || claudeClick(d) || marketingClick(d)) return;
+  if (docsClick(d) || claudeClick(d) || marketingClick(d) || settingsClick(d)) return;
   if ("projmenu" in d) { S.projOpen = !S.projOpen; return render(); }
   if (d.star) { const p = S.data.projects.find(x => x.id === d.star); return act(() => api("PATCH", `/api/projects/${encodeURIComponent(d.star)}`, { starred: !p.starred })); }
   if ("newproj" in d) { S.projOpen = false; S.newProj = true; S.npErr = ""; render(); $("#np-name").focus(); return; }
@@ -63,7 +65,7 @@ document.addEventListener("click", ev => {
 document.addEventListener("submit", ev => {
   ev.preventDefault();
   const f = ev.target;
-  if (marketingSubmit(f)) return;
+  if (marketingSubmit(f) || settingsSubmit(f)) return;
   if (f.id === "np") {
     const body = { name: $("#np-name").value, path: $("#np-path").value, docs: $("#np-docs").value || "Docs" };
     api("POST", "/api/projects", body)
@@ -85,7 +87,7 @@ document.addEventListener("keydown", ev => {
   const r = ev.target.closest && ev.target.closest(".row");
   if (r && (ev.key === "Enter" || ev.key === " ") && ev.target === r) { ev.preventDefault(); S.sel = r.dataset.id; docsLeave({ id: 1 }); render(); }
   if (r && ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && r.draggable) { ev.preventDefault(); nudge(r.dataset.id, ev.key === "ArrowUp" ? -1 : 1); }
-  if (ev.key === "Escape") { S.fOpen = false; S.projOpen = false; S.newProj = false; S.newTask = false; S.newEpic = null; S.mk.touchOpen = false; render(); }
+  if (ev.key === "Escape") { S.fOpen = false; S.projOpen = false; S.newProj = false; S.newTask = false; S.newEpic = null; S.mk.touchOpen = false; S.mk.newCampaign = false; render(); }
 });
 
 document.addEventListener("input", ev => {
@@ -98,7 +100,7 @@ document.addEventListener("input", ev => {
 });
 
 document.addEventListener("change", ev => {
-  if (marketingChange(ev)) return;
+  if (marketingChange(ev) || settingsChange(ev)) return;
   if (ev.target.dataset.kindOf) return act(() => api("PATCH", `/api/projects/${encodeURIComponent(ev.target.dataset.kindOf)}`, { kind: ev.target.value }));
   const id = ev.target.id;
   if (id === "keep") return act(() => api("PUT", "/api/settings", { keepCompletedDays: Number(ev.target.value) }));
