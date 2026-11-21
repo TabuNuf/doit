@@ -1,2 +1,2 @@
 # The ClaudeStandards commit this copy was last synced from. Written by Tools/sync_standard.py.
-25c2ab9ddcde81da1dfe2747173a54c5cdb8e5c9
+d51dc073a3f7ac45ccf7277d0119a377643d07f5
