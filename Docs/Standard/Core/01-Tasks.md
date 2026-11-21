@@ -17,15 +17,28 @@ Work exists only in the epic queue. A design idea, a playtest finding or a revie
 
 Code and design doc never disagree silently. When they differ, one of them is changed in the same commit, and the Changelog says which.
 
+## The board
+
+Every project on the standard is registered on Doit, the local board that shows every project's epics and tasks to `<Designer>` and Claude. It reads and writes the files above in place and keeps no copy, so the files stay the record and git keeps their history.
+Why: one board shows what Claude is doing in each project and what is left for the designer, without opening each repo's epic files.
+
+- **Register** on adoption: `node <doit>/bin/doit.js project add <Name> <project folder> --docs <Docs>`. A project already on the standard that `doit projects` does not list is registered at its next standard pull.
+- **Claude reaches tasks through the CLI only**: list, add, change state, comment, close an epic (`node <doit>/bin/doit.js help`). It never reads task files or the epic checklist directly.
+  Why: the CLI returns the slice asked for (one project, one epic, open tasks) and keeps the checklist, the task files and their timestamps in step; a hand edit to one leaves the others wrong.
+- **Epic text is written as a file**: the goal, Test plan, Notes, Close audit and For the standard sections are edited in the epic file like any doc. The tasks in its checklist are added with `doit add`.
+- **The archive is never read** (`<Docs>/Archive/`, archived tasks, closed epics) unless `<Designer>` asks.
+  Why: it is history, and reading it costs a session's context for nothing it will act on.
+- An epic in a worktree is read and written in that worktree by the board and the CLI alike, so ticks land on the epic's branch.
+
 ## The flow
 
 1. **Design input arrives.** Update `GameDesign.md` and add a Changelog line (date, what changed, which epic).
 2. **Plan.** Break the work into an epic: small tasks, each with a checkable "done when", and a Test plan (below). When it is set `Active`, first update the standard: from the main checkout on main, `python3 <central>/Tools/sync_standard.py update <Docs>/Standard` (`<central>` from `<Docs>/Standard/Subscription.txt`). When it pulled, resolve any conflict markers, commit it on main as `Standard: pull <short commit>`, and read the pulled changelog lines for rules that change how this epic is planned or built. Then the stack's worktree tool makes its worktree and branch (Branches, below): `python3 Tools/Worktree/worktree.py new <nnn>-<short-name>` in Unity, `git worktree add` where the stack has no tool.
    Why: the branch is cut from main, so a pull made after it reaches the epic only at its close; an epic built on an old copy breaks rules every other game already follows.
 3. **Before coding a task.** Update the class diagram for every class added or changed. Check the task against "Keeping the boundaries" in `Architecture.md`. A task that would need a view to call a domain service, an event to carry a live object, or a hub class to grow is re-planned first.
-4. **Implement one task at a time.** A task is finished when it builds with zero errors (in Unity: compiles with zero console errors) and is committed as `T-<epic>.<n>: <summary>` on the epic's branch and pushed.
+4. **Implement one task at a time.** A task is finished when it builds with zero errors (in Unity: compiles with zero console errors) and is committed as `T-<epic>.<n>: <summary>` on the epic's branch. Claude does not push it (Branches).
 5. **Test per batch.** The batch's last task runs the Development tests only (Audit in an away run). Audit runs when the epic closes, and every category in the release (`02-Working.md`, Tests). A failing batch is fixed before the next batch starts; the suspects are that batch's commits.
-6. **Close the task.** Tick it in the epic file. Any deviation from the plan goes under Notes, newest first.
+6. **Close the task.** `doit set <doit-id>/T-<nnn>.<n> state=done`, which ticks it in the epic file. Any deviation from the plan goes under Notes, newest first.
 7. **Update the standard.** Before the epic is set to `Done`, read its Notes for anything the next game would need, move it into `<Docs>/Standard/` with a `CHANGELOG.md` line, and fill the epic's "For the standard" section. Writing "nothing" is a valid answer; leaving the section empty is not. Rules in `<Docs>/Standard/README.md`, Keeping it current.
 8. **Close the epic.** After its last task, follow Closing an epic (below): merge main in, run the Audit tests, audit the epic against the architecture, fix what must be fixed, then `worktree.py close` merges it to main.
 9. **Rebuild generated docs** (structure map, class lists) when a task added, moved or removed a class or changed a module's boundary (in Unity, an asmdef), and commit them with the task.
@@ -96,13 +109,15 @@ Filled when the epic closes: what moved into <Docs>/Standard (file and rule), or
 
 ## Branches
 
-- The main checkout stays on main, always. Each epic is built in its own worktree at `<projects>/<game>-wt/<nnn>-<short-name>/` on its own branch `epic/<nnn>-<short-name>`, cut from main by the stack's worktree tool (The flow, step 2) when the epic is set `Active`, even when it is the only epic in flight. Every task commit goes on that branch and is pushed, unattended runs and Speed mode included. What a worktree needs beyond git (in Unity its own Library, editor and MCP binding) is in the stack layer (`Unity/02-Project.md`, Worktrees).
+- The main checkout stays on main, always. Each epic is built in its own worktree at `<projects>/<game>-wt/<nnn>-<short-name>/` on its own branch `epic/<nnn>-<short-name>`, cut from main by the stack's worktree tool (The flow, step 2) when the epic is set `Active`, even when it is the only epic in flight. Every task commit goes on that branch, unattended runs and Speed mode included. What a worktree needs beyond git (in Unity its own Library, editor and MCP binding) is in the stack layer (`Unity/02-Project.md`, Worktrees).
   Why: main stays releasable while an epic is half built, and the epic lands as one unit that can be read or reverted whole. Several sessions share one checkout, so a branch switch there switches it under all of them and the editor reimports; a worktree is a checkout nobody else switches.
+- **Claude commits; only `<Designer>` pushes.** Claude never runs `git push` (a branch, main, a tag, deleting a remote branch) unless `<Designer>` asks for that push in the session. Claude may fetch and pull whenever a step needs the checkout current: `git pull --ff-only` on main in the main checkout, and merging main into an epic's branch. A turn that leaves commits the remote lacks ends by naming the branches and the push commands. The release tool, which `<Designer>` starts, pushes as its stages say.
+  Why: the designer wants a human look between a commit and the remote. A pull changes only the local checkout and is undone with a reset, so it needs no such stop.
 - Work outside an epic is committed on main in the main checkout: `Quick:` commits, the rolling bug epic's tasks, `Standard: pull` commits and releases.
   Why: these are small and checked at once; on a branch they would wait for a close that may be weeks away.
 - When main has changed, merge it into the epic's branch at the start of the next batch, not only at the close.
   Why: scenes and prefabs merge badly as text; a conflict found early has one batch of changes on each side instead of a whole epic.
-- The branch merges to main with `git merge --no-ff` from the main checkout (`worktree.py close`), never a squash or a rebase; the worktree is removed, then the branch is deleted locally and on the remote.
+- The branch merges to main with `git merge --no-ff` from the main checkout (`worktree.py close`), never a squash or a rebase; the worktree is removed, then the branch is deleted locally. `<Designer>` pushes main and deletes the remote branch, if one was pushed.
   Why: one commit per task is how a failing batch finds its suspects, and a squash throws them away; the merge commit and the epic file in `Completed/` are the record. Git refuses to delete a branch a worktree has checked out, so the worktree goes first.
 - A tool that writes the project's tracked docs (a task board, a generator) writes an active epic's files in that epic's worktree, never in the main checkout, and finds the worktree from its branch name.
   Why: a tick written in the main checkout while the branch ticks the same line collides at the merge, and the main checkout must stay clean for the merge to run.
@@ -122,7 +137,7 @@ Filled when the epic closes: what moved into <Docs>/Standard (file and rule), or
    An epic branch cut from another epic's branch audits its own diff (`git diff <parent tip>...HEAD`), since the parent's was audited at its own close and reading it again hides the child's findings.
    Why: the check before each task sees one task; drift away from the architecture only shows across a whole epic, and a game that slides a little each epic ends far from its design.
 4. **Update the standard** (The flow, step 7).
-5. **Merge.** Set status `Done` and `git mv` the file into `Completed/` in one commit on the branch and push it. Quit the worktree's editor, if the stack has one, then from the main checkout run `python3 Tools/Worktree/worktree.py close <nnn>-<short-name>` (or its steps by hand where the stack has no tool): it merges `--no-ff` into main, pushes main, removes the worktree and deletes the branch locally and on the remote. It refuses when main has moved since step 1: merge main in again and start over from step 2.
+5. **Merge.** `doit epic close <doit-id> EPIC-<nnn>` sets status `Done`, archives its task files and moves the epic into `Completed/`; commit those moves in one commit on the branch, staged by path. Quit the worktree's editor, if the stack has one, then from the main checkout run `python3 Tools/Worktree/worktree.py close <nnn>-<short-name>` (or its steps by hand where the stack has no tool): it merges `--no-ff` into main, removes the worktree, deletes the branch locally and prints the push commands for `<Designer>`. It refuses when main has moved since step 1: merge main in again and start over from step 2.
    Why: the Audit run proved the branch with main in it; a main that moved since makes a different merge, and a second epic closing in between is the usual way it moves.
 
 ## The conformance epic
@@ -136,7 +151,7 @@ Why: drift left for "later" piles up across releases; a list that must be empty 
 
 - When `<Designer>` asks for an epic, all its tasks are built in one go. Work stops only for a decision that is theirs.
 - A question goes in the epic file and in chat, one question at a time, with a recommendation.
-- During an unattended run, every task is pushed as soon as it is committed, so progress is visible remotely.
+- An unattended run commits each task and pushes nothing; its `DONE` or `BLOCKED` line names the branch and how many commits wait for a push.
 - A run blocked on a decision ends with `BLOCKED: EPIC-<nnn>` and the question; a finished one with `DONE: EPIC-<nnn>`.
 - The chat is named after the task (the branch after the epic, Branches above): `T-015.2: Island style guide`, so past work is easy to find. A session on an epic is started in the epic's worktree, never in the main checkout.
   Why: a session works on the files of the folder it starts in, and in Unity its MCP binding, and so the editor it drives, comes from that folder too (`Unity/02-Project.md`, Worktrees).
@@ -144,7 +159,7 @@ Why: drift left for "later" piles up across releases; a list that must be empty 
   Why: the work exists nowhere else until the merge, and the main editor stays on what players have.
 - **Speed mode**, when `<Designer>` asks for it: one `batch-builder` sub-agent per test batch (`02-Working.md`, Session cost), strictly one after another, each from one shared brief in the scratchpad (rules to read, the epic, the boundaries, how to compile (in Unity, through the bridge), the commit format, a code map of the epic's areas). Each task is still one commit. Agents do not ask; an unclear point gets the simplest choice that fits the epic and a Notes line. No play screenshots: a "done when" that asks for one is covered by tests that run without the game or app (in Unity: EditMode tests and a UXML load check) and noted "unchecked in play". Agents run only their own classes' tests; the coordinator runs Development after each batch, under the test lock, and Closing an epic before Done. The close copies every "unchecked in play" item to the epic's "Check in play" list for the designer's playtest.
   Why: a per-task agent rereads the docs every time and play captures cost 10 to 20 minutes per UI task; the designer playtests the result anyway, and the code map saves each agent the search.
-- **Quick implement**, when `<Designer>` asks for it by name: write the change, build once and read the errors (in Unity: refresh and read the console), commit and push it as `Quick: <summary>`. No epic, no docs, no tests, no play check; the designer checks it by hand. The next batch's Development run and the next epic catch up on docs and tests, found through the `Quick:` commits.
+- **Quick implement**, when `<Designer>` asks for it by name: write the change, build once and read the errors (in Unity: refresh and read the console), commit it as `Quick: <summary>`. No epic, no docs, no tests, no play check; the designer checks it by hand. The next batch's Development run and the next epic catch up on docs and tests, found through the `Quick:` commits.
   Why: for small changes the designer will try at once, the workflow's waits cost more than the checks find; a compile check stays because a broken editor stops the hand check too.
 
 ## Playtest rounds

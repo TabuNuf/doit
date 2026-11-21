@@ -44,6 +44,8 @@ In a game's copy, three more files belong to the game and are never overwritten 
 - `<Game>`: the root namespace and assembly prefix (`BoxTrainer`). In `Core/` it stands for any project.
 - `<Docs>/`: the docs folder at the repo root, `Docs/` in every project. A project that still has its own name (`BB-Docs/`) renames it when no work is in progress in it.
   Why: one name lets every file, tool and the Doit board point at `Docs/` the same way. Obsidian no longer needs each vault's folder named apart.
+- `<doit>`: the Doit board's repo, `~/Repos/doit` on the designer's machine. Its CLI is `node <doit>/bin/doit.js`.
+- `<doit-id>`: the project's id on the board, as `doit projects` lists it (`box-trainer`).
 - `<Designer>`: the person who owns design decisions and edits the UI in UI Builder.
 - `<Builder>`: whoever writes the code (Claude, or a programmer).
 
@@ -56,14 +58,15 @@ The standard started from Box Trainer on 2026-10-18; ClobberBop copied it the sa
 **A new project:** in the project's folder, ask Claude to use the Claude standards. The `claude-standards` skill picks the profile, then does what follows. By hand, from the ClaudeStandards root:
 
 1. Run `python3 Tools/sync_standard.py adopt <project>/<Docs>/Standard [unity|app]`. It copies `Core/` and the profile's folder, writes `BASE.txt`, a blank `Deviations.md` and a `Subscription.txt` with the profile. Without a profile it reads one from the project, and stops when the folder says nothing.
-2. Write `CLAUDE.md` at the repo root from `Core/CLAUDE.core.md` with the stack's template (`Unity/CLAUDE.unity.md` or `App/CLAUDE.app.md`) appended, filled in.
-3. A Unity game: work through `Unity/02-Project.md`, New project checklist. It copies `Unity/Starter/` into place and sets up the scene. An app: work through `App/README.md`, What the first app project decides, as far as day one needs.
-4. Copy `Core/Starter/` into place (a Unity game takes `.claude/settings.json` from `Unity/Starter/` instead; an app also copies `App/Starter/` and fills the build agent's commands), fill the stack's `Templates/` into the project's own docs, and write the first epic before the first feature.
-5. A Unity game keeps the guard tests from `Unity/Starter/` passing from the first commit. Retrofitting them later cost Box Trainer an epic each. A Unity game also works through "Missing in Box Trainer" at the end of `Unity/02-Project.md`: each item is either built in the first epics or moved into `Deviations.md`, with the reason.
+2. Register the project on the board: `node <doit>/bin/doit.js project add <Name> <project> --docs <Docs>` (`Core/01-Tasks.md`, The board). It makes `Epics/` with `Tasks/`, `Parked/` and `Completed/`, and the rolling bug epic as `EPIC-001` when there are no epics yet.
+3. Write `CLAUDE.md` at the repo root from `Core/CLAUDE.core.md` with the stack's template (`Unity/CLAUDE.unity.md` or `App/CLAUDE.app.md`) appended, filled in.
+4. A Unity game: work through `Unity/02-Project.md`, New project checklist. It copies `Unity/Starter/` into place and sets up the scene. An app: work through `App/README.md`, What the first app project decides, as far as day one needs.
+5. Copy `Core/Starter/` into place (a Unity game takes `.claude/settings.json` from `Unity/Starter/` instead; an app also copies `App/Starter/` and fills the build agent's commands), fill the stack's `Templates/` into the project's own docs, and write the first epic before the first feature.
+6. A Unity game keeps the guard tests from `Unity/Starter/` passing from the first commit. Retrofitting them later cost Box Trainer an epic each. A Unity game also works through "Missing in Box Trainer" at the end of `Unity/02-Project.md`: each item is either built in the first epics or moved into `Deviations.md`, with the reason.
 
 **A game already under way** (its own folders, Assembly-CSharp, its own rules files):
 
-1. Adopt the copy as above, and add the standard's pointers to its existing `CLAUDE.md` rather than replacing it.
+1. Adopt the copy as above, register it on the board, and add the standard's pointers to its existing `CLAUDE.md` rather than replacing it.
 2. Take `Core/01-Tasks.md`, `Core/02-Working.md` and, in Unity, the MCP setup at once; they need no code change.
 3. Apply `Core/03-Design.md`, `Unity/01-UI.md` and the module rules of `Unity/02-Project.md` to new code only.
 4. Write each rule the game will not follow into `Deviations.md` with its reason. An old rules file of the game (a `UI_RULES.md`) is read for what the standard lacks, which is pushed up, and what stays the game's own goes into its docs.
