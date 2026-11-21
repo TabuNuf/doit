@@ -1,6 +1,7 @@
 # EPIC-023: Review 2026-11-21 (2): board layout, project settings and contacts
 
-Status: Active
+Status: Done
+Closed: 2026-11-21
 Goal: a project's epics and docs read as two labelled lists with its settings one click away beside its name, Marketing offers only the projects Tabu sells, and contacts sort, show who matters, and serve campaigns for several games.
 Design: Design.md, sections Projects, Epics, Docs and Marketing (T-023.1 updates them first)
 Source: review video Bandicam_20261121_151540.mp4, narrated by Tabu; times in each task's description
