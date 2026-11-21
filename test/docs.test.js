@@ -101,3 +101,10 @@ test("Linked lists open tasks that name the document, not other documents, not d
   assert.deepEqual(await ids("Specs/Net.md"), []);
   assert.equal((await s.api("/api/docs/linked?project=game&path=..%2Fx.md")).status, 400);
 });
+
+test("the tree orders numbered names as numbers: 0.8, 0.9, 0.10, 0.11", async t => {
+  const s = await docsSetup(t);
+  for (const v of ["0.10", "0.11", "0.8", "0.9"]) { fs.mkdirSync(path.join(s.dir, "Releases", v), { recursive: true }); fs.writeFileSync(path.join(s.dir, "Releases", v, "notes.md"), "# Notes\n"); }
+  const { body } = await s.api("/api/docs/tree?project=game");
+  assert.deepEqual(body.find(n => n.name === "Releases").children.map(n => n.name), ["0.8", "0.9", "0.10", "0.11"]);
+});
