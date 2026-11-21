@@ -37,6 +37,16 @@ export async function api(method, path, body) {
   return data;
 }
 
+const NON_TEXT = ["checkbox", "radio", "range", "button", "submit", "reset", "file", "color", "image"];
+
+/** True while a reload would disturb the user: a text field has focus, a drag runs, or a menu or form is open. */
+export function reloadHeld(state, active, dragging = false) {
+  const tag = active && active.tagName;
+  const typing = tag === "TEXTAREA" || (tag === "INPUT" && !NON_TEXT.includes(active.type));
+  return Boolean(typing || dragging || state.newProj || state.newTask || state.newEpic !== null || state.fOpen || state.projOpen
+    || (state.view === "docs" && state.docs.editing));
+}
+
 export async function load() {
   try {
     S.data = await api("GET", `/api/board?project=${encodeURIComponent(S.project)}${S.tab === "archived" ? "&archived=1" : ""}`);

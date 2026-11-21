@@ -7,8 +7,11 @@ import path from "node:path";
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png" };
 
 export class HttpServer {
-  /** `commit` is the git commit the process started from (null when unknown); GET /api/version reports it. */
-  constructor(board, webDir, commit = null, docs = null, claude = null) {
+  /** `commit` is the git commit the process started from (null when unknown); GET /api/version reports it.
+   *  `changes` is a port, `subscribe(listener) -> unsubscribe` (and optionally `close()`), that fires when files change. */
+  constructor(board, webDir, commit = null, docs = null, claude = null, changes = null) {
+    this.changes = changes;
+    this.streams = new Map();
     this.board = board;
     this.claude = claude;
     this.docs = docs;
@@ -43,7 +46,22 @@ export class HttpServer {
     });
   }
 
-  close() { return new Promise(resolve => this.server.close(() => resolve())); }
+  close() {
+    // Open event streams would keep server.close waiting, so end them first.
+    for (const [res, off] of this.streams) { off(); res.end(); }
+    this.streams.clear();
+    this.changes?.close?.();
+    return new Promise(resolve => this.server.close(() => resolve()));
+  }
+
+  /** GET /api/events: `changed` now (a reconnecting page reloads) and on every change. */
+  #events(req, res) {
+    res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store", "Connection": "keep-alive" });
+    const off = this.changes?.subscribe(() => res.write("data: changed\n\n")) ?? (() => {});
+    this.streams.set(res, off);
+    req.on("close", () => { off(); this.streams.delete(res); });
+    res.write("data: changed\n\n");
+  }
 
   async #handle(req, res) {
     const url = new URL(req.url, "http://localhost");
@@ -54,6 +72,7 @@ export class HttpServer {
 
   async #api(req, res, url) {
     const path_ = decodeURIComponent(url.pathname);
+    if (req.method === "GET" && path_ === "/api/events") return this.#events(req, res);
     for (const [method, re, fn] of this.routes) {
       const m = re.exec(path_);
       if (!m || method !== req.method) continue;
