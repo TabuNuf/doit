@@ -96,6 +96,8 @@ Why: a coupling review in Box Trainer found each of these, and an epic removed t
   Why: Box Trainer's shop gate saved the campaign from inside its getter, so which screen read it first decided when the save happened, and a test reading it changed what it tested.
 - **Words and icons are data.** The domain emits enums and keys; text lives in one table, sprites in the style asset.
 - **Size is a smell.** A class past about 300 lines or with two reasons to change is split before the next feature goes in. Known hubs are listed by name in `Architecture.md`.
+- **A size guard is met by splitting, never by squeezing.** A file at its line limit gets a piece moved out to a new module; merging lines, trimming comments or removing blank lines to pass the guard is refused at review.
+  Why: a sub-agent passed a 220-line guard by compressing a facade, which hid the growth the guard exists to show and cost the comments that state intent.
 - **A test lists every class at the size line, with its split named.** One guard test holds a list of files at or near the line and their allowed length; a file that grows past its entry fails, and an entry names the split the next change makes first.
   Why: in Box Trainer a size rule kept only in prose was passed class by class over an epic, each task adding a few lines; the list turned the drift into a failing test at the task that crossed it.
 - **A data table past the line splits by its natural key.** An authored table (voice lines, say) becomes one class per key (per tone) over a small shared builder, and the parent joins them; its coverage test reads the joined result.

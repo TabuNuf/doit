@@ -36,6 +36,17 @@ Source: Tabu's recording 2026-11-21 (Bandicam_20261121_183943), 4:38
 
 Decisions and deviations, newest first.
 
+- Browser check (server on 4399, Tabu's data, nothing written): top bar has only the tabs; Contacted filter (48 contacted about Bunny Bunker) and Festivals game filter (18 to 2 for Box Trainer) work; + Campaign around this opens the form with the event chosen; the contact pane's Games block shows fit and last contact. The brief pane was checked with sample data injected into the page, since creating a real campaign writes to polyspice-marketing. Two fixes from it, committed under T-025.9: the + Campaign form moved to the wide middle pane with fields stacked, and For became one wrapping row with Settings only on chosen projects.
+- T-025.8 and T-025.9 share one commit: both rewrote marketingView.js and campaignsPane.js, and the first alone did not run.
+
 ## Close audit
 
+- Audit tests: 360 pass. Development: 360 pass.
+- `src/domain/board.js`: compressed to 218 lines (merged constructor lines, trimmed doc comments) to pass its 220-line guard instead of being split; breaks Core/03-Design.md, Size is a smell. Fix before release: task in EPIC-022.
+- `web/marketingView.js` at 252 lines, near the 300 limit: noted, no task yet; the next Marketing feature goes in its own module.
+- Boundaries: the guard tests pass; Outreach validates the brief in the domain (`campaignBrief.js`) before the store writes; the class diagram and module list name every new module and port. Nothing else found.
+
 ## For the standard
+
+`Core/03-Design.md`, Size is a smell: a size guard is met by splitting, never by squeezing (CHANGELOG line added).
+

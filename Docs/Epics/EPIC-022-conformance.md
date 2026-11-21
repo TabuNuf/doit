@@ -14,6 +14,7 @@ Design: Architecture.md
 - [ ] T-022.6 One stage list in web/, imported by eventDetail.js and projectSettings.js (done when: the list is written once in web/; npm test passes)
 - [ ] T-022.7 marketingView.js (235 lines) on the size guard, with the campaign form handlers moved to campaignsPane.js (done when: structure test holds marketingView.js under 220 lines and passes)
 - [ ] T-022.8 One comma-list helper: splitGames in rules.js is a fifth copy of the comma-split helper; fold them into one (done when: one helper, used by rules.js, contactsCli.js and the others; npm test passes)
+- [ ] T-022.9 Split Board: it sits at its 220-line guard after EPIC-025 compressed it (done when: board.js is under 200 lines with its comments restored, a piece moved to its own module; structure test passes)
 
 ## Test plan
 
