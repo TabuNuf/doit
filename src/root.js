@@ -80,7 +80,7 @@ export function makeCli(options = {}) {
   const readText = file => fs.readFileSync(file, "utf8");
   const { book, mailroom } = makeMarketing(options);
   const outreach = makeOutreach({ board, book, now: options.now });
-  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now, outreach), book, readText, mailroom);
+  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now, outreach), book, readText, mailroom, outreach);
 }
 
 export function makeServer(options = {}) {
@@ -91,5 +91,5 @@ export function makeServer(options = {}) {
   const changes = new ChangeWatcher(new SettingsFile(home), new EpicWorktrees(), home);
   const { book, mailroom } = makeMarketing({ ...options, home });
   const outreach = makeOutreach({ board, book, now: options.now });
-  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home, board }), new ClaudeView(board, log, options.now, outreach), changes, book, mailroom);
+  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home, board }), new ClaudeView(board, log, options.now, outreach), changes, book, mailroom, outreach);
 }

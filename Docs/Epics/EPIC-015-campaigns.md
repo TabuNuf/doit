@@ -17,7 +17,7 @@ Design: Design.md, section Marketing (step 5)
 - [x] T-015.1 Architecture and design: the `contact` task field, the campaign lines and `OutreachPlan` in the class diagram; Design.md section Marketing updated (done when: Architecture.md and Design.md name them)
 - [x] T-015.2 Domain: campaign lines read from an epic, the `contact` task field, and a touch logged when such a task completes (done when: domain tests complete a contact task and find the touch on the contact)
 - [x] T-015.3 Domain: `OutreachPlan`, pure: contacts, festivals, campaigns and today in, the weekly list out, capped (done when: domain tests cover the cap, the 14-day deadline window and an empty week)
-- [ ] T-015.4 CLI: `doit campaign add <project> <name> --game <game> [--event]`, `doit campaign contacts <project> <EPIC-nnn> [--limit]`, `doit outreach [--json]`; `doit morning` includes the outreach list (done when: CLI tests cover each command)
+- [x] T-015.4 CLI: `doit campaign add <project> <name> --game <game> [--event]`, `doit campaign contacts <project> <EPIC-nnn> [--limit]`, `doit outreach [--json]`; `doit morning` includes the outreach list (done when: CLI tests cover each command)
 - [ ] T-015.5 Server and web: a This week pane on top of the Marketing view with the outreach list; Add contacts on a campaign epic's document; a contact task shows the contact's name and opens it (done when: web tests render This week and Add contacts from fixtures; in the app Add contacts on a test campaign makes its tasks)
 
 ## Test plan

@@ -10,8 +10,8 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit list [--project p] [--epic EPIC-nnn] [--state open|active|backlog|done|archived] [--owner ai|human] [--json]
   doit show <project>/<T-id> [--json]
   doit add <project> <EPIC-nnn> <title> [--owner ai|human] [--type task|bug] [--done-when text]
-           [--deadline YYYY-MM-DD] [--state todo|progress|backlog] [--description text]
-  doit set <project>/<T-id> key=value ...         keys: state owner type deadline rank title done-when description blocks
+           [--deadline YYYY-MM-DD] [--state todo|progress|backlog] [--description text] [--contact <id>]
+  doit set <project>/<T-id> key=value ...         keys: state owner type deadline rank title done-when description blocks contact
   doit comment <project>/<T-id> <text> [--as ai|human]   (default author: ai)
   doit keep <days>                                days a completed task stays before it is archived
   doit sweep                                      archive what is past its deadline or retention
@@ -33,6 +33,9 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit festival set <id> state=watching|applied|accepted|declined|past
 
   doit templates                                  the mail templates (Templates/ in the marketing docs)
+  doit campaign add <project> <name> --game <game> [--event <festival id|YYYY-MM-DD>]   a campaign epic (Active) for a game profile; prints its id
+  doit campaign contacts <project> <EPIC-nnn> [--limit n]   one "Reach out to" task per fitting contact (default 10), largest reach first
+  doit outreach [--json]                          this week: contacts to reach, festival deadlines within 14 days, campaign steps
   doit draft add <contact id> --template <name> --game <game> --personal <text>   fill a template into a draft, print it
   doit draft show <id> [--json]
   doit drafts [--state draft|approved|sent|failed] [--json]
@@ -44,16 +47,19 @@ States: todo, progress, backlog, done, archived. "open" = todo + progress + back
 import { ContactsCli } from "./contactsCli.js";
 import { MailCli } from "./mailCli.js";
 import { FestivalsCli } from "./festivalsCli.js";
+import { CampaignCli } from "./campaignCli.js";
 
 export class Cli {
   /** `contacts` is the ContactBook and `readText(path)` reads a file; the contact commands need both.
    *  `mailroom` is the Mailroom behind the mail commands. `run` returns the exit code, or a promise of it for `mail sweep`. */
-  constructor(board, out, err, claude = null, contacts = null, readText = null, mailroom = null) {
+  constructor(board, out, err, claude = null, contacts = null, readText = null, mailroom = null, outreach = null) {
+    this.book = contacts;
     this.board = board;
     this.claude = claude;
     this.contactCommands = contacts && new ContactsCli(contacts, s => this.print(s), readText);
     this.festivalCommands = contacts && new FestivalsCli(contacts, s => this.print(s));
     this.mailCommands = mailroom && new MailCli(mailroom, s => this.print(s));
+    this.campaignCommands = outreach && new CampaignCli(outreach, s => this.print(s));
     this.out = out;
     this.err = err;
   }
@@ -86,6 +92,18 @@ export class Cli {
   delegateFestival(name, pos, flags) {
     if (!this.festivalCommands) throw new Error("Festivals are not available here");
     return this.festivalCommands[name](pos, flags);
+  }
+
+  delegateCampaign(name, pos, flags) {
+    if (!this.campaignCommands) throw new Error("Campaigns are not available here");
+    return this.campaignCommands[name](pos, flags);
+  }
+
+  /** A contact id given to add or set must be a contact in the book. */
+  checkContact(id) {
+    if (id === undefined || id === "") return;
+    if (!this.book) throw new Error("Contacts are not available here");
+    this.book.get(id);
   }
 
   delegateMail(name, pos, flags) {
@@ -140,6 +158,7 @@ const COMMANDS = {
     if (t.archived && t.state === "archived") this.print(`archived: ${t.archived}`);
     if (t.source) this.print(`source: ${t.source}`);
     if (t.blocks) this.print(`blocks: ${t.blocks}`);
+    if (t.contact) this.print(`contact: ${t.contact}`);
     this.print(`created ${t.created || "-"} · updated ${t.updated || "-"}${t.completed ? " · completed " + t.completed : ""}`);
     if (t.doneWhen) this.print(`\nDone when: ${t.doneWhen}`);
     if (t.description) this.print(`\n${t.description}`);
@@ -147,10 +166,11 @@ const COMMANDS = {
   },
 
   add(pos, flags) {
+    this.checkContact(flags.contact);
     const t = this.board.addTask({
       project: need(pos[0], "project"), epic: need(pos[1], "epic"), title: pos.slice(2).join(" "),
       owner: flags.owner, type: flags.type, doneWhen: flags["done-when"], deadline: flags.deadline,
-      state: flags.state, description: flags.description,
+      state: flags.state, description: flags.description, contact: flags.contact,
     });
     this.print(`Added ${t.project}/${t.id}`);
   },
@@ -165,6 +185,7 @@ const COMMANDS = {
       changes[key] = kv.slice(i + 1);
     }
     if (!Object.keys(changes).length) throw new Error("Nothing to set");
+    this.checkContact(changes.contact);
     this.print(row(this.board.update(ref, changes)));
   },
 
@@ -193,6 +214,8 @@ const COMMANDS = {
   fit(pos, flags) { this.delegate("fit", pos, flags); },
   touch(pos, flags) { this.delegate("touch", pos, flags); },
   profiles(pos, flags) { this.delegate("profiles", pos, flags); },
+  campaign(pos, flags) { return this.delegateCampaign("campaign", pos, flags); },
+  outreach(pos, flags) { return this.delegateCampaign("outreachPlan", pos, flags); },
   festivals(pos, flags) { this.delegateFestival("festivals", pos, flags); },
   festival(pos, flags) { this.delegateFestival("festival", pos, flags); },
   templates(pos, flags) { return this.delegateMail("templates", pos, flags); },
