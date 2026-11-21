@@ -33,11 +33,15 @@ Design: Design.md, section Marketing (step 3)
 
 ## Check in play
 
-- T-013.7: set up the app password in the Keychain, approve a draft to Tabu's own address, see it arrive, see it under the Marketing label, reply to it and see the reply touch after a sweep.
+- T-013.7: set up mail. Add `"mail": { "address": "<Workspace address>", "name": "<display name>" }` to `settings.json` in the data folder and store the app password with `security add-generic-password -s doit-mail -a <Workspace address> -w` (it prompts). Add a contact with Tabu's own address and a template in `Docs/Templates/` of the marketing project, run `doit draft add <id> --template <name> --game <game> --personal <text>`, approve it in the Drafts pane, see it arrive, see it under the Marketing label, reply to it and see the reply touch after a sweep (reopen the Marketing view). Unchecked: no real account was used in this epic.
+- Checked by the coordinator on a scratch server with made-up data: the Drafts pane shows To, Subject and body; an edit saves; Discard removes; Approve and send without an account refuses and leaves the draft editable; a contact's touches show the mail subject; a cross-site POST is refused.
 
 ## Notes
 
 Decisions and deviations, newest first.
+
+- Close (coordinator): during the hand check one command ran without the scratch `DOIT_HOME` and created an empty `marketing.db` (version 2) in the real data folder, where none existed; it was deleted at once, nothing else was there. Led to the App standard rule on setting the override once.
+- Batch builders: batch B's commits carry a Sonnet co-author line instead of the brief's, from the agent's own setting. Left as is.
 
 - T-013.7 (coordinator, in-app check): "Approve and send" without a mail account approved the draft before refusing, leaving it approved and no longer editable; it now refuses first. A skipped sweep leaves no line, since the status line already says mail is not set up.
 
@@ -62,4 +66,14 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+Diff `main...epic/013-mail` read against `Architecture.md`, `03-Design.md` and the App layer.
+
+- Fix now, done (T-013.8): the API had no Host or Origin check, so another site's page in the browser could POST `/api/drafts/<id>/send` and send a draft Tabu had not approved in the page. Writes now need a loopback Host and a matching Origin.
+- Fix now, done (T-013.7 follow-up commit): Approve and send without an account approved the draft before refusing.
+- Checked, no finding: domain imports no `node:` module; `node:tls` only in `store/smtpSender.js` and `store/imapMailbox.js`, `node:child_process` only in `store/mailAccount.js`; the CLI and server import only `Mailroom` and `ContactBook` from the domain (read by eye, since the boundary test sees tiers); `web/` talks HTTP only; the class diagram and Modules list name every new class; no file over 300 lines (largest `imapMailbox.js` 181). The password is only in the LOGIN and AUTH lines, never in an error.
+- Deliberate, no question needed: `Mailroom` uses the `ContactBook` facade (domain to domain, one way), as `ClaudeView` and `DocsLibrary` use the `Board`.
+- Fix before release: none.
+
 ## For the standard
+
+Added to `App/README.md`, Pages over local files, with a CHANGELOG line: a local server checks Host and Origin on writes; a network client takes an injectable `connect` and is tested against a scripted server; a hand check sets the data-folder override once.
