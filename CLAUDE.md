@@ -18,11 +18,11 @@ A turn costs more than a file: every tool call re-sends the whole conversation. 
 ## Workflow
 
 1. Design input: update the design doc and its Changelog.
-2. Plan: an epic with small tasks, each with "done when", and a Test plan in batches of 3 to 5. When it goes `Active`, first `python3 ../../Unity/ClaudeStandards/Tools/sync_standard.py update Docs/Standard` on main and commit any pull as `Standard: pull <short commit>`; then make its worktree and branch `epic/<nnn>-<short-name>` (below); the main checkout stays on main. At most two epics are active, and a second needs a Touches list that overlaps the first's in nothing (`Docs/Standard/Core/01-Tasks.md`, Epic rules).
+2. Plan: an epic with small tasks, each with "done when", and a Test plan in batches of 3 to 5. When it goes `Active`, first `python3 ../../Unity/ClaudeStandards/Tools/sync_standard.py update Docs/Standard` on main and commit any pull as `Standard: pull <short commit>`; then build it on main in the main checkout, with no branch or worktree. One epic is active at a time. A second runs beside it only on Tabu's yes, in a worktree (below), with a Touches list that overlaps the first's in nothing (`Docs/Standard/Core/01-Tasks.md`, Branches and Epic rules).
 3. Before coding a task: update the class diagram, check it against `Core/03-Design.md` and the boundaries in `Architecture.md`.
-4. One task at a time: builds with zero errors, committed as `T-<epic>.<n>: <summary>` on the epic's branch. Never `git push` unless Tabu asks for that push; fetch and `git pull --ff-only` are fine. End a turn that left unpushed commits with the branches and the push commands.
+4. One task at a time: builds with zero errors, committed as `T-<epic>.<n>: <summary>` on main (on the epic's branch when it runs in a worktree). Never `git push` unless Tabu asks for that push; fetch and `git pull --ff-only` are fine. End a turn that left unpushed commits with the branches and the push commands.
 5. Tests by category (`Docs/Standard/Core/02-Working.md`, Tests): Development at each batch's end, under 2 minutes, without starting the app; Audit at an epic's close; every category in the release. No test or play run over 15 minutes. More only in an away run the designer starts.
-6. Close a task: `doit set doit/T-<nnn>.<n> state=done`, note deviations. Close the epic (`Docs/Standard/Core/01-Tasks.md`, Closing an epic): merge main in, the Audit tests, the architecture audit, fix-now findings fixed, `doit epic close`, committed; then merge `--no-ff` to main from the main checkout and remove the worktree. Tabu pushes main.
+6. Close a task: `doit set doit/T-<nnn>.<n> state=done`, note deviations. Close the epic (`Docs/Standard/Core/01-Tasks.md`, Closing an epic): the Audit tests, the architecture audit, fix-now findings fixed, `doit epic close`, committed. An epic in a worktree merges main in first and ends with a `--no-ff` merge to main from the main checkout. Tabu pushes main.
 7. Update the standard: before an epic is `Done`, move anything the next project would need into `Docs/Standard/`, add a line to its `CHANGELOG.md`, and fill the epic's "For the standard" section.
 
 ## The standard is living
@@ -43,7 +43,7 @@ A turn costs more than a file: every tool call re-sends the whole conversation. 
 - Build: none (plain Node ES modules). Test by category: Development `npm test`, Audit `npm run test:audit`, Performance: none yet.
 - Run locally: `npm start`, at `http://localhost:4317`. Tabu starts it with `launcher/Doit.app` (build it with `launcher/build.sh`).
 - Modules live in `src/<module>/`; the composition root is `src/root.js`. Module order and boundaries in `Docs/Architecture.md`.
-- Worktrees: `git worktree add ../doit-wt/<nnn>-<short-name> -b epic/<nnn>-<short-name>` until the project has its own tool.
+- Epics are built on main. A worktree only for a second epic beside it, after Tabu's yes, and never two: `git worktree add ../doit-wt/<nnn>-<short-name> -b epic/<nnn>-<short-name>` until the project has its own tool (`Docs/Standard/Core/01-Tasks.md`, Branches and Parallel work).
 - `Docs/Standard/App/README.md` lists what this stack has not decided yet; a decision made here goes back into the standard.
 
 ## Using Doit as Claude (any project)

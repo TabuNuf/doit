@@ -16,8 +16,8 @@ The commit rules themselves are in `01-Tasks.md`, Commits.
   Why: two version numbers kept in step by hand drift, and then a report names a version that matches no build.
 - Work goes towards the next major. Every release before it is a minor release: 0.5, 0.6, 0.7. When the major is ready, a major release ships 1.0, and minor releases go on from 1.1.
 - Stable branches are records, not places to work. A fix to a released version ships as the next release from main (the next minor; in a three-part format a fix-only release may raise the third number).
-- A release is cut from main in the main checkout with no epic branch half merged, and not while the conformance epic has open tasks unless `<Designer>` ships around it (`01-Tasks.md`, The conformance epic).
-  Why: architecture drift found at each epic's close must be paid before players or users get the version, or "later" never comes.
+- A release is cut from main in the main checkout, never with an epic branch half merged. It waits while an epic on main has open tasks, unless `<Designer>` ships it half built, which the release report names; and not while the conformance epic has open tasks unless `<Designer>` ships around it (`01-Tasks.md`, The conformance epic).
+  Why: architecture drift found at each epic's close must be paid before players or users get the version, or "later" never comes. With epics built on main, a release mid-epic would ship half a feature.
 
 How a release is built and shipped is the stack layer's (Unity: `Unity/02-Project.md`, Versions and releases).
 
@@ -50,7 +50,7 @@ The stack layer names the test assembly or suite for each category and how each 
   Why: Box Trainer's nine-task brain refactor kept every number; the fingerprint checked each task in seconds, while the Performance tests take about five minutes.
 - A test never asserts a tunable's current number from the config asset; it reads the number from the config, or builds its own rules with the number it needs. The designer tunes the asset on the Balancer at any time.
   Why: two tests broke in one round, one on a heal wind-up the designer had tuned from 18 to 5 ticks, one on a damage number a new full-charge multiplier changed.
-- When a Performance test fails at an epic's close, run it on the branch the epic was cut from before treating a failure as the epic's: only a bar that passes there and fails on the branch is the epic's; the rest go to the designer as older failures.
+- When a Performance test fails at an epic's close, run it on the commit before the epic's first task (for an epic in a worktree, on main) before treating a failure as the epic's: only a bar that passes there and fails at the close is the epic's; the rest go to the designer as older failures.
   Why: Box Trainer's first Learning run in five days failed five bars at a close; four failed the same way, to the digit, on main, and only one came from the epic.
 - **Removing one random draw shifts every seeded stream, so pick test seeds by scanning a range and write the pass rate beside the seed.** Run 30 or more seeds, choose one in a group that passes, and note "passes 14 of 17 seeds".
   Why: after one draw was removed, several seed-pinned tests flipped at once, and a fight scene passed only 4 of 17 seeds with nothing to say the pinned seed was a lucky one.

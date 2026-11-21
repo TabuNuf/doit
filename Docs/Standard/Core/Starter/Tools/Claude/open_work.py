@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Lists the work in flight in this repo: epic worktrees, unmerged epic branches,
-uncommitted files in the main checkout.
+"""Lists the work in flight in this repo: epics Active on main, epic worktrees,
+unmerged epic branches, uncommitted files in the main checkout.
 
 Wired as a Claude Code SessionStart hook in .claude/settings.json, so every session
 starts knowing what else is open; its output goes into the session's context.
@@ -10,11 +10,14 @@ Rule in <Docs>/Standard/Core/01-Tasks.md, Parallel work.
 import datetime as dt
 import os
 import pathlib
+import re
 import subprocess
 import sys
 
 SHOWN_PATHS = 5
 STALE_DAYS = 7
+DOCS = "Docs"
+STATUS = re.compile(r"^Status:\s*Active\b", re.MULTILINE)
 
 
 def git(*args, cwd, strip=True):
@@ -51,6 +54,28 @@ def branch_state(branch, base, cwd):
         if age > STALE_DAYS:
             text += " (stale?)"
     return text
+
+
+def active_epics(main_root, base):
+    """[(number, title, text)] for epic files on main whose Status line is Active."""
+    found = []
+    for path in sorted((main_root / DOCS / "Epics").glob("EPIC-*.md")):
+        try:
+            head = path.read_text(errors="replace")[:2000]
+        except OSError:
+            continue
+        if not STATUS.search(head):
+            continue
+        number = path.stem.split("-")[1]
+        title = next((l[2:].strip() for l in head.splitlines() if l.startswith("# ")), path.stem)
+        stamp = git("log", "-1", "--format=%ct", f"--grep=^T-{number}\\.", base, cwd=main_root)
+        if stamp:
+            age = (dt.datetime.now() - dt.datetime.fromtimestamp(int(stamp))).days
+            when = f"last task commit {age} days ago" + (" (stale?)" if age > STALE_DAYS else "")
+        else:
+            when = "no task committed yet"
+        found.append((number, title, when))
+    return found
 
 
 def main():
@@ -96,6 +121,11 @@ def main():
                 lines.append(f"- {branch or '(detached)'} in worktree {path}: {'; '.join(parts)}{mine}")
             path = branch = None
 
+    in_worktrees = {b.split("/", 1)[1].split("-")[0] for b in worktree_branches if b and b.startswith("epic/")}
+    for number, title, when in active_epics(main_root, base):
+        if number not in in_worktrees:
+            lines.insert(0, f"- {title}: Active on {base}, {when}")
+
     unmerged = git("branch", "--list", "epic/*", "--no-merged", base, "--format=%(refname:short)", cwd=main_root) or ""
     for name in unmerged.splitlines():
         if name and name not in worktree_branches:
@@ -108,7 +138,7 @@ def main():
     print(f"Open work in {repo} (Core/01-Tasks.md, Parallel work):")
     print("\n".join(lines))
     print("Name this to the designer before starting anything beside it, and start only on their yes. "
-          "Continuing the open work this session started in needs no yes.")
+          "Continuing the work this session was started for needs no yes.")
 
 
 if __name__ == "__main__":
