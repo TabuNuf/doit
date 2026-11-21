@@ -13,6 +13,7 @@
 // `record(ref, what)` is told every change to a task in words (the activity log); the root hands it in.
 
 import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask, matchesState, check, checkContact, oneLine } from "./task.js";
+import { applyChanges } from "./taskEdit.js";
 import { archiveReason, epicArchived, byRank, stamp, checkKind, DEFAULT_KEEP_DAYS } from "./rules.js";
 import { TaskMover } from "./mover.js";
 import { EpicMoves } from "./epicMoves.js";
@@ -152,30 +153,7 @@ export class Board {
     const task = this.get(ref);
     const before = { ...task };
     const now = stamp(this.now());
-    for (const [key, value] of Object.entries(changes)) {
-      switch (key) {
-        case "state": this.#changeState(task, value, now); break;
-        case "owner": check(OWNERS, value, "owner"); task.owner = value; break;
-        case "type": check(TYPES, value, "type"); task.type = value; break;
-        case "deadline":
-          if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error("Deadline must be YYYY-MM-DD");
-          task.deadline = value || null;
-          break;
-        case "rank":
-          if (!Number.isFinite(Number(value))) throw new Error("Rank must be a number");
-          task.rank = Number(value);
-          break;
-        case "blocks":
-          if (value && !/^T-\d+\.\d+$/.test(value)) throw new Error("Blocks must name a task, like T-014.3");
-          task.blocks = value || null;
-          break;
-        case "contact": task.contact = checkContact(value); break;
-        case "title": if (!String(value).trim()) throw new Error("A task needs a title"); task.title = oneLine(value); break;
-        case "doneWhen": task.doneWhen = oneLine(value); break;
-        case "description": task.description = String(value); break;
-        default: throw new Error(`Unknown field: ${key}`);
-      }
-    }
+    applyChanges(task, changes, now);
     task.updated = now;
     task.created ||= now;
     this.#write(task, describeChanges(before, task));
@@ -209,15 +187,6 @@ export class Board {
     if (!name || !name.trim()) throw new Error("An epic needs a name");
     check(["Parked", "Planned", "Active"], status, "status");
     return this.source.createEpic(project, name.trim(), status, { game, event });
-  }
-
-  #changeState(task, state, now) {
-    check(STATES, state, "state");
-    if (state === task.state) return;
-    if (state === "done") { task.completed = now; task.ticked = true; task.archived = null; }
-    else if (state === "archived") { task.archived = "Archived by hand"; }
-    else { task.completed = null; task.ticked = false; task.archived = null; }
-    task.state = state;
   }
 
   #archive(task, reason) {

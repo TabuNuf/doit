@@ -25,7 +25,8 @@ Module order, low to high: domain → store → cli, server → root.
 - `domain/activity.js`: `ActivityLog`, the activity log: one line per task change (`YYYY-MM-DD HH:MM  <project/T-id>  <what>`), newest first for reading, lines past 30 days dropped on write; `describeChanges` puts a task update in words. Over an activity-file port. Pure.
 - `domain/epicMoves.js`: `EpicMoves`, closes an epic and moves it between open, parked, completed and archived; `planEpicMove` is pure (epic and tasks in, plan out, or a refusal). `Board.closeEpic` and `Board.moveEpic` delegate to it. A reopen restores the tasks archived with reason `Epic <id> closed`.
 - `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves (via `TaskMover`), comments, sweeps, closes an epic (archives its tasks, then the source sets it Done, writes `Closed: <date>` and files it in `Completed/`), returns the closed epics in `view` as `closedEpics` (each with `closed` and `archived`, an `Archived:` line counting) and parked ones as `parkedEpics`, next to the open `epics` (the CLI's `epics` lists open then parked) and serves an epic's document. An epic carries `game` and `event` (the `Game:` and `Event:` lines of a campaign, null when absent); `addTask` and `update` accept `contact` (a whole-number id or empty), and `subscribe(listener)` hands each listener a plain fact `{ref, project, epic, title, contact, game, date}` when a task with a contact moves to done. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) a clock and a `record(ref, what)` function from the root that it tells every change it writes (the root points it at the `ActivityLog`, so the CLI and the page are logged alike).
-- `domain/taskLoader.js`: `loadTasks(source, project, archived)`, joins epics, checklist lines and task files into tasks (the Board's read side, split out to keep `board.js` under 250 lines). Pure over the source port.
+- `domain/taskEdit.js`: `applyChanges(task, changes, now)`, the field edits of `Board.update` (state, owner, type, deadline, rank, blocks, contact, title, doneWhen, description) with their checks. Pure; split out so `board.js` stays under 220 lines.
+- `domain/taskLoader.js`: `loadTasks(source, project, archived)`, joins epics, checklist lines and task files into tasks (the Board's read side, split out to keep `board.js` under 220 lines). Pure over the source port.
 - `domain/doneNotifier.js`: `DoneNotifier`, `subscribe(listener)` and `announce(task, now)`, which hands each listener the plain done fact for a task with a contact; a listener's failure goes to `onError(fact, error)` (the Board points it at `record`, so it reaches the activity log). `Board.subscribe` delegates to it.
 - `store/markdown.js`: parses and writes epic files and task files, including the `Game:` and `Event:` lines under `Status:` and the task's `contact` field. Pure text in and out.
 - `store/projectFiles.js`: `ProjectFiles`, reads and writes one project's docs folder: epics, task files, archive moves, new epic, move to Completed, project scaffold.
@@ -65,6 +66,7 @@ Module order, low to high: domain → store → cli, server → root.
 - `server/festivalRoutes.js`: `festivalRoutes(book)`, `GET /api/festivals[?game=<game>]`: the festivals by deadline with `daysLeft`, `match` (so the criteria-unknown mark) and state, from `ContactBook.festivals({fits, open: true})`; events past their deadline are never in it. An unknown game is a 400.
 - `web/festivalsPane.js`: the Festivals and Events tabs of the Marketing view (what the list shows for the picked game, list rows with days left, cost, state and the criteria-unknown mark; a row opens the festival in the contact detail pane); pure HTML like `draftsPane.js`.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board`, output streams, the `ClaudeView` (for `morning`), the `ContactBook` and `readText(path)` (a file reader the root supplies, since the CLI tier has no `node:fs`); the contact commands go to `ContactsCli`, the festival commands to `FestivalsCli`.
+- `cli/help.js`: `HELP`, the text `doit help` prints, apart from the command table so `cli.js` stays under 220 lines.
 - `cli/contactsCli.js`: `ContactsCli`, the contact commands (`contacts`, `contact`, `fit`, `touch`, `profiles`), over the `ContactBook`.
 - `cli/festivalsCli.js`: `FestivalsCli`, the festival commands (`festivals`, `festival upsert|set`), over the `ContactBook`; an upsert finds the festival by name and year.
 - `server/server.js`: `HttpServer`, the JSON API (including `GET /api/version`, the start commit) and the static page. Given a `Board`, the web folder, the commit, the `DocsLibrary` (the `/api/docs/` routes) and the `ClaudeView` (`GET /api/claude`), and `GET /api/events`, a server-sent event stream that sends `changed` on connect and on every event of the optional `changes` port (`subscribe(listener)` returning an unsubscribe; the root passes the `ChangeWatcher`); `close()` ends the open streams first and closes the port, since the server is its only user. `bin/server.js` reads the commit with `git rev-parse HEAD`. It also takes the `ContactBook` and adds the contact routes.
@@ -119,6 +121,7 @@ classDiagram
   class ImapMailbox { +session(account, fn) }
   class MailCli { +templates() +draft() +drafts() +mail() }
   class MailRoutes { +mailRoutes(mailroom) }
+  class TaskEdit { +applyChanges(task, changes, now) }
   class TaskMover { +plan(task, tasks, placement) changes }
   class EpicMoves { +close() +move(project, epic, to) }
   class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +completeEpic() +parkEpic() +reopenEpic() +setEpicArchived() +closedEpics() +epicDocument() }
@@ -130,6 +133,7 @@ classDiagram
   class HttpServer { +commit }
   Board --> TaskMover
   Board --> EpicMoves
+  Board --> TaskEdit
   EpicMoves --> FileSource : port
   Board ..> ActivityLog : record fn from root
   ActivityLog --> ActivityFile : port

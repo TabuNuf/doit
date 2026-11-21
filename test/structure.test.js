@@ -8,13 +8,18 @@ import { TaskMover } from "../src/domain/mover.js";
 
 const domain = path.join(import.meta.dirname, "..", "src", "domain");
 
-test("board.js stays under 250 lines", () => {
+test("board.js stays under 220 lines", () => {
   const lines = fs.readFileSync(path.join(domain, "board.js"), "utf8").split("\n").length;
-  assert.ok(lines < 250, `board.js is ${lines} lines`);
+  assert.ok(lines < 220, `board.js is ${lines} lines`);
 });
 
 test("the move logic is its own class, composed by Board", () => {
   const board = new Board({});
   assert.ok(board.mover instanceof TaskMover);
   assert.doesNotMatch(fs.readFileSync(path.join(domain, "board.js"), "utf8"), /rankBetween/);
+});
+
+test("cli.js stays under 220 lines", () => {
+  const lines = fs.readFileSync(path.join(import.meta.dirname, "..", "src", "cli", "cli.js"), "utf8").split("\n").length;
+  assert.ok(lines < 220, `cli.js is ${lines} lines`);
 });
