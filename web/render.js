@@ -33,7 +33,7 @@ function renderTop() {
   const badge = due ? `<span class="badge" title="${what}">${due} due</span>` : "";
   $("#views").innerHTML = [["board", "Board", ""], ["docs", "Docs", ""], ["claude", "Claude", badge], ["marketing", "Marketing", ""]]
     .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${what}"` : ""}>${l}${b}</button>`).join("");
-  $("#projects").innerHTML = S.view === "marketing" ? marketingTabs(S.mk.pane) : projectBar();
+  $("#projects").innerHTML = S.view === "marketing" ? marketingTabs(S.mk.pane, S.mk.game, S.mk.profiles) : projectBar();
   $("#modal").innerHTML = S.newProj ? `<form class="form" id="np" aria-label="New project">
     <label for="np-name">Project name<input id="np-name" required placeholder="Storm Haven"></label>
     <label for="np-path">Folder<input id="np-path" required placeholder="~/Unity/Storm-Haven" style="width:240px"></label>

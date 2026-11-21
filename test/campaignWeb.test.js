@@ -47,34 +47,57 @@ test("GET /api/outreach gives the plan and the contacts route makes tasks, refus
   assert.deepEqual([task.contact, task.game], [2, "bunny-bunker"]);
 });
 
-test("the This week pane lists the three groups, escapes names and opens a contact or festival", async () => {
-  const { weekPane } = await import("../web/weekPane.js");
-  const html = weekPane({
-    contacts: [{ id: 2, name: "Bit <Blog>", game: "bunny-bunker", why: "campaign", ref: "m/T-1.1" }, { id: 1, name: "Ada", game: "", why: "due" }],
+test("the Overview tab lists the week's three groups, escapes names, opens a row in its tab and keeps the picked game", async () => {
+  const { overviewPanes } = await import("../web/weekPane.js");
+  const plan = {
+    contacts: [{ id: 2, name: "Bit <Blog>", game: "bunny-bunker", why: "campaign", ref: "m/T-1.1" }, { id: 1, name: "Ada", game: "good-box", why: "due" }],
     festivals: [{ id: 3, name: "Next Fest", year: 2027, deadline: "2026-12-01", daysLeft: 11, games: ["bunny-bunker"] }],
     steps: [{ ref: "m/T-1.2", title: "Write the pitch", game: "bunny-bunker" }],
-  }, 3);
+  };
+  const html = overviewPanes(plan, 3);
   assert.match(html, /Bit &lt;Blog&gt;/);
-  assert.match(html, /data-contact="2"/);
-  assert.match(html, /data-contact="3" aria-pressed="true"/);
+  assert.match(html, /data-contact="2" data-mk-to="contacts"/);
+  assert.match(html, /data-contact="3" data-mk-to="festivals" aria-pressed="true"/);
   assert.match(html, /11 days left/);
   assert.match(html, /Write the pitch/);
-  assert.match(html, /Contacts<span class="c">2<\/span>/);
-  const empty = weekPane({ contacts: [], festivals: [], steps: [] }, null);
+  assert.match(html, /Contacts this week<span class="c">2<\/span>/);
+  assert.match(overviewPanes(plan, null, "good-box"), /Contacts this week<span class="c">1<\/span>.*Festival deadlines<span class="c">0<\/span>.*Campaign steps<span class="c">0<\/span>/s);
+  const empty = overviewPanes({ contacts: [], festivals: [], steps: [] }, null);
   assert.match(empty, /No one to reach out to/);
   assert.match(empty, /None within 14 days/);
   assert.match(empty, /No open steps/);
-  assert.match(weekPane(null, null), /Loading/);
+  assert.match(overviewPanes(null, null), /Loading/);
 });
 
-test("the Marketing view puts This week above its tabs", async () => {
+test("This week is only on the Overview tab, so the other tabs' lists get the full height", async () => {
   const { S } = await import("../web/state.js");
   const { marketingPanes } = await import("../web/marketingView.js");
   S.mk.week = { contacts: [], festivals: [], steps: [] };
   S.mk.pane = "contacts"; S.mk.contacts = []; S.mk.profiles = [];
-  const html = marketingPanes();
-  assert.ok(html.indexOf("This week") < html.indexOf("Filters"));
-  S.mk.week = null;
+  assert.doesNotMatch(marketingPanes(), /This week|Festival deadlines/);
+  S.mk.pane = "overview";
+  assert.match(marketingPanes(), /Contacts this week.*Festival deadlines.*Campaign steps/s);
+  S.mk.week = null; S.mk.pane = "campaigns";
+});
+
+test("the Campaigns tab shows the picked game's profile and its campaign epics, Active first", async () => {
+  const { campaignsFor, campaignsPane, profilePane } = await import("../web/campaignsPane.js");
+  const epics = [
+    { project: "m", id: "EPIC-010", name: "Old push", status: "Planned", game: "bunny-bunker", done: 0, total: 2 },
+    { project: "m", id: "EPIC-002", name: "Inbox", status: "Active", game: null, done: 0, total: 0 },
+    { project: "m", id: "EPIC-009", name: "Next Fest", status: "Active", game: "bunny-bunker", done: 1, total: 4 },
+    { project: "m", id: "EPIC-011", name: "Box launch", status: "Active", game: "box-trainer", done: 0, total: 1 },
+  ];
+  assert.deepEqual(campaignsFor(epics, "").map(e => e.id), ["EPIC-009", "EPIC-011", "EPIC-010"]);
+  assert.deepEqual(campaignsFor(epics, "bunny-bunker").map(e => e.id), ["EPIC-009", "EPIC-010"]);
+  const html = campaignsPane(campaignsFor(epics, "bunny-bunker"));
+  assert.match(html, /data-campaign="m\/EPIC-009"/);
+  assert.match(html, /1\/4/);
+  assert.match(campaignsPane([]), /No campaign/);
+  const profiles = [{ game: "box-trainer", name: "Box Trainer", kind: "game", stage: "demo", release: "", genres: ["puzzle"], platforms: [], needs: ["wishlists"], project: "box-trainer" }];
+  assert.match(profilePane("box-trainer", profiles), /<h2>Box Trainer<\/h2>.*puzzle.*wishlists.*Marketing\/Profile\.md/s);
+  assert.match(profilePane("", profiles), /Pick a game or podcast/);
+  assert.match(profilePane("", []), /doit profile add/);
 });
 
 test("an open campaign epic shows Add contacts; a plain or closed one does not", async () => {

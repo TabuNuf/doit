@@ -20,10 +20,14 @@ test("the Marketing view shows its tabs where the other views show the projects"
   S.view = "marketing"; S.mk.pane = "festivals";
   render();
   const bar = els.get("#projects").innerHTML;
-  for (const tab of ["contacts", "drafts", "festivals"]) assert.match(bar, new RegExp(`data-mk-pane="${tab}"`));
   assert.match(bar, /data-mk-pane="festivals" aria-pressed="true"/);
-  assert.match(bar, />Contacts<.*>Drafts<.*>Festivals</s);
+  assert.match(bar, /^<select id="mk-pick"[^>]*aria-label="Game or podcast".*>Campaigns<.*>Contacts<.*>Festivals<.*>Events<.*>Drafts<.*>Overview</s, "the picker first, then the tabs in order");
   assert.doesNotMatch(bar, /data-p=|data-projmenu|All projects|Projects/);
+  S.mk.profiles = [{ game: "box-trainer", name: "Box Trainer", kind: "game" }, { game: "hbd", name: "Hidden by Design", kind: "podcast" }];
+  S.mk.game = "hbd"; S.mk.pane = "campaigns";
+  render();
+  assert.match(els.get("#projects").innerHTML, /<optgroup label="Games"><option value="box-trainer" >Box Trainer<\/option><\/optgroup><optgroup label="Podcasts"><option value="hbd" selected>Hidden by Design/);
+  S.mk.profiles = []; S.mk.game = "";
 
   for (const view of ["board", "docs", "claude"]) {
     S.view = view;

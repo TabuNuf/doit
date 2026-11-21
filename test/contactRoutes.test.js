@@ -68,3 +68,16 @@ test("a refused value returns 400 with the message, a missing contact 404", asyn
   assert.equal((await api("/api/contacts/99")).status, 404);
   assert.equal((await api("/api/contacts/99/touch", "POST", { kind: "mail" })).status, 404);
 });
+
+test("except= leaves festivals and conferences out of the contacts, and type= splits the events", async t => {
+  const { s, api } = await serve(t);
+  const book = makeContacts({ home: s.home, now: () => s.clock.t });
+  book.add({ name: "Ada Plays", types: ["influencer"] });
+  book.upsertFestival("Next Fest", 2027, { types: ["festival"], event: { deadline: "2026-12-20" } });
+  book.upsertFestival("GDC", 2027, { types: ["conference"], event: { deadline: "2026-12-10" } });
+  assert.deepEqual((await api("/api/contacts?except=festival,conference")).body.map(c => c.name), ["Ada Plays"]);
+  assert.equal((await api("/api/contacts?except=nonsense")).status, 400);
+  assert.deepEqual((await api("/api/festivals?type=festival")).body.map(c => c.name), ["Next Fest"]);
+  assert.deepEqual((await api("/api/festivals?type=conference")).body.map(c => c.name), ["GDC"]);
+  book.source.close();
+});

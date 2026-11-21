@@ -8,7 +8,7 @@ export const FUNNEL = '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z
 export const S = {
   project: "all", epic: null, tab: "open", q: "", owner: "all",
   f: { task: true, bug: true, due: "any" }, fOpen: false, projOpen: false,
-  view: "board", claude: null, mk: { contacts: null, profiles: [], f: { game: "", type: "", reach: "", status: "" }, sel: null, detail: null, touchOpen: false, pane: "contacts", fest: null, festGame: "", drafts: null, status: null, sweep: "", week: null }, docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
+  view: "board", claude: null, mk: { contacts: null, profiles: [], game: "", f: { type: "", reach: "", status: "" }, sel: null, detail: null, touchOpen: false, pane: "campaigns", fest: null, campaigns: null, drafts: null, status: null, sweep: "", week: null }, docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
   sel: null, font: 15, newProj: false, newTask: false, newEpic: null, epicView: null, epicFold: {}, data: null, npErr: "",
 };
 try { S.font = Number(localStorage.getItem("doit.font")) || 15; S.project = localStorage.getItem("doit.project") || "all"; S.docs.linkedClosed = localStorage.getItem("doit.docs.linked") === "closed"; } catch { /* storage off */ }

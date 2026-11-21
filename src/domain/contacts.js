@@ -82,7 +82,10 @@ export function contactFilter(filter = {}, today) {
   const reach = filter.reach === undefined || filter.reach === null || filter.reach === "" ? null : checkReach(filter.reach);
   const fits = filter.fits ? String(filter.fits).trim() : null;
   const due = Boolean(filter.due);
+  // `except` leaves out contacts of any of these types (the Contacts tab: no festivals or conferences).
+  const except = String(filter.except ?? "").split(",").map(s => s.trim()).filter(Boolean).map(t => oneOf(t, TYPES, "type"));
   return c => (!type || c.types.includes(type))
+    && !except.some(t => c.types.includes(t))
     && (!status || c.status === status)
     && (reach === null || (c.reach !== null && c.reach >= reach))
     && (!fits || c.fit.some(f => f.game === fits))

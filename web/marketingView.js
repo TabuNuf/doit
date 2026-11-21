@@ -1,20 +1,25 @@
-// The Marketing view: filters, the contacts list (due ones on top) and the selected contact's detail.
-// The server filters and ranks; the page sends the filters and keeps due contacts above the rest.
+// The Marketing view: a game or podcast picked in the top bar, then the tabs Campaigns, Contacts, Festivals,
+// Events, Drafts and Overview. The server filters and ranks; the page sends the pick and the filters.
 
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail.js";
-import { festivalPath, gamePane, festivalsPane } from "./festivalsPane.js";
-import { weekPane } from "./weekPane.js";
+import { festivalPath, eventsInfoPane, festivalsPane } from "./festivalsPane.js";
+import { overviewPanes } from "./weekPane.js";
+import { campaignsFor, profilePane, campaignsPane } from "./campaignsPane.js";
+import { openEpic } from "./epicView.js";
 import { draftsPane, draftEditRequest, sendQuestion, sweepSummary } from "./draftsPane.js";
 
-export const TYPES = ["influencer", "blogger", "press", "publisher", "tester", "festival", "conference"];
+/** The types a person or outlet has; festivals and conferences have their own tabs. */
+export const TYPES = ["influencer", "blogger", "press", "publisher", "tester"];
+const EVENT_TYPES = "festival,conference";
 export const REACH_OPTIONS = [["", "Any"], ["100", "100"], ["1000", "1 000"], ["10000", "10 000"], ["100000", "100 000"]];
 
-/** The list request for the chosen filters. */
-export function contactPath(f) {
+/** The list request for the picked game and the chosen filters; events are left out. */
+export function contactPath(f, game = "") {
   const q = new URLSearchParams();
-  if (f.game) q.set("fits", f.game);
+  if (game) q.set("fits", game);
   for (const k of ["type", "reach", "status"]) if (f[k]) q.set(k, f[k]);
+  q.set("except", EVENT_TYPES);
   const s = q.toString();
   return "/api/contacts" + (s ? "?" + s : "");
 }
@@ -24,11 +29,10 @@ export const dueFirst = list => [...list.filter(c => c.due), ...list.filter(c =>
 
 const select = (id, label, options, value) => `<label for="${id}">${label}<select id="${id}">${options.map(([v, l]) => `<option value="${esc(v)}" ${v === value ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`;
 
-/** The filter column. */
-export function filterPane(f, profiles) {
+/** The filter column; the game is picked in the top bar. */
+export function filterPane(f) {
   const any = l => ["", l];
   return `<section class="pane" aria-label="Filters"><div class="pane-h">Filters</div><div class="pane-b form mk-filters">
-    ${select("mk-game", "Game", [any("Any game"), ...profiles.map(p => [p.game, p.name || p.game])], f.game)}
     ${select("mk-type", "Type", [any("Any type"), ...TYPES.map(t => [t, t])], f.type)}
     ${select("mk-reach", "Reach at least", REACH_OPTIONS, f.reach)}
     ${select("mk-fstatus", "Status", [any("Any status"), ...STATUSES.map(s => [s, s])], f.status)}
@@ -52,22 +56,30 @@ export function listPane(contacts, sel, draftCount = null) {
   return `<section class="pane" aria-label="Contacts"><div class="pane-h">Contacts<span class="c">${contacts.length}</span><button data-mk-pane="drafts" class="pane-close">Drafts${draftCount === null ? "" : ` (${draftCount})`}</button></div><div class="pane-b">${body}</div></section>`;
 }
 
-export const MK_TABS = [["contacts", "Contacts"], ["drafts", "Drafts"], ["festivals", "Festivals"]];
+export const MK_TABS = [["campaigns", "Campaigns"], ["contacts", "Contacts"], ["festivals", "Festivals"], ["events", "Events"], ["drafts", "Drafts"], ["overview", "Overview"]];
+/** The event type each event tab lists. */
+const EVENT_TAB = { festivals: "festival", events: "conference" };
 
-/** Marketing's own tabs, shown in the top bar where the project chips are on the other views. */
-export function marketingTabs(pane) {
-  return MK_TABS.map(([id, label]) => `<button class="chip" data-mk-pane="${id}" aria-pressed="${pane === id}">${label}</button>`).join("");
+/** The game or podcast picker: the profiles, games then podcasts. */
+export function gamePicker(game, profiles) {
+  const opt = p => `<option value="${esc(p.game)}" ${p.game === game ? "selected" : ""}>${esc(p.name || p.game)}</option>`;
+  const group = (label, kind) => { const ps = profiles.filter(p => (p.kind || "game") === kind); return ps.length ? `<optgroup label="${label}">${ps.map(opt).join("")}</optgroup>` : ""; };
+  return `<select id="mk-pick" class="mk-pick" aria-label="Game or podcast" title="The game or podcast every tab shows"><option value="">Any game or podcast</option>${group("Games", "game")}${group("Podcasts", "podcast")}</select>`;
+}
+
+/** The picker, then Marketing's own tabs, shown in the top bar where the project chips are on the other views. */
+export function marketingTabs(pane, game = "", profiles = []) {
+  return gamePicker(game, profiles) + MK_TABS.map(([id, label]) => `<button class="chip" data-mk-pane="${id}" aria-pressed="${pane === id}">${label}</button>`).join("");
 }
 
 export function marketingPanes() {
-  return weekPane(S.mk.week, S.mk.sel) + tabPanes();
-}
-
-function tabPanes() {
   const m = S.mk;
-  if (m.pane === "festivals") return gamePane(m.festGame, m.profiles) + festivalsPane(m.fest, m.sel) + detailPane(m.detail, m.profiles, m.touchOpen, today());
+  const detail = () => detailPane(m.detail, m.profiles, m.touchOpen, today());
+  if (m.pane === "overview") return overviewPanes(m.week, m.sel, m.game);
+  if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game)) + detail();
+  if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + detail(); }
   const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length);
-  return filterPane(m.f, m.profiles) + middle + detailPane(m.detail, m.profiles, m.touchOpen, today());
+  return filterPane(m.f) + middle + detail();
 }
 
 /** Opening the view: loads it, then sweeps the mailbox once, quietly (its result is a line in the Drafts pane). */
@@ -82,9 +94,10 @@ export async function openMarketing() {
 export async function refreshMarketing() {
   const m = S.mk;
   try {
-    [m.profiles, m.contacts, m.drafts, m.status] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f)), api("GET", "/api/drafts"), api("GET", "/api/mail/status")]);
-    m.week = await api("GET", "/api/outreach").catch(() => null);
-    if (m.pane === "festivals") m.fest = await api("GET", festivalPath(m.festGame));
+    [m.profiles, m.contacts, m.drafts, m.status] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f, m.game)), api("GET", "/api/drafts"), api("GET", "/api/mail/status")]);
+    if (m.pane === "overview") m.week = await api("GET", "/api/outreach").catch(() => null);
+    if (EVENT_TAB[m.pane]) m.fest = await api("GET", festivalPath(m.game, EVENT_TAB[m.pane]));
+    if (m.pane === "campaigns") m.campaigns = (await api("GET", "/api/board?project=all")).epics;
     m.detail = m.sel ? await api("GET", `/api/contacts/${encodeURIComponent(m.sel)}`).catch(() => null) : null;
     if (!m.detail) { m.sel = null; m.touchOpen = false; }
     redraw();
@@ -104,13 +117,14 @@ async function send(req) {
 export function marketingClick(d) {
   const m = S.mk;
   if (d.taskContact) { S.view = "marketing"; m.pane = "contacts"; m.sel = d.taskContact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
-  if (d.contact) { m.sel = d.contact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
-  if (d.mkPane) { m.pane = d.mkPane; redraw(); if (m.pane === "festivals") refreshMarketing(); return true; }
+  if (d.contact) { if (d.mkTo) m.pane = d.mkTo; m.sel = d.contact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
+  if (d.mkPane) { m.pane = d.mkPane; m.fest = null; redraw(); refreshMarketing(); return true; }
+  if (d.campaign) { S.view = "board"; S.project = d.campaign.split("/")[0]; S.tab = "open"; openEpic(d.campaign); return true; }
   if (d.mkSend) { sendDraft(d.mkSend); return true; }
   if (d.mkDiscard) { discardDraft(d.mkDiscard); return true; }
   if ("mkTouch" in d) { m.touchOpen = true; redraw(); $("#mk-tk-kind")?.focus(); return true; }
   if ("mkTouchCancel" in d) { m.touchOpen = false; redraw(); return true; }
-  if ("mkClear" in d) { m.f = { game: "", type: "", reach: "", status: "" }; refreshMarketing(); return true; }
+  if ("mkClear" in d) { m.f = { type: "", reach: "", status: "" }; refreshMarketing(); return true; }
   return false;
 }
 
@@ -132,12 +146,12 @@ async function discardDraft(id) {
   return refreshMarketing();
 }
 
-const FILTERS = { "mk-game": "game", "mk-type": "type", "mk-reach": "reach", "mk-fstatus": "status" };
+const FILTERS = { "mk-type": "type", "mk-reach": "reach", "mk-fstatus": "status" };
 
 /** A changed filter or detail field; true when the change was one. */
 export function marketingChange(ev) {
   const el = ev.target;
-  if (el.id === "mk-fgame") { S.mk.festGame = el.value; refreshMarketing(); return true; }
+  if (el.id === "mk-pick") { S.mk.game = el.value; S.mk.fest = null; refreshMarketing(); return true; }
   if (FILTERS[el.id]) { S.mk.f[FILTERS[el.id]] = el.value; refreshMarketing(); return true; }
   const dr = draftEditRequest(el, S.mk.drafts);
   if (dr) { saveDraft(dr); return true; }

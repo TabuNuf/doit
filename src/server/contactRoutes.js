@@ -7,7 +7,7 @@ const on = v => v === "1" || v === "true";
 export function contactRoutes(book) {
   return [
     ["GET", /^\/api\/contacts$/, q => book.list({
-      type: q.get("type") || undefined, fits: q.get("fits") || undefined, status: q.get("status") || undefined,
+      type: q.get("type") || undefined, except: q.get("except") || undefined, fits: q.get("fits") || undefined, status: q.get("status") || undefined,
       reach: q.get("reach") || undefined, due: on(q.get("due")),
     })],
     ["GET", /^\/api\/contacts\/([^/]+)$/, (q, b, m) => book.get(m[1])],

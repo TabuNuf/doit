@@ -30,10 +30,10 @@ test("a row shows name, types, reach, status and next date", async () => {
 
 test("filters become query parameters, with a reach count", async () => {
   const { contactPath, filterPane } = await import("../web/marketingView.js");
-  assert.equal(contactPath({ game: "", type: "", reach: "", status: "" }), "/api/contacts");
-  assert.equal(contactPath({ game: "storm-haven", type: "press", reach: "1000", status: "active" }), "/api/contacts?fits=storm-haven&type=press&reach=1000&status=active");
-  const html = filterPane({ game: "storm-haven", type: "", reach: "1000", status: "" }, [{ game: "storm-haven", name: "Storm Haven" }]);
-  assert.match(html, /<option value="storm-haven" selected>Storm Haven/);
+  assert.equal(contactPath({ type: "", reach: "", status: "" }), "/api/contacts?except=festival%2Cconference");
+  assert.equal(contactPath({ type: "press", reach: "1000", status: "active" }, "storm-haven"), "/api/contacts?fits=storm-haven&type=press&reach=1000&status=active&except=festival%2Cconference");
+  const html = filterPane({ type: "", reach: "1000", status: "" });
+  assert.doesNotMatch(html, /mk-game|festival|conference/, "the game is picked in the top bar; events have their own tabs");
   assert.match(html, /<option value="1000" selected>1 000/);
 });
 

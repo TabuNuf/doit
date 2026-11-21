@@ -7,7 +7,7 @@ import { setup, addProfiles } from "./helpers.js";
 const festival = (id, { event, ...over } = {}) => ({ id, name: `Fest ${id}`, event: { year: 2027, deadline: "2026-12-01", cost: "free", where: "steam", state: "watching", ...event }, daysLeft: 10, match: { match: true, criteriaUnknown: false }, ...over });
 
 test("the Festivals pane lists days left, cost, state and the criteria-unknown mark", async () => {
-  const { festivalsPane, gamePane, festivalPath } = await import("../web/festivalsPane.js");
+  const { festivalsPane, eventsInfoPane, festivalPath } = await import("../web/festivalsPane.js");
   const html = festivalsPane([
     festival(1, { name: "Next <Fest>", event: { cost: "free" } }),
     festival(2, { daysLeft: 0, event: { deadline: "2026-11-21", cost: "", state: "applied" }, match: { match: true, criteriaUnknown: true } }),
@@ -21,11 +21,14 @@ test("the Festivals pane lists days left, cost, state and the criteria-unknown m
   assert.match(html, />applied</);
   assert.equal(html.match(/criteria unknown/g).length, 1);
   assert.match(html, /data-contact="2" aria-pressed="true"/);
-  assert.match(festivalsPane([], null), /No festival matches/);
+  assert.match(festivalsPane([], null), /Nothing matches/);
+  assert.match(festivalsPane([], null, "Events"), /aria-label="Events"><div class="pane-h">Events/);
   assert.match(festivalsPane(null, null), /Loading/);
-  assert.match(gamePane("good-box", [{ game: "good-box", name: "Good Box" }]), /<option value="good-box" selected>Good Box/);
+  assert.match(eventsInfoPane("Events", "good-box", [{ game: "good-box", name: "Good Box" }]), /Shows events that fit Good Box/);
+  assert.match(eventsInfoPane("Festivals", "", []), /pick a game in the top bar/);
   assert.equal(festivalPath(""), "/api/festivals");
   assert.equal(festivalPath("good-box"), "/api/festivals?game=good-box");
+  assert.equal(festivalPath("good-box", "conference"), "/api/festivals?game=good-box&type=conference");
 });
 
 test("GET /api/festivals matches a game by deadline and leaves out events past their deadline", async t => {
