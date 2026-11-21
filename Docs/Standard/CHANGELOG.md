@@ -6,6 +6,8 @@ One line per change: date, project, file, what changed and why. Newest first wit
 
 Every game that uses the standard adds its lines here when it pushes (`README.md`, Syncing). The version closes when the designer names it (`README.md`, Versions).
 
+- 2026-11-21, Doit EPIC-019, `Core/02-Working.md` Versions and releases, `Unity/02-Project.md` Notes: marketing material lives in `<Docs>/Marketing/`: the product's `Profile.md` and each release's notes in `Marketing/Releases/<version>/`. Why: the designer wants marketing to find the description and the release notes of a game in one folder.
+
 - 2026-11-21, Doit EPIC-014, `Core/02-Working.md` Claude setup: a scheduled run's prompt lives in the repo, uses only the CLI with exact flags, logs one summary line, and a test runs the commands it names. Why: the festivals gathering run is an unattended prompt whose commands would otherwise drift from the CLI unnoticed.
 
 - 2026-11-21, Doit, `App/README.md` Pages over local files: a local server checks Host and Origin on every write; a network client takes an injectable `connect` so tests run a scripted server; a hand check sets the data-folder override once, not per command. Why: from EPIC-013 (mail), where a cross-site POST could have sent an unapproved mail and one unprefixed command touched the real data folder.

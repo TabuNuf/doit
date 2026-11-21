@@ -18,6 +18,8 @@ The commit rules themselves are in `01-Tasks.md`, Commits.
 - Stable branches are records, not places to work. A fix to a released version ships as the next release from main (the next minor; in a three-part format a fix-only release may raise the third number).
 - A release is cut from main in the main checkout, never with an epic branch half merged. It waits while an epic on main has open tasks, unless `<Designer>` ships it half built, which the release report names; and not while the conformance epic has open tasks unless `<Designer>` ships around it (`01-Tasks.md`, The conformance epic).
   Why: architecture drift found at each epic's close must be paid before players or users get the version, or "later" never comes. With epics built on main, a release mid-epic would ship half a feature.
+- **Marketing material lives in `<Docs>/Marketing/`.** `Profile.md` there says what the product is for whoever markets it (kind, genres, platforms, stage, release date, what it needs now), and each release's notes go in `Marketing/Releases/<version>/`, ordered by version.
+  Why: release notes are marketing copy too; kept beside the profile, whoever markets the product finds everything about it in one folder instead of searching the design docs.
 
 How a release is built and shipped is the stack layer's (Unity: `Unity/02-Project.md`, Versions and releases).
 
