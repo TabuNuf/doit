@@ -68,8 +68,10 @@ export class Mailroom {
   }
 
   /** Approves a draft (or takes an approved one that waited) and sends it. Returns the draft; `approved` afterwards means it waits for the cap. */
+  /** Refuses before approving when mail is not set up, so the draft stays editable. */
   async approveAndSend(id) {
     const d = this.#get(id);
+    if (!(await this.account.read())) throw new MailError("Mail is not set up");
     if (d.state === "approved") return this.send(id);
     this.store.update(d.id, approveDraft(d));
     return this.send(id);

@@ -110,6 +110,7 @@ test("without an account nothing is sent and the sweep is skipped", async t => {
   const r = room({ account: { read: async () => null } }); t.after(() => r.db.close());
   const d = pitch(r);
   await assert.rejects(() => r.mailroom.approveAndSend(d.id), /Mail is not set up/);
+  assert.equal(r.mailroom.getDraft(d.id).state, "draft");
   assert.deepEqual(await r.mailroom.sweep(), { ok: false, skipped: "Mail is not set up" });
   assert.equal((await r.mailroom.status()).ready, false);
   assert.equal(r.mailbox.sessions, 0);

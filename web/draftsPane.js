@@ -48,9 +48,9 @@ export function draftEditRequest(el, drafts) {
 /** The question the browser asks before a mail goes out. */
 export const sendQuestion = d => `Send "${d.subject}" to ${d.contactName} <${d.to}>?`;
 
-/** The one line a sweep leaves in the pane. */
+/** The one line a sweep leaves in the pane; none when it was skipped, since the status line already says why. */
 export function sweepSummary(r) {
-  if (r.skipped) return r.skipped;
+  if (r.skipped) return "";
   if (!r.ok) return `Sweep failed: ${r.error}`;
   return `Sweep: ${r.replies.length} ${r.replies.length === 1 ? "reply" : "replies"} filed, ${r.labeled} sent ${r.labeled === 1 ? "mail" : "mails"} labeled`;
 }

@@ -113,7 +113,7 @@ test("the drafts pane shows the status line, the sweep result and an empty state
   assert.match(draftsPane([], { ready: false }, "Sweep: 1 reply filed, 0 sent mails labeled"), /Sweep: 1 reply filed[\s\S]*No drafts/);
   assert.match(draftsPane([], { ready: false }, ""), /Mail is not set up/);
   assert.equal(sweepSummary({ ok: true, replies: [{}, {}], labeled: 1 }), "Sweep: 2 replies filed, 1 sent mail labeled");
-  assert.equal(sweepSummary({ ok: false, skipped: "Mail is not set up" }), "Mail is not set up");
+  assert.equal(sweepSummary({ ok: false, skipped: "Mail is not set up" }), "");
   assert.equal(sweepSummary({ ok: false, error: "Login refused" }), "Sweep failed: Login refused");
   assert.equal(sendQuestion(draft(1)), 'Send "Hello" to Ada <ada@example.com>?');
   assert.deepEqual(draftEditRequest({ id: "mk-dr-body-1", value: "New" }, [draft(1)]), { method: "PATCH", path: "/api/drafts/1", body: { body: "New" } });
