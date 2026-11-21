@@ -6,6 +6,8 @@ One line per change: date, project, file, what changed and why. Newest first wit
 
 Every game that uses the standard adds its lines here when it pushes (`README.md`, Syncing). The version closes when the designer names it (`README.md`, Versions).
 
+- 2026-11-21, Doit, `Core/01-Tasks.md` Epic rules and Template: a task title is one short line and the spec goes in the task description (`doit add --description`), with done-when in its own field. Why: no rule named the description, so projects packed the spec into titles; 0 descriptions in the four Unity games, up to 47 of 47 titles over 90 characters.
+
 - 2026-11-21, Doit EPIC-023, `Core/02-Working.md`, Tests: when a control moves or goes, grep for every message that names it. Why: two empty states still pointed at a removed Settings button after every test passed.
 
 - 2026-11-21, Doit EPIC-021, `Core/02-Working.md` Tests, `App/Starter/.claude/agents/batch-builder.md`: check the running app on a copy of its data and switch views with something selected; the build agent commits one task at a time even when tasks share files. Why: a cross-tab bug passed every page test, and a three-task batch on shared files landed as one commit.

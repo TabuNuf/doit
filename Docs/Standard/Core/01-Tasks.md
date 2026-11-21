@@ -54,6 +54,8 @@ Why: one board shows what Claude is doing in each project and what is left for t
   Why: two rebuilt copies of a generated file always conflict, and a hand merge of one is always wrong.
 - A task fits in one sitting and ends in one commit.
 - Every task has a "done when" that can be checked: a test that passes, or something visible in the running game or app, which goes on the epic's "Check in play" list for `<Designer>` (`02-Working.md`, Tests). "Works" is not a check.
+- A task's title is one short line, under about 90 characters, saying what changes. The spec (what was seen, the cause, the files, the source and its time in a recording) goes in its description: `doit add ... --description "<spec>"`, or `doit set <id> description=...` later. The "done when" stays in its own field.
+  Why: across twelve projects, the ones whose rules named no description packed the whole spec into the title (39 of 47 titles over 90 characters in one game, no descriptions at all), which makes the checklist line, the board's rows and the commit subjects unreadable.
 - A task that turns out bigger than planned is split in the file before work continues.
 - An epic merged into another or dissolved goes to `Completed/` with a status saying where its scope went.
 - An epic is written as a specification: each item says what the game does when done, tagged `Decided` or `Proposed`. No quotes from sessions, no "X said".
@@ -81,7 +83,7 @@ Design: GameDesign.md, section <name>
 
 ## Tasks
 
-- [ ] T-<nnn>.1 <what> (done when: <check>)
+- [ ] T-<nnn>.1 <what, short> (done when: <check>)   (the spec goes in the task description, Epic rules)
 - [ ] T-<nnn>.2 ...
 
 ## Test plan
