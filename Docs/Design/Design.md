@@ -99,7 +99,7 @@ When sitting down for outreach the order is festivals first, then people, then c
    - **Touches** replace the sheet's Replied and Posted Video columns: a log per contact of mails sent, replies and videos posted, each dated and tied to a game.
    - **Next contact** is a date on the contact; when it comes, the contact shows as due, for the games it fits.
    - First import: the Google Sheet `Marketing Contact List`, tab New Streamers (227 contacts, mostly YouTube). Its BB1 and BB2 columns were old campaigns and are not imported.
-   - **Storage:** SQLite, one file `marketing.db` in the app's data folder, through Node's built-in `node:sqlite` (Node 22 or newer, so no dependency). Contacts are personal data shared across projects and are queried more than read, so they are not files in a project's git. Tables: contacts, channels, fit (contact, game, reason), touches (contact, game, date, kind), later mail. Game profiles stay Markdown and are referred to by project id. The page and the CLI are the only ways in; Claude asks the CLI for a slice, as with tasks.
+   - **Storage:** SQLite, one file `marketing.db` in the app's data folder, through Node's built-in `node:sqlite` (Node 24, so no dependency). Contacts are personal data shared across projects and are queried more than read, so they are not files in a project's git. Tables: contacts, channels, fit (contact, game, reason), touches (contact, game, date, kind), later mail. Game profiles stay Markdown and are referred to by project id. The page and the CLI are the only ways in; Claude asks the CLI for a slice, as with tasks.
 3. **Mail.** Doit uses Tabu's Google Workspace account over IMAP and SMTP, with an app password kept in the macOS Keychain.
    - Doit only reads one label, **Marketing**. Mail from an address on the contact list is moved there from Inbox and logged as a touch; other mail is never opened.
    - Sending: one template per pitch (game, hook, trailer, Steam link, the ask), plus one or two personal lines per contact that Claude drafts from the contact's research. Claude only writes drafts; Tabu approves each mail before Doit sends it. A copy lands in Marketing.
@@ -147,6 +147,7 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - The project list and settings: `~/Library/Application Support/Doit/settings.json` (`DOIT_HOME` overrides it). Kept until deleted.
 - The activity log: `activity.log` beside the settings, 30 days.
 - Tasks and epics: Markdown in each project's docs folder, tracked by that project's git. Nothing leaves the machine. No personal data beyond names Tabu types.
+- Contacts: `marketing.db` beside the settings (SQLite): names, emails, channel links and notes of marketing contacts. Personal data, kept only in the data folder and in no project's git.
 
 ## Changelog
 
@@ -169,3 +170,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20, EPIC-012: game profiles all live in the Polyspice Marketing project, not in each game's project (section Marketing).
 - 2026-11-20, EPIC-015: campaign epics also live in the Polyspice Marketing project; EPIC-013 to EPIC-015 planned, EPIC-016 parked (section Marketing).
 - 2026-11-21: live updates replace the 10-second reload: the server watches the docs and data folders and tells the page; only typing, dragging or an open menu or form holds a reload (section Tasks).
+- 2026-11-21, EPIC-012: contacts are built in `marketing.db` (`node:sqlite`, Node 24), with game profiles read from the Polyspice Marketing project; Data names the file and its personal data.

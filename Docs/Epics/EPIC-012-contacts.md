@@ -16,7 +16,7 @@ Design: Design.md, section Marketing (steps 1 and 2)
 
 ## Tasks
 
-- [ ] T-012.1 Architecture and design: marketing modules in the layer table, module list and class diagram; `node:sqlite` allowed in the store; `engines` raised to Node 24; Design.md's Data section names `marketing.db` and its personal data (done when: the boundaries test allows `node:sqlite` in `src/store/` only and passes)
+- [x] T-012.1 Architecture and design: marketing modules in the layer table, module list and class diagram; `node:sqlite` allowed in the store; `engines` raised to Node 24; Design.md's Data section names `marketing.db` and its personal data (done when: the boundaries test allows `node:sqlite` in `src/store/` only and passes)
 - [ ] T-012.2 Domain: the `Contact` value (types, reach band, status, next contact) and the `ContactBook` facade over a `ContactSource` port: list with filters (type, game fit, status, due by date), get, add, update, set fit, add touch (done when: domain tests over an in-memory source cover each filter and refuse an unknown type or reach band)
 - [ ] T-012.3 Store: `SqliteContacts`, the `ContactSource` port on `marketing.db`: schema with `user_version` for later migrations, created on first open (done when: a test on a temporary `DOIT_HOME` writes a contact with channels, fit and touches, reopens the file and reads them back)
 - [ ] T-012.4 Game profiles: `ProfileShelf` reads `Docs/Profiles/*.md` from the marketing project (name, genres, platforms, stage, release date, needs) and creates a profile from a template; fit refers to a profile by its file name (done when: a test reads two profiles and refuses a fit to a game with no profile)
