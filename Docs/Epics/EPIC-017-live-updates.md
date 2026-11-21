@@ -22,7 +22,7 @@ Design: Design.md, section Tasks (Live updates)
 - [x] T-017.2 Store: `store/changeWatcher.js`, `ChangeWatcher` over `SettingsFile` and `EpicWorktrees`: watches the folders above, debounces, rebuilds its list on a settings or worktree change, `subscribe` and `close` (done when: tests in a temp `DOIT_HOME` see one event for three quick writes, an event for a file in a project added after start, and none after `close`)
 - [x] T-017.3 Server and root: `GET /api/events` as `text/event-stream`, `changed` on connect and on every watcher event, streams ended on `close()`; `makeServer` builds the watcher (done when: a server test reads `changed` on connect and again after a task is written through the `Board`)
 - [x] T-017.4 Web: `EventSource` in `events.js`, the 10 s `setInterval` removed, a pure `reloadHeld(state, active)` in `state.js` and a pending flag that reloads when the hold ends (done when: web tests cover the hold for a text input, textarea, drag and open menu, and no hold for a select or checkbox)
-- [ ] T-017.5 Launcher check and docs: `check-server.sh` and the stay-open app unaffected by the open stream; Design.md's Data and Running it sections still true (done when: `test/launcher.test.js` passes and, in the app, `doit set doit/T-017.5 state=progress` moves the row within a second)
+- [x] T-017.5 Launcher check and docs: `check-server.sh` and the stay-open app unaffected by the open stream; Design.md's Data and Running it sections still true (done when: `test/launcher.test.js` passes and, in the app, `doit set doit/T-017.5 state=progress` moves the row within a second)
 
 ## Test plan
 
@@ -34,6 +34,7 @@ Design: Design.md, section Tasks (Live updates)
 
 - T-017.4: with a dropdown just used and focus still on it, a CLI change shows within a second.
 - T-017.4: typing in a task's description, a CLI change waits and shows when the field loses focus; the typed text is kept.
+- T-017.5: `doit set doit/T-017.5 state=progress` in the terminal moves the row within a second.
 - T-017.5: change a task's state from the terminal and watch the row move; edit a Design doc from the terminal with the Docs view open and see it re-render.
 - T-017.5: quit and restart the server with the page open; the page reconnects and reloads once.
 

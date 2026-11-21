@@ -36,3 +36,26 @@ test("check-server.sh reports nothing answering", async () => {
   const free = await new Promise(r => { const l = net.createServer().listen(0, () => { const p = l.address().port; l.close(() => r(p)); }); });
   assert.equal(await check(free), 1);
 });
+
+// A page holds /api/events open for as long as it is shown; neither script may be thrown by it.
+test("check-server.sh and stop-server.sh work with an event stream open", async t => {
+  const { spawn } = await import("node:child_process");
+  const http = await import("node:http");
+  const fs = await import("node:fs");
+  const os = await import("node:os");
+  const free = await new Promise(r => { const l = net.createServer().listen(0, () => { const p = l.address().port; l.close(() => r(p)); }); });
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "doit-launcher-"));
+  const env = { ...process.env, DOIT_PORT: String(free), DOIT_HOME: home };
+  const child = spawn("node", [path.join(ROOT, "bin", "server.js")], { env, stdio: "ignore" });
+  t.after(() => { child.kill("SIGKILL"); fs.rmSync(home, { recursive: true, force: true }); });
+  for (let i = 0; i < 40 && await check(free) === 1; i++) await new Promise(r => setTimeout(r, 100));
+  const req = http.get({ port: free, path: "/api/events" });
+  req.on("error", () => {});
+  await new Promise(r => req.on("response", res => res.once("data", r)));
+  assert.notEqual(await check(free), 1, "the server still answers beside the stream");
+  const started = Date.now();
+  await new Promise(r => execFile(path.join(ROOT, "launcher", "stop-server.sh"), { env }, r));
+  assert.ok(Date.now() - started < 3000, "stop returns without waiting out the 5 s limit");
+  assert.equal(await check(free), 1, "nothing answers after stop");
+  req.destroy();
+});
