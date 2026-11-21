@@ -26,7 +26,7 @@ export class SqliteContacts {
     const events = new Map(this.db.prepare("SELECT * FROM events").all().map(r => [r.contact_id, toEvent(r)]));
     return this.db.prepare("SELECT * FROM contacts ORDER BY id").all().map(r => ({
       id: r.id, name: r.name, types: r.types.split(","), topic: r.topic, email: r.email, reach: r.reach,
-      notes: r.notes, status: r.status, next: r.next,
+      genres: split(r.genres), about: r.about, notes: r.notes, status: r.status, next: r.next,
       channels: (channels.get(r.id) ?? []).map(({ kind, url }) => ({ kind, url })),
       fit: (fit.get(r.id) ?? []).map(({ game, reason }) => ({ game, reason })),
       touches: (touches.get(r.id) ?? []).map(({ date, kind, game, note }) => ({ date, kind, game, note })),
@@ -38,8 +38,8 @@ export class SqliteContacts {
 
   insert(c) {
     return this.store.atomic(() => {
-      const r = this.db.prepare("INSERT INTO contacts (name, types, topic, email, reach, notes, status, next) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.notes, c.status, c.next);
+      const r = this.db.prepare("INSERT INTO contacts (name, types, topic, email, reach, genres, about, notes, status, next) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.genres.join(","), c.about, c.notes, c.status, c.next);
       const id = Number(r.lastInsertRowid);
       this.#channels(id, c.channels);
       this.#event(id, c.event);
@@ -50,8 +50,8 @@ export class SqliteContacts {
   /** Replaces the contact's fields and channels; fit and touches stay. */
   update(id, c) {
     this.store.atomic(() => {
-      this.db.prepare("UPDATE contacts SET name = ?, types = ?, topic = ?, email = ?, reach = ?, notes = ?, status = ?, next = ? WHERE id = ?")
-        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.notes, c.status, c.next, id);
+      this.db.prepare("UPDATE contacts SET name = ?, types = ?, topic = ?, email = ?, reach = ?, genres = ?, about = ?, notes = ?, status = ?, next = ? WHERE id = ?")
+        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.genres.join(","), c.about, c.notes, c.status, c.next, id);
       this.db.prepare("DELETE FROM channels WHERE contact_id = ?").run(id);
       this.#channels(id, c.channels);
       this.#event(id, c.event);

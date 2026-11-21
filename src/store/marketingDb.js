@@ -4,8 +4,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { takeGenreLines } from "../domain/contactImport.js";
 
-const VERSION = 3;
+const VERSION = 4;
 
 const SCHEMA_V1 = `
   CREATE TABLE contacts (
@@ -54,6 +55,12 @@ const V3 = `
   CREATE INDEX events_deadline ON events(deadline);
 `;
 
+// v4: genres (comma separated tags) and about on a contact; a `Genre: x` line the old import left in the notes moves to genres.
+const V4 = `
+  ALTER TABLE contacts ADD COLUMN genres TEXT NOT NULL DEFAULT '';
+  ALTER TABLE contacts ADD COLUMN about TEXT NOT NULL DEFAULT '';
+`;
+
 export class MarketingDb {
   constructor(dir) {
     this.dir = dir;
@@ -88,7 +95,17 @@ export class MarketingDb {
       if (v < 1) this.db.exec(SCHEMA_V1);
       if (v < 2) this.db.exec(V2);
       if (v < 3) this.db.exec(V3);
+      if (v < 4) this.#genresFromNotes();
       this.db.exec(`PRAGMA user_version = ${VERSION}`);
     });
+  }
+
+  #genresFromNotes() {
+    this.db.exec(V4);
+    const set = this.db.prepare("UPDATE contacts SET genres = ?, notes = ? WHERE id = ?");
+    for (const r of this.db.prepare("SELECT id, notes FROM contacts WHERE notes LIKE '%Genre: %'").all()) {
+      const { genres, notes } = takeGenreLines(r.notes);
+      if (genres.length) set.run(genres.join(","), notes, r.id);
+    }
   }
 }

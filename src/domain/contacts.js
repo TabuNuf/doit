@@ -12,6 +12,8 @@ export class ContactError extends Error {
   constructor(message, status = 400) { super(message); this.status = status; }
 }
 
+const text = v => String(v ?? "").replace(/\s+/g, " ").trim();
+
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function checkDate(value, what = "Date") {
@@ -35,9 +37,14 @@ export function checkReach(value) {
   return n;
 }
 
-export function checkTouchKind(value) { return oneOf(value, TOUCH_KINDS, "touch kind"); }
+/** Genres as a list of tags: an array or a comma separated string; blanks dropped, repeats (any case) dropped. */
+export function checkGenres(value) {
+  const list = Array.isArray(value) ? value : String(value ?? "").split(",");
+  const seen = new Set();
+  return list.map(text).filter(g => g && !seen.has(g.toLowerCase()) && seen.add(g.toLowerCase()));
+}
 
-const text = v => String(v ?? "").replace(/\s+/g, " ").trim();
+export function checkTouchKind(value) { return oneOf(value, TOUCH_KINDS, "touch kind"); }
 
 function checkChannels(list) {
   if (!Array.isArray(list)) throw new ContactError("Channels must be a list");
@@ -62,6 +69,8 @@ export function makeContact(input = {}) {
     topic: text(input.topic),
     email: text(input.email),
     reach: checkReach(input.reach),
+    genres: checkGenres(input.genres),
+    about: String(input.about ?? "").trim(),
     notes: String(input.notes ?? "").trim(),
     status: input.status ? oneOf(input.status, STATUSES, "status") : "active",
     next: input.next ? checkDate(input.next, "Next contact") : "",
@@ -75,12 +84,13 @@ export function isDue(contact, today) {
   return contact.status === "active" && Boolean(contact.next) && contact.next <= today;
 }
 
-/** The filter as a checked predicate: {type, fits, status, reach: at least n followers, due: true} all optional; every one given must match. */
+/** The filter as a checked predicate: {type, fits, genre, status, reach: at least n followers, due: true} all optional; every one given must match. */
 export function contactFilter(filter = {}, today) {
   const type = filter.type ? oneOf(filter.type, TYPES, "type") : null;
   const status = filter.status ? oneOf(filter.status, STATUSES, "status") : null;
   const reach = filter.reach === undefined || filter.reach === null || filter.reach === "" ? null : checkReach(filter.reach);
   const fits = filter.fits ? String(filter.fits).trim() : null;
+  const genre = filter.genre ? text(filter.genre).toLowerCase() : null;
   const due = Boolean(filter.due);
   // `except` leaves out contacts of any of these types (the Contacts tab: no festivals or conferences).
   const except = String(filter.except ?? "").split(",").map(s => s.trim()).filter(Boolean).map(t => oneOf(t, TYPES, "type"));
@@ -89,10 +99,23 @@ export function contactFilter(filter = {}, today) {
     && (!status || c.status === status)
     && (reach === null || (c.reach !== null && c.reach >= reach))
     && (!fits || c.fit.some(f => f.game === fits))
+    && (!genre || (c.genres ?? []).some(g => g.toLowerCase() === genre))
     && (!due || isDue(c, today));
 }
 
 /** Largest reach first (empty last), then name. */
 export function byReach(a, b) {
   return (b.reach ?? -1) - (a.reach ?? -1) || a.name.localeCompare(b.name);
+}
+
+/** The newest touch date, or "" when there is none. */
+export function lastContact(touches) {
+  return touches.reduce((best, t) => (t.date > best ? t.date : best), "");
+}
+
+/** Every genre in use, sorted without case. */
+export function genresOf(contacts) {
+  const seen = new Map();
+  for (const c of contacts) for (const g of c.genres ?? []) if (!seen.has(g.toLowerCase())) seen.set(g.toLowerCase(), g);
+  return [...seen.values()].sort((a, b) => a.localeCompare(b));
 }

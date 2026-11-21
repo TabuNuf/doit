@@ -6,8 +6,8 @@
 //   a contact carries id, fit [{game, reason}], touches [{date, kind, game, note}] newest first.
 // The ProfileShelf it is given: list() -> profiles, has(game) -> bool.
 
-import { makeContact, contactFilter, byReach, isDue, checkDate, checkTouchKind, ContactError } from "./contacts.js";
-import { mapStreamers } from "./contactImport.js";
+import { makeContact, contactFilter, byReach, isDue, checkDate, checkTouchKind, lastContact, genresOf, ContactError } from "./contacts.js";
+import { mapStreamers, mergeNotes } from "./contactImport.js";
 import { EventMatch } from "./eventMatch.js";
 import { daysLeft, checkWatchState, checkYear } from "./events.js";
 
@@ -15,6 +15,12 @@ const day = d => {
   const p = n => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 };
+
+/** The input fields of a stored contact: what `makeContact` takes, without the facts the book adds. */
+const plain = ({ fit, touches, due, id, last, ...fields }) => fields;
+
+/** Channel kinds that name one person; a shared Discord server or a website does not. */
+const PERSONAL = new Set(["youtube", "twitch", "bluesky", "x", "instagram", "facebook", "linktree", "steam"]);
 
 const linkKey = url => String(url).trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "");
 
@@ -32,23 +38,25 @@ export class ContactBook {
   list(filter = {}) {
     const today = this.today();
     const keep = contactFilter(filter, today);
-    return this.source.all().filter(keep).map(c => ({ ...c, due: isDue(c, today) }))
+    return this.source.all().filter(keep).map(c => ({ ...c, due: isDue(c, today), last: lastContact(c.touches) }))
       .sort((a, b) => Number(b.due) - Number(a.due) || byReach(a, b));
   }
 
   get(id) {
     const c = this.source.get(this.#id(id));
     if (!c) throw new ContactError(`No contact ${id}`, 404);
-    return { ...c, due: isDue(c, this.today()) };
+    return { ...c, due: isDue(c, this.today()), last: lastContact(c.touches) };
   }
+
+  /** Every genre in use, for the Genre filter. */
+  genres() { return genresOf(this.source.all()); }
 
   add(input) { return this.get(this.source.insert(makeContact(input))); }
 
   /** Changes named fields; the result is checked as a whole contact before it is written. */
   update(id, changes) {
     const c = this.get(id);
-    const { fit, touches, due, id: _id, ...fields } = c;
-    this.source.update(c.id, makeContact({ ...fields, ...changes }));
+    this.source.update(c.id, makeContact({ ...plain(c), ...changes }));
     return this.get(c.id);
   }
 
@@ -113,9 +121,9 @@ export class ContactBook {
       const c = this.add({ name, types: types ?? ["festival"], topic, notes, channels: more, event: merged });
       return { contact: c, created: true };
     }
-    const { fit, touches, due, id, ...fields } = known;
+    const { id } = known;
     this.source.update(id, makeContact({
-      ...fields, types: types ?? known.types, topic: topic ?? known.topic, notes: notes ?? known.notes,
+      ...plain(known), types: types ?? known.types, topic: topic ?? known.topic, notes: notes ?? known.notes,
       channels: [...channels, ...more], event: merged,
     }));
     return { contact: this.get(id), created: false };
@@ -131,8 +139,8 @@ export class ContactBook {
   /** The New Streamers sheet as CSV text, imported as `import` does. */
   importCsv(text) { return this.import(mapStreamers(text)); }
 
-  /** Rows from `mapStreamers`: a row matches a contact by email, else by YouTube link, and then updates it;
-   *  a row with no name and no link is skipped. A touch is added once (same kind and date; with no date, same kind). */
+  /** Rows from `mapStreamers`: a row matches a contact (see `#match`) and then updates it;
+   *  a row with no name and no link is skipped. A touch is added once (see `#touchOnce`). */
   import(rows) {
     const report = { added: 0, updated: 0, skipped: 0 };
     for (const row of rows) {
@@ -140,8 +148,8 @@ export class ContactBook {
       const name = row.name || channels[0]?.url || "";
       if (!name) { report.skipped++; continue; }
       try {
-        const known = this.#match(row.email, channels);
         const input = { ...row, name };
+        const known = this.#match(input);
         const id = known ? this.#merge(known, input) : this.add(input).id;
         known ? report.updated++ : report.added++;
         for (const t of row.touches ?? []) this.#touchOnce(id, t);
@@ -153,30 +161,38 @@ export class ContactBook {
     return report;
   }
 
-  #match(email, channels) {
+  /** By email, else by a channel of one person (YouTube and the others, not Discord or a website), else by name where the emails do not clash. */
+  #match({ email, channels, name }) {
     const all = this.source.all();
     const mail = String(email ?? "").trim().toLowerCase();
     const byMail = mail && all.find(c => c.email.toLowerCase() === mail);
     if (byMail) return byMail;
-    const yt = channels.filter(c => c.kind === "youtube").map(c => linkKey(c.url));
-    return all.find(c => c.channels.some(x => x.kind === "youtube" && yt.includes(linkKey(x.url)))) ?? null;
+    const keys = channels.filter(c => PERSONAL.has(c.kind)).map(c => linkKey(c.url));
+    const byLink = keys.length && all.find(c => c.channels.some(x => PERSONAL.has(x.kind) && keys.includes(linkKey(x.url))));
+    if (byLink) return byLink;
+    const who = name.toLowerCase();
+    return all.find(c => c.name.toLowerCase() === who && (!mail || !c.email || c.email.toLowerCase() === mail) && !c.event) ?? null;
   }
 
-  /** Fills what the row has; what it lacks stays. Channels are added by url, notes replaced. */
+  /** Fills what the row has; what it lacks stays. Channels are added by url, the sheet's own note lines replaced (see `mergeNotes`). */
   #merge(known, row) {
-    const { fit, touches, id, due, ...fields } = known;
     const have = new Set(known.channels.map(c => linkKey(c.url)));
     const more = (row.channels ?? []).filter(c => !have.has(linkKey(c.url)));
-    this.source.update(id, makeContact({
-      ...fields, name: row.name, email: row.email || known.email, reach: row.reach ?? known.reach,
-      notes: row.notes || known.notes, types: [...new Set([...known.types, ...row.types])], channels: [...known.channels, ...more],
+    this.source.update(known.id, makeContact({
+      ...plain(known), name: row.name, email: row.email || known.email, reach: row.reach ?? known.reach,
+      genres: row.genres?.length ? row.genres : known.genres,
+      notes: mergeNotes(known.notes, row.notes), types: [...new Set([...known.types, ...row.types])], channels: [...known.channels, ...more],
     }));
-    return id;
+    return known.id;
   }
 
-  #touchOnce(id, { kind, date }) {
-    const have = this.get(id).touches.some(t => t.kind === kind && !t.game && (!date || t.date === date));
-    if (!have) this.addTouch(id, { kind, date });
+  /** The sheet's touches are logged once: a reply, a video or a game's mailing by kind, game and note whatever the date,
+   *  a mail by its date too. A game is taken as given (a project id), with no profile needed. */
+  #touchOnce(id, { kind, date, game = "", note = "" }) {
+    const day = date ? checkDate(date) : "";
+    const same = t => t.kind === kind && t.game === game && (kind !== "mail" || game ? t.note === note : t.date === (day || this.today()));
+    if (this.get(id).touches.some(same)) return;
+    this.source.addTouch(id, { date: day || this.today(), kind: checkTouchKind(kind), game, note, ref: "" });
   }
 
   #id(id) {

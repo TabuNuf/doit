@@ -62,7 +62,7 @@ function db() { return new MarketingDb(path.join(fs.mkdtempSync(path.join(os.tmp
 test("drafts are stored, filtered by state, updated, counted by sent day and removed", () => {
   const m = db();
   const contacts = new SqliteContacts(m);
-  const cid = contacts.insert({ name: "Ada", types: ["press"], topic: "", email: "ada@example.com", reach: null, notes: "", status: "active", next: "", channels: [] });
+  const cid = contacts.insert({ name: "Ada", types: ["press"], topic: "", email: "ada@example.com", reach: null, genres: [], about: "", notes: "", status: "active", next: "", channels: [] });
   const drafts = new SqliteDrafts(m);
   const base = makeDraft({ contact: cid, game: "good-box", template: "pitch", personal: "p", subject: "S", body: "B", created: "2026-11-21T09:00:00" });
   const a = drafts.insert(base);

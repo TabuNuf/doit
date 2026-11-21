@@ -1,7 +1,7 @@
-Name,YouTube,Reach,Genre,Email,Notes,Platform,BB1,BB2,Replied,Posted Video,Last Contact
-Pixel Pat,https://www.youtube.com/@pixelpat,B,Co-op,pat@example.test,"Likes cozy games, plays weekly",PC,yes,,yes,,2026-10-12
-Moss Gamer,https://youtube.com/@mossgamer,"2,500",Puzzle,,"Two-line
-note",PC; Switch,,,,yes,2026-10-20
-Quiet Quinn,https://www.youtube.com/@quietquinn https://twitch.tv/quietquinn,12k,Roguelike,quinn@example.test,,PC,,yes,x,x,
-No Mail Nell,https://youtube.com/@nellplays,E,Racing,,,,,,,,
-Tiny Tom,,,Platformer,tom@example.test,"Said ""maybe later""",,,,,,
+Name,Replied,Posted Video,Last Contact,Primary,Value,Reach,Genre,Contact,Linktree,Youtube,Twitch,Steam,Discord,Bluesky,X,Instagram,Facebook,WWW,Notes,Platform,BB1,BB2
+Pixel Pat,FALSE,FALSE,16-Sep-2025,Twitch,★★☆☆☆,A - Tiny >50,"Indie, Co-op",pat@example.test,,,twitch.tv/pixelpat,,,@pixelpat.bsky.social‬,,,,,,Desktop,TRUE,TRUE
+Moss Gamer,TRUE,TRUE,8-Sep-2025,Youtube,★★★☆☆,E - Huge >10.000 ,Puzzle,,,https://youtube.com/@mossgamer,,,discord.gg/abc123,,x.com/mossgamer,,,https://mossgamer.example.test,"Two-line
+note",PC; Switch,FALSE,TRUE
+Quiet Quinn,FALSE,FALSE,,Youtube,★☆☆☆☆,D - Big >5.000,Roguelike,quinn@example.test,linktr.ee/quinn,https://www.youtube.com/@quietquinn https://youtube.com/@quinn2,,store.steampowered.com/curator/1234/,,https://bsky.app/profile/quinn.example.test,,instagram.com/quinn,https://www.facebook.com/quinn,,,,TRUE,FALSE
+No Mail Nell,FALSE,FALSE,,Youtube,★☆☆☆☆,,Racing,,,https://youtube.com/@nellplays,,,,,,,,,"Said ""maybe later""",,FALSE,FALSE
+Tiny Tom,,,,Channel,,B - Small >500,Platformer,tom@example.test,,,,,,,,,,,,,,
