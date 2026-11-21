@@ -7,7 +7,7 @@ Design: Design.md, section Marketing (steps 1 and 2)
 ## Scope
 
 - Decided: contacts are stored in SQLite, `marketing.db` in the app's data folder, through Node's built-in `node:sqlite`. Tables: contacts, channels, fit, touches.
-- Decided: a contact has one or more types (influencer, blogger, press, publisher/distribution, tester, festival, conference with a topic), a reach band A to E, a status (active, dormant, archived) and a next contact date.
+- Decided: a contact has one or more types (influencer, blogger, press, publisher/distribution, tester, festival, conference with a topic), a reach (a follower count, replacing the A to E band on 2026-11-21), a status (active, dormant, archived) and a next contact date.
 - Decided: fit links a contact to a game with a one-line reason; touches are dated (mail sent, reply, video posted), optionally tied to a game.
 - Decided: the first import is the sheet's New Streamers tab as CSV; BB1 and BB2 are not imported; Replied and Posted Video become touches dated by Last Contact.
 - Decided: game profiles live as `Docs/Profiles/<game>.md` in the Polyspice Marketing project, one file per game and one for Hidden by Design, so a game needs no Doit project of its own to be marketed.
@@ -25,6 +25,7 @@ Design: Design.md, section Marketing (steps 1 and 2)
 - [x] T-012.7 Server: `/api/contacts` routes for list with filters, show, update, fit and touch, and `/api/profiles` (done when: server tests cover each route and a refused value returns 400)
 - [x] T-012.8 Web: a Marketing view beside Board, Docs and Claude: contacts list with filters for game, type, reach and status, due contacts on top (done when: web tests render the list from a fixture; the view shows in the app with filters working)
 - [x] T-012.9 Web: contact detail pane: channels as links, fit per game with reason, touches newest first, edit status, next contact date and notes, add a touch (done when: web tests cover the edits; a status change in the app persists after reload)
+- [ ] T-012.10 Reach as a number: the A to E bands go; reach is a follower count in domain, store, import, CLI (--reach <n> means at least n), server and web (a Reach at least filter, the count on rows and detail, editable in the detail pane) (done when: tests refuse a negative or non-number reach, filter by at least n, sort largest first with unknown last, and import a count as is and a band letter into notes; no A to E left in src or web)
 
 ## Test plan
 
@@ -41,6 +42,8 @@ Design: Design.md, section Marketing (steps 1 and 2)
 ## Notes
 
 Decisions and deviations, newest first.
+
+- 2026-11-21: reach is a follower count, not a band (Design.md Changelog). T-012.10 replaces the bands in domain, store, import, CLI, server and web; the T-012.2, .5, .6 and .8 notes on bands are history.
 
 - T-012.9: fit is shown per game with its reason but not edited on the page (the plan asks for display only); a touch's game picker lists the profiles. Channel urls link only as http(s) (a bare host gets https://); other schemes show as text.
 - T-012.9: its code and tests were built together with T-012.8 and are in that commit (`web/contactDetail.js`, `test/marketing.test.js`); this commit ticks the task.
