@@ -63,8 +63,8 @@ export function marketingPanes() {
     ? eventPane(m.detail, ["steam", "epic", "gog", "itch"].includes(m.detail.event.where) ? "Event" : "Festival")
     : detailPane(m.detail, m.profiles, m.touchOpen, today(), m.history, m.fitOpen);
   if (m.pane === "overview") return overviewPanes(m.week, m.sel);
-  if (m.pane === "campaigns") return campaignsPane(m.campaigns && campaignsList(m.campaigns), m.newCampaign ? campaignForm(m.profiles, m.game, m.events, m.newEvent) : "", m.campaign || "")
-    + briefPane(campaignOf(m), m.profiles, m.events, m.suggest, m.sel) + detail();
+  if (m.pane === "campaigns") return campaignsPane(m.campaigns && campaignsList(m.campaigns), "", m.campaign || "")
+    + briefPane(campaignOf(m), m.profiles, m.events, m.suggest, m.sel, m.newCampaign ? campaignForm(m.profiles, m.game, m.events, m.newEvent) : "") + detail();
   if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + eventPane(m.detail && m.detail.event ? m.detail : null, title === "Events" ? "Event" : "Festival"); }
   const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length, fitGame(m), Object.values(m.f).some(Boolean), m.sort);
   return filterPane(m.f, m.genres, m.profiles) + middle + detail();

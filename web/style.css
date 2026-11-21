@@ -279,6 +279,7 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mk-col { border: 0; background: none; padding: 0; text-align: left; font: inherit; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); cursor: pointer; }
 .mk-col[aria-sort="ascending"], .mk-col[aria-sort="descending"] { color: var(--ink); }
 .mk-games { border: 0; padding: 0; margin: 0 0 6px; display: flex; flex-direction: column; gap: 2px; } .mk-games legend { padding: 0; font-size: 12px; color: var(--muted); }
+#mk-campaign .mk-games { flex-basis: 100%; }
 
 /* Checkbox and label share one line (a .form label is a column for the other fields). */
 .mk-games label, .form .mk-games label { flex-direction: row; align-items: center; gap: 6px; color: var(--ink); font-size: 13px; }
@@ -290,3 +291,4 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .kv textarea { width: 100%; resize: vertical; border: 1px solid var(--line); border-radius: 2px; padding: 4px 6px; background: var(--panel); font-size: 13px; }
 .kv input[type=text] { width: 100%; box-sizing: border-box; border: 1px solid var(--line); border-radius: 2px; padding: 2px 6px; background: var(--panel); font-size: 13px; }
 .mk-evgame { display: flex; flex-direction: column; gap: 3px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.mk-for-row { flex-direction: row; flex-wrap: wrap; gap: 4px 14px; } .mk-for { display: inline-flex; align-items: center; gap: 6px; }

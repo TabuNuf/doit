@@ -17,7 +17,8 @@ const field = (key, label, value, area) => row(label, area
 function forBlock(e, profiles) {
   const on = gamesOf(e);
   const ps = profiles.filter(p => p.project);
-  return ps.map(p => `<div class="mk-for"><label><input type="checkbox" id="cb-game-${esc(p.game)}" ${on.includes(p.game) ? "checked" : ""}> ${esc(p.name || p.game)} (${esc(p.kind)})</label><button data-mk-settings="${esc(p.game)}" title="Open ${esc(p.name || p.game)}'s profile settings">Settings</button></div>`).join("");
+  // Settings only on the chosen projects, so the list stays one wrapping row.
+  return ps.map(p => `<span class="mk-for"><label><input type="checkbox" id="cb-game-${esc(p.game)}" ${on.includes(p.game) ? "checked" : ""}> ${esc(p.name || p.game)}</label>${on.includes(p.game) ? `<button data-mk-settings="${esc(p.game)}" title="Open ${esc(p.name || p.game)}'s profile settings">Settings</button>` : ""}</span>`).join("");
 }
 
 /** The event select: the open events, plus the campaign's own when it is a date or no longer open. */
@@ -50,15 +51,16 @@ function suggestions(s, sel, events) {
   return `<div class="sect">Contacts that fit<span class="c">${s.contacts.length}</span></div>${cs}<div class="sect">Festivals and events that fit<span class="c">${s.festivals.length}</span></div>${fs}`;
 }
 
-/** The middle pane; `e` is the selected campaign epic (null: none), `s` its suggestions (null while loading). */
-export function briefPane(e, profiles, events, s, sel) {
-  const wrap = body => `<section class="pane" aria-label="Campaign"><div class="pane-h">Campaign</div><div class="pane-b detail">${body}</div></section>`;
+/** The middle pane; `e` is the selected campaign epic (null: none), `s` its suggestions (null while loading). An open + Campaign `form` takes the pane, which is wider than the list. */
+export function briefPane(e, profiles, events, s, sel, form = "") {
+  const wrap = body => `<section class="pane" aria-label="Campaign"><div class="pane-h">${form ? "New campaign" : "Campaign"}</div><div class="pane-b detail">${body}</div></section>`;
+  if (form) return wrap(form);
   if (!e) return wrap(`<div class="empty">Select a campaign to see and edit its brief. <button data-mk-newcamp>+ Campaign</button></div>`);
   const b = e.brief || {};
   const v = k => b[k] || "";
   return wrap(`<div class="mono muted">${esc(e.id)} · ${esc(e.status)} · ${e.done}/${e.total}</div><h2>${esc(e.name)}</h2>
     <div class="mk-acts"><button data-campaign="${esc(e.project)}/${esc(e.id)}">Open on Board</button><button data-mk-caddall="10" title="Make a Reach out task for each of the ten best-reaching fitting contacts">Add contacts (10)</button></div>
-    <div class="sect">For</div><div class="mk-games">${forBlock(e, profiles) || `<div class="empty">No project has a kind yet, so no campaign can name one. On the Board, click the gear beside a project's name and set its kind.</div>`}</div>
+    <div class="sect">For</div><div class="mk-games mk-for-row">${forBlock(e, profiles) || `<div class="empty">No project has a kind yet, so no campaign can name one. On the Board, click the gear beside a project's name and set its kind.</div>`}</div>
     <dl class="kv">
       ${row("Occasion", `<select id="cb-occasion" aria-label="Occasion">${opt("", "not set", v("occasion"))}${OCCASIONS.map(o => opt(o, o, v("occasion"))).join("")}</select>`)}
       ${row("Event", eventSelect(e, events))}

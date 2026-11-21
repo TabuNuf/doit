@@ -46,3 +46,11 @@ test("the event panes: a game select in the left pane, + Campaign around this, a
   assert.match(form, /<option value="9" selected>Fest 2027/);
   assert.match(form, /<label class="mk-check"><input type="checkbox"[^>]*> A \(game\)<\/label>/);
 });
+
+test("an open + Campaign form takes the middle pane instead of the brief", async () => {
+  const { briefPane } = await import("../web/campaignBrief.js");
+  const html = briefPane(null, [], [], null, null, `<form id="mk-campaign"></form>`);
+  assert.match(html, /New campaign/);
+  assert.match(html, /id="mk-campaign"/);
+  assert.doesNotMatch(html, /Select a campaign/);
+});
