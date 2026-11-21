@@ -36,7 +36,7 @@ Module order, low to high: domain → store → cli, server → root.
 - `domain/docs.js`: `DocsLibrary`, the docs facade: tree, read, save and the tasks linked to a document, over a `DocsSource` port and the `Board`; `checkDocPath` keeps paths inside the docs folder (`.md` only, no `..`, no hidden names). Pure.
 - `store/docsFolder.js`: `DocsFiles`, the `DocsSource` port on disk: the docs tree (leaving out `Archive/`, `Epics/Tasks/`, `Standard/`, folding `Epics/Completed/`), read, write, and the last change from `git log`.
 - `domain/contacts.js`: the `Contact` value and its vocabulary (types, statuses, channel kinds, touch kinds), validation that refuses an unknown value (reach is a non-negative whole follower count or empty), and the filters (`contactFilter`: type, game fit, status, reach at least n followers, due by date). Pure.
-- `domain/contactBook.js`: `ContactBook`, the contacts facade: list with filters, get, add, update, set fit, add touch, and the profiles. Over a `ContactSource` port (`all()`, `get(id)`, `insert(contact)`, `update(id, contact)`, `setFit(id, game, reason)`, `addTouch(id, touch)`) and a `ProfileShelf` port (`list()`, `has(game)`), with a clock for "due". A fit to a game with no profile is refused.
+- `domain/contactBook.js`: `ContactBook`, the contacts facade: list with filters, get, add, update, set fit, add touch, the profiles, and the sheet import (`importCsv(text)`, so an interface never calls the mapper). Over a `ContactSource` port (`all()`, `get(id)`, `insert(contact)`, `update(id, contact)`, `setFit(id, game, reason)`, `addTouch(id, touch)`) and a `ProfileShelf` port (`list()`, `has(game)`), with a clock for "due". A fit to a game with no profile is refused.
 - `domain/contactImport.js`: the sheet import, pure: `parseCsv` (quotes, commas and newlines in quoted fields), `mapStreamers` (header aliases, BB1 and BB2 ignored, a reach count kept as the number, a band letter or other text left out of reach and noted as `Sheet reach: <cell>`, links to channels, Replied and Posted Video to touches). `ContactBook.import(rows)` matches by email, then YouTube link, and returns `{added, updated, skipped}`.
 - `store/sqliteContacts.js`: `SqliteContacts`, the `ContactSource` port on `marketing.db` in the data folder (`node:sqlite`): tables contacts, channels, fit, touches; `PRAGMA user_version` is 1 and the file is opened and the schema created on first use, so a command that never reads contacts leaves no file.
 - `store/profileShelf.js`: `ProfileShelf`, the profile port: reads `<docs folder>/Profiles/*.md` of the marketing project (settings key `marketingProject`, default `polyspice-marketing`, resolved through `SettingsFile`), creates a profile from a template.
@@ -72,7 +72,7 @@ classDiagram
   class ActivityFile { +lines() +append(lines) +replace(lines) }
   class DocsLibrary { +tree(project) +read(project, path) +save(project, path, text) +linked(project, path) }
   class DocsFiles { +tree(id) +read(id, path) +write(id, path, text) +lastChange(id, path) }
-  class ContactBook { +list(filter) +get(id) +add(input) +update(id, changes) +setFit(id, game, reason) +addTouch(id, touch) +profiles() +import(rows) }
+  class ContactBook { +list(filter) +get(id) +add(input) +update(id, changes) +setFit(id, game, reason) +addTouch(id, touch) +profiles() +import(rows) +importCsv(text) }
   class ContactRoutes { +contactRoutes(book) }
   class ContactsCli { +contacts() +contact() +fit() +touch() +profiles() }
   class SqliteContacts { +all() +get(id) +insert(c) +update(id, c) +setFit() +addTouch() }

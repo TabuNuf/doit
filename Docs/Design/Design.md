@@ -6,7 +6,7 @@ What the app is now. The source of truth for what gets built. When code and this
 
 ## Purpose
 
-One local board where Tabu and Claude share every project's epics, tasks and bugs, so Jira and Confluence can be cancelled. Claude reaches it through a CLI that returns only the slice it asks for. Left out for now: the Confluence import, a later epic. The Marketing view is designed (section Marketing) but not built. The wireframe for all of them is `Docs/Design/wireframe.html`.
+One local board where Tabu and Claude share every project's epics, tasks and bugs, so Jira and Confluence can be cancelled. Claude reaches it through a CLI that returns only the slice it asks for. Left out for now: the Confluence import, a later epic. The Marketing view (section Marketing) has game profiles and contacts; mail, festivals and campaigns are not built yet. The wireframe for all of them is `Docs/Design/wireframe.html`.
 
 ## Users and their jobs
 
@@ -89,7 +89,7 @@ One page shows what Claude is working on, what it waits on Tabu for, and what ch
 
 ## Marketing
 
-Not built yet. Doit becomes the marketing tool for every game and for Hidden by Design: who to contact, about which game, and which festivals to enter. The problem it solves is that outreach does not happen without a system, and time for it is short, so Doit picks the few relevant contacts and events and hides the rest.
+Game profiles and contacts are built (EPIC-012); mail, festivals and campaigns are not. Doit becomes the marketing tool for every game and for Hidden by Design: who to contact, about which game, and which festivals to enter. The problem it solves is that outreach does not happen without a system, and time for it is short, so Doit picks the few relevant contacts and events and hides the rest.
 
 When sitting down for outreach the order is festivals first, then people, then campaigns. The build order differs, because everything matches against the game profiles:
 

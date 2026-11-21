@@ -1,8 +1,6 @@
 // The contact commands of the doit CLI. Cli parses, this class runs them against the ContactBook.
 // Files are read through `readText(path)`, given by the root: the CLI tier does not touch the disk.
 
-import { mapStreamers } from "../domain/contactImport.js";
-
 const USAGE = {
   contacts: "doit contacts [--type t] [--fits <game>] [--status s] [--due] [--reach <n>] [--json] | doit contacts import <file>",
   show: "doit contact show <id> [--json]",
@@ -102,7 +100,7 @@ export class ContactsCli {
 
   #import(file) {
     need(file, "doit contacts import <file>");
-    const { added, updated, skipped } = this.book.import(mapStreamers(this.readText(file)));
+    const { added, updated, skipped } = this.book.importCsv(this.readText(file));
     this.print(`Imported: ${added} added, ${updated} updated, ${skipped} skipped`);
   }
 }

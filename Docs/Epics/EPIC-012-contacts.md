@@ -38,10 +38,15 @@ Design: Design.md, section Marketing (steps 1 and 2)
 
 - T-012.8: open Marketing, filter by a game and by reach, see due contacts first.
 - T-012.9: open a contact, change its status and next contact date, add a touch, reload and see them kept.
+- T-012.10: edit a contact's reach in the detail pane and filter with "Reach at least".
+- In a narrow window (about 800 px) the three columns stack and "Clear filters" spills past the Filters pane; at desktop width it fits.
 
 ## Notes
 
 Decisions and deviations, newest first.
+
+- 2026-11-21, checked in a browser on the epic's server (port 4318, a throwaway data folder with the fixture imported): Marketing shows due contacts first; game and "Reach at least" filters narrow the list; a contact's status to dormant, next date and a mail touch were kept after a reload, touches newest first. Editing reach in the page was not tried. A reload returns to the Board view, as it does from the Claude view.
+- Batches B and C and T-012.10: development 135 of 135; Audit at close 136 of 136.
 
 - T-012.10: a reach cell reads as a count when it is digits with space or comma thousands separators, or a number with k or M ("12k", "1.2M"); anything else (a band letter) leaves reach empty and adds `Sheet reach: <cell>` to the notes. A re-import with an empty notes cell keeps the old notes, so an old `Sheet reach:` line stays when the sheet later gives a count. The reach filter takes the same number formats; an empty filter is no filter. The schema stays at version 1, changed in place.
 - 2026-11-21: reach is a follower count, not a band (Design.md Changelog). T-012.10 replaces the bands in domain, store, import, CLI, server and web; the T-012.2, .5, .6 and .8 notes on bands are history.
@@ -61,4 +66,12 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+- `src/cli/contactsCli.js` imported `mapStreamers` from the domain past the `ContactBook` facade (Architecture.md, Layers: interfaces use facades and their value types). Fix now: `ContactBook.importCsv(text)` added, the CLI calls it; fixed in the close commit. The boundary test cannot see this (tiers, not facades); noted in the standard.
+- `Docs/Design/Design.md` still said Marketing was not built. Fix now, fixed in the close commit.
+- Imports otherwise as the table says: `node:sqlite` only in `src/store/sqliteContacts.js`; `web/` reaches contacts only over HTTP. Every new file under 300 lines (largest `src/cli/cli.js` 186). Class diagram matches the code after the `importCsv` line. Nothing else found.
+
 ## For the standard
+
+- `App/README.md`, Pages over local files: personal or cross-project data in a built-in SQLite file in the data folder, store tier only, versioned schema, opened on first use; a scripted check dispatches `change` on a select.
+- `App/README.md`, Decided so far, Boundaries: the boundary test sees tiers, not facades, so the close audit reads interface imports.
+- `CHANGELOG.md`: one line.

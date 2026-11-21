@@ -6,6 +6,7 @@
 // The ProfileShelf it is given: list() -> profiles, has(game) -> bool.
 
 import { makeContact, contactFilter, byReach, isDue, checkDate, checkTouchKind, ContactError } from "./contacts.js";
+import { mapStreamers } from "./contactImport.js";
 
 const day = d => {
   const p = n => String(n).padStart(2, "0");
@@ -66,6 +67,9 @@ export class ContactBook {
   }
 
   profiles() { return this.shelf.list(); }
+
+  /** The New Streamers sheet as CSV text, imported as `import` does. */
+  importCsv(text) { return this.import(mapStreamers(text)); }
 
   /** Rows from `mapStreamers`: a row matches a contact by email, else by YouTube link, and then updates it;
    *  a row with no name and no link is skipped. A touch is added once (same kind and date; with no date, same kind). */

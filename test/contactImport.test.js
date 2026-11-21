@@ -38,7 +38,7 @@ test("the mapper skips BB1 and BB2 and reads touches", () => {
 
 test("importing the fixture twice gives five contacts and touches once", () => {
   const b = book();
-  assert.deepEqual(b.import(mapStreamers(csv)), { added: 5, updated: 0, skipped: 0 });
+  assert.deepEqual(b.importCsv(csv), { added: 5, updated: 0, skipped: 0 });
   assert.deepEqual(b.import(mapStreamers(csv)), { added: 0, updated: 5, skipped: 0 });
   const all = b.list();
   assert.equal(all.length, 5);
