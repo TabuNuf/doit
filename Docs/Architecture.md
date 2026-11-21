@@ -20,15 +20,16 @@ Module order, low to high: domain → store → cli, server → root.
 ## Modules
 
 - `domain/task.js`: the task value, its states, sections and defaults for a task without a file; it carries `contact` (a contact id or null, kept in the task file like `blocks`) and `game` (the campaign epic's game or null). Pure.
+- `domain/campaignBrief.js`: `BRIEF_KEYS`, `OCCASIONS` and `checkBrief(changes, current)`: lower-case brief keys, occasion one of release, demo, festival, update, sale, announcement, other, starts/ends as dates with ends not before starts, the rest one line; an empty value clears. Pure.
 - `domain/rules.js`: the sweep (deadline and retention archiving), whether a closed epic is archived (`epicArchived`) and rank between neighbours (the only place ranks are computed; the page asks `Board.move`). Pure, takes today's date.
 - `domain/mover.js`: `TaskMover`, where a task goes in the Open tab: from the task and its project's tasks it returns the rank and state change. Pure; `Board.move` delegates to it.
 - `domain/activity.js`: `ActivityLog`, the activity log: one line per task change (`YYYY-MM-DD HH:MM  <project/T-id>  <what>`), newest first for reading, lines past 30 days dropped on write; `describeChanges` puts a task update in words. Over an activity-file port. Pure.
 - `domain/epicMoves.js`: `EpicMoves`, closes an epic and moves it between open, parked, completed and archived; `planEpicMove` is pure (epic and tasks in, plan out, or a refusal). `Board.closeEpic` and `Board.moveEpic` delegate to it. A reopen restores the tasks archived with reason `Epic <id> closed`.
-- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves (via `TaskMover`), comments, sweeps, closes an epic (archives its tasks, then the source sets it Done, writes `Closed: <date>` and files it in `Completed/`), returns the closed epics in `view` as `closedEpics` (each with `closed` and `archived`, an `Archived:` line counting) and parked ones as `parkedEpics`, next to the open `epics` (the CLI's `epics` lists open then parked) and serves an epic's document. An epic carries `game` and `event` (the `Game:` and `Event:` lines of a campaign, null when absent); `addTask` and `update` accept `contact` (a whole-number id or empty), and `subscribe(listener)` hands each listener a plain fact `{ref, project, epic, title, contact, game, date}` when a task with a contact moves to done. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) a clock and a `record(ref, what)` function from the root that it tells every change it writes (the root points it at the `ActivityLog`, so the CLI and the page are logged alike).
+- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves (via `TaskMover`), comments, sweeps, closes an epic (archives its tasks, then the source sets it Done, writes `Closed: <date>` and files it in `Completed/`), returns the closed epics in `view` as `closedEpics` (each with `closed` and `archived`, an `Archived:` line counting) and parked ones as `parkedEpics`, next to the open `epics` (the CLI's `epics` lists open then parked) and serves an epic's document. An epic carries `game`, `event` (the `Game:` and `Event:` lines of a campaign, null when absent) and `brief` (the brief lines, `""` for each absent one); `setEpicHeader(project, epicId, key, value)` writes or removes one header line through the source and records it; `addTask` and `update` accept `contact` (a whole-number id or empty), and `subscribe(listener)` hands each listener a plain fact `{ref, project, epic, title, contact, game, date}` when a task with a contact moves to done. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) a clock and a `record(ref, what)` function from the root that it tells every change it writes (the root points it at the `ActivityLog`, so the CLI and the page are logged alike).
 - `domain/taskEdit.js`: `applyChanges(task, changes, now)`, the field edits of `Board.update` (state, owner, type, deadline, rank, blocks, contact, title, doneWhen, description) with their checks. Pure; split out so `board.js` stays under 220 lines.
 - `domain/taskLoader.js`: `loadTasks(source, project, archived)`, joins epics, checklist lines and task files into tasks (the Board's read side, split out to keep `board.js` under 220 lines). Pure over the source port.
 - `domain/doneNotifier.js`: `DoneNotifier`, `subscribe(listener)` and `announce(task, now)`, which hands each listener the plain done fact for a task with a contact; a listener's failure goes to `onError(fact, error)` (the Board points it at `record`, so it reaches the activity log). `Board.subscribe` delegates to it.
-- `store/markdown.js`: parses and writes epic files and task files, including the `Game:` and `Event:` lines under `Status:` and the task's `contact` field. Pure text in and out.
+- `store/markdown.js`: parses and writes epic files and task files, including the `Game:` and `Event:` lines under `Status:` and the campaign brief lines (`BRIEF_KEYS`: Occasion, Goal, Change, Measure, Audience, Message, Ask, Channels, Starts, Ends, Budget; a `<...>` Goal is a placeholder, read as empty; `setHeader(text, key, value)` adds, replaces or removes one header line in a fixed order) and the task's `contact` field. Pure text in and out.
 - `store/projectFiles.js`: `ProjectFiles`, reads and writes one project's docs folder: epics, task files, archive moves, new epic, move to Completed, project scaffold.
 - `store/activityFile.js`: `ActivityFile`, `activity.log` in the app's data folder: read its lines, append, or replace them all.
 - `store/settings.js`: `SettingsFile`, the project list and settings in the app's data folder.
@@ -86,6 +87,7 @@ classDiagram
     +setProjectKind(id, kind)
     +get(ref) Task
     +addTask(...)
+    +setEpicHeader(project, epicId, key, value)
     +update(ref, changes)
     +move(ref, placement)
     +comment(ref, who, text)
@@ -126,7 +128,7 @@ classDiagram
   class TaskEdit { +applyChanges(task, changes, now) }
   class TaskMover { +plan(task, tasks, placement) changes }
   class EpicMoves { +close() +move(project, epic, to) }
-  class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +completeEpic() +parkEpic() +reopenEpic() +setEpicArchived() +closedEpics() +epicDocument() }
+  class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +completeEpic() +parkEpic() +reopenEpic() +setEpicArchived() +setEpicHeader() +closedEpics() +epicDocument() }
   class ProjectFiles
   class SettingsFile
   class EpicWorktrees { +find(folder) }

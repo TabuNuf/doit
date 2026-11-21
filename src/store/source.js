@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { ProjectFiles } from "./projectFiles.js";
 import { taskParts } from "../domain/task.js";
-import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile, setStatus, setClosed, setArchived } from "./markdown.js";
+import { parseEpic, replaceLine, appendLine, parseTaskFile, formatTaskFile, setStatus, setClosed, setArchived, setHeader } from "./markdown.js";
 
 export class FileSource {
   constructor(settingsFile, worktrees) {
@@ -159,6 +159,12 @@ export class FileSource {
   reopenEpic(projectId, epicId) {
     const { files, file } = this.#epicFile(projectId, epicId, true);
     files.moveToFolder(file, "", setArchived(setClosed(setStatus(files.read(file), "Planned"), null), null));
+  }
+
+  /** Adds, replaces or, with an empty value, removes one header line (Game, Event or a brief key) of an open or parked epic. */
+  setEpicHeader(projectId, epicId, key, value) {
+    const { files, file } = this.#epicFile(projectId, epicId);
+    files.write(file, setHeader(files.read(file), key, value));
   }
 
   createEpic(projectId, name, status, lines = {}) {

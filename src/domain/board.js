@@ -4,11 +4,11 @@
 //   projects(), addProject({name, path, docs}), setStarred(projectId, bool) (a star pins it to the page's top bar), setKind(projectId, kind), setMarketed(projectId, bool), settings(), saveSettings(partial),
 //   load(projectId, {archived}) -> {epics, files: Map<id, fields>, archivedIds: Set<id>},
 //   epicDocument(projectId, epicId) -> {id, name, status, completed, text} | null,
-//   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status, {game, event}) -> epicId (the campaign lines are optional),
+//   writeTask(projectId, task), addLine(projectId, epicId, line), createEpic(projectId, name, status, {game, event, brief}) -> epicId (the campaign lines are optional),
 //   closedEpics(projectId) -> [{id, name, status, closed, done, total}] for Epics/Completed/, closed "YYYY-MM-DD" or null,
-//   completeEpic(projectId, epicId, closed, archived) sets the epic Done, writes its close date (and archive date) and files it as completed,
-//   parkEpic(projectId, epicId), reopenEpic(projectId, epicId) (Planned, in Epics/, no Closed/Archived lines),
-//   setEpicArchived(projectId, epicId, date|null) on a completed epic; load() epics carry completed, parked, archivedOn
+//   completeEpic(projectId, epicId, closed, archived), parkEpic(projectId, epicId), reopenEpic(projectId, epicId) (Planned, in Epics/, no Closed/Archived lines),
+//   setEpicHeader(projectId, epicId, key, value) writes (or, empty, removes) one header line: Game, Event or a brief key,
+//   setEpicArchived(projectId, epicId, date|null) on a completed epic; load() epics carry completed, parked, archivedOn, brief
 // `subscribe(listener)`: a listener gets a plain fact when a task with a contact is done (the root hands it to Outreach).
 // `record(ref, what)` is told every change to a task in words (the activity log); the root hands it in.
 
@@ -23,9 +23,7 @@ import { DoneNotifier } from "./doneNotifier.js";
 
 export class Board {
   constructor(source, now = () => new Date(), record = () => {}) {
-    this.source = source;
-    this.now = now;
-    this.record = record;
+    this.source = source; this.now = now; this.record = record;
     this.done = new DoneNotifier((fact, e) => record(fact.ref, `done follow-up failed: ${e.message}`));
     this.mover = new TaskMover();
     this.moves = new EpicMoves(source, now, (task, what) => this.#write(task, what));
@@ -38,7 +36,6 @@ export class Board {
 
   /** Calls the listener with a plain fact when a task with a contact is done; returns the unsubscribe. */
   subscribe(listener) { return this.done.subscribe(listener); }
-
   settings() { return { keepCompletedDays: DEFAULT_KEEP_DAYS, ...this.source.settings() }; }
 
   setKeepDays(days) {
@@ -53,10 +50,9 @@ export class Board {
     return this.source.addProject({ name: input.name.trim(), path: input.path.trim(), docs: (input.docs || "Docs").trim() });
   }
 
-  /** Archives what is past its deadline or past the completed retention. Returns how many. */
+  /** Archives what is past its deadline or past the completed retention. Returns how many (sweepTasks: the refs). */
   sweep(projectIds) { return this.sweepTasks(projectIds).length; }
 
-  /** The sweep, returning the refs it archived. */
   sweepTasks(projectIds = this.projects().map(p => p.id)) {
     const today = stamp(this.now()).slice(0, 10);
     const keep = this.settings().keepCompletedDays;
@@ -72,7 +68,7 @@ export class Board {
     return swept;
   }
 
-  /** One epic's document as text, for reading. Any epic, parked and completed ones too. */
+  /** One epic's document as text, parked and completed ones too. */
   epicDocument(project, epicId) {
     this.#requireProject(project);
     const doc = this.source.epicDocument(project, epicId);
@@ -102,7 +98,7 @@ export class Board {
     for (const id of ids) {
       for (const e of this.source.closedEpics(id)) closedEpics.push({ project: id, ...e, archived: !!e.archivedOn || epicArchived(e.closed, today, keep) });
       const loaded = this.#load(id, archived);
-      for (const e of loaded.epics.filter(x => !x.completed)) (e.parked ? parkedEpics : epics).push({ project: id, id: e.id, name: e.name, status: e.status, game: e.game ?? null, games: splitGames(e.game), event: e.event ?? null, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
+      for (const e of loaded.epics.filter(x => !x.completed)) (e.parked ? parkedEpics : epics).push({ project: id, id: e.id, name: e.name, status: e.status, game: e.game ?? null, games: splitGames(e.game), event: e.event ?? null, brief: e.brief, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
       tasks.push(...loaded.tasks.filter(t => archived || t.state !== "archived"));
     }
     tasks.sort(byRank);
@@ -110,7 +106,7 @@ export class Board {
     return { projects: this.projects(), settings: this.settings(), epics, parkedEpics, closedEpics, tasks };
   }
 
-  /** Tasks matching a filter. state: open (default), active, backlog, done, archived or a single state. */
+  /** Tasks matching a filter; state: open (default), active, backlog, done, archived or one state. */
   list({ project = "all", epic, state = "open", owner } = {}) {
     const archived = state === "archived";
     const { tasks } = this.view({ project, archived });
@@ -183,11 +179,17 @@ export class Board {
 
   /** `options` is a status, or {status, game, event} for a campaign. */
   addEpic(project, name, options = "Planned") {
-    const { status = "Planned", game = null, event = null } = typeof options === "string" ? { status: options } : options;
+    const { status = "Planned", game = null, event = null, brief = {} } = typeof options === "string" ? { status: options } : options;
     this.#requireProject(project);
     if (!name || !name.trim()) throw new Error("An epic needs a name");
     check(["Parked", "Planned", "Active"], status, "status");
-    return this.source.createEpic(project, name.trim(), status, { game, event });
+    return this.source.createEpic(project, name.trim(), status, { game, event, brief });
+  }
+
+  /** Writes one header line of an open epic (key as written in the file: Game, Event, Occasion, ...) and logs it. */
+  setEpicHeader(project, epicId, key, value) {
+    this.#requireProject(project); this.source.setEpicHeader(project, epicId, key, value);
+    this.record(`${project}/${epicId}`, value ? `${key}: ${value}` : `${key} removed`);
   }
 
   #archive(task, reason) {

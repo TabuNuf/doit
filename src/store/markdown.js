@@ -1,5 +1,7 @@
 // Epic files and task files as text. Pure: text in, values out, and back.
 
+import { BRIEF_KEYS, emptyBrief, isPlaceholder } from "../domain/campaignBrief.js";
+
 const LINE = /^- \[( |x|X)\] (T-\d+\.\d+) (.*?)(?: \(done when: (.*)\))?\s*$/;
 const FIELDS = ["state", "owner", "type", "rank", "deadline", "created", "updated", "completed", "source", "archived", "blocks", "contact"];
 
@@ -11,6 +13,11 @@ export function parseEpic(text) {
   const header = text.split(/^## /m)[0];
   const game = /^Game:[ \t]*(.+?)\s*$/m.exec(header);
   const event = /^Event:[ \t]*(.+?)\s*$/m.exec(header);
+  const brief = emptyBrief();
+  for (const k of BRIEF_KEYS) {
+    const m = new RegExp(`^${k[0].toUpperCase() + k.slice(1)}:[ \\t]*(.*?)\\s*$`, "m").exec(header);
+    if (m && !isPlaceholder(m[1])) brief[k] = m[1];
+  }
   const lines = [];
   for (const raw of text.split("\n")) {
     const m = LINE.exec(raw);
@@ -19,7 +26,7 @@ export function parseEpic(text) {
   }
   const archivedOn = /^Archived:\s*(\d{4}-\d{2}-\d{2})/m.exec(text);
   const closed = /^Closed:\s*(\d{4}-\d{2}-\d{2})/m.exec(text);
-  return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", closed: closed ? closed[1] : null, archivedOn: archivedOn ? archivedOn[1] : null, game: game ? game[1] : null, event: event ? event[1] : null, lines };
+  return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", closed: closed ? closed[1] : null, archivedOn: archivedOn ? archivedOn[1] : null, game: game ? game[1] : null, event: event ? event[1] : null, brief, lines };
 }
 
 /** Writes `Closed: <date>` on the line under Status, replacing an earlier one; a null date removes it. */
@@ -39,6 +46,26 @@ export function setArchived(text, date) {
 export function setStatus(text, status) {
   if (/^Status:.*$/m.test(text)) return text.replace(/^Status:.*$/m, `Status: ${status}`);
   return text.replace(/^(# EPIC-.*)$/m, `$1\n\nStatus: ${status}`);
+}
+
+const HEADER_ORDER = ["Status", "Closed", "Archived", "Game", "Event", ...BRIEF_KEYS.map(k => k[0].toUpperCase() + k.slice(1))];
+
+/** Adds, replaces or (empty value) removes one header line, keeping the order Status, Closed, Archived, Game, Event, then the brief keys. */
+export function setHeader(text, key, value) {
+  const at = HEADER_ORDER.indexOf(key);
+  if (at < 0) throw new Error(`Not a header key: ${key}`);
+  const cut = text.search(/^## /m);
+  const head = (cut < 0 ? text : text.slice(0, cut)).split("\n"), tail = cut < 0 ? "" : text.slice(cut);
+  const own = head.findIndex(r => r.startsWith(key + ":"));
+  const v = String(value ?? "").replace(/\s+/g, " ").trim();
+  if (own >= 0) {
+    if (v) head[own] = `${key}: ${v}`; else head.splice(own, 1);
+  } else if (v) {
+    let after = head.findIndex(r => /^# /.test(r));
+    head.forEach((r, i) => { const k = r.slice(0, r.indexOf(":")); if (HEADER_ORDER.indexOf(k) >= 0 && HEADER_ORDER.indexOf(k) < at) after = i; });
+    head.splice(after + 1, 0, `${key}: ${v}`);
+  }
+  return head.join("\n") + tail;
 }
 
 export function formatLine(line) {
@@ -75,14 +102,16 @@ export function appendLine(text, line) {
   return rows.join("\n");
 }
 
-/** `extra` may carry `game` and `event`: the campaign lines written under Status. */
+/** `extra` may carry `game`, `event` and `brief` (lower-case brief keys): the campaign lines written under Status. */
 export function epicTemplate(id, name, status, extra = {}) {
   const campaign = (extra.game ? `Game: ${extra.game}\n` : "") + (extra.event ? `Event: ${extra.event}\n` : "");
+  const brief = extra.brief ?? {};
+  const keys = BRIEF_KEYS.filter(k => brief[k] || k === "goal");
+  const briefLines = keys.map(k => `${k[0].toUpperCase() + k.slice(1)}: ${brief[k] || "<one sentence, the outcome for the user>"}\n`).join("");
   return `# ${id}: ${name}
 
 Status: ${status}
-${campaign}Goal: <one sentence, the outcome for the user>
-Design: Design.md, section <name>
+${campaign}${briefLines}Design: Design.md, section <name>
 
 ## Tasks
 
