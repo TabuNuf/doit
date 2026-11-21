@@ -5,6 +5,7 @@ import { esc } from "./state.js";
 import { channelsBlock, channelEdit } from "./contactChannels.js";
 import { historyList, lastContactOf } from "./contactHistory.js";
 import { specialMark } from "./contactColumns.js";
+import { gamesBlock } from "./contactGames.js";
 
 export { channelHref } from "./contactChannels.js";
 
@@ -28,10 +29,9 @@ function history(c, history, profiles, open, now) {
 }
 
 /** The right pane for the selected contact (null: nothing selected yet). */
-export function detailPane(c, profiles, touchOpen, now, log = null) {
+export function detailPane(c, profiles, touchOpen, now, log = null, fitOpen = false) {
   const wrap = body => `<section class="pane"><div class="pane-h">Contact</div><div class="pane-b detail">${body}</div></section>`;
   if (!c) return wrap(`<div class="empty">Select a contact.</div>`);
-  const fit = c.fit.length ? c.fit.map(f => `<div class="cmt"><div class="cmt-h"><span>${esc(f.game)}</span></div>${esc(f.reason)}</div>`).join("") : `<div class="muted">No fit recorded.</div>`;
   return wrap(`<div class="mono muted">${c.due ? "due · " : ""}${esc(c.types.join(", "))}${c.topic ? " · " + esc(c.topic) : ""}</div>
     <h2>${esc(c.name)}${specialMark(c)}</h2>
     <dl class="kv">
@@ -44,7 +44,7 @@ export function detailPane(c, profiles, touchOpen, now, log = null) {
       <dt>Genres</dt><dd><input type="text" id="mk-genres" value="${esc((c.genres ?? []).join(", "))}" aria-label="Genres, separated by commas" placeholder="Indie, Horror"></dd>
     </dl>
     ${channelsBlock(c.channels)}
-    <div class="sect">Fit</div>${fit}
+    ${gamesBlock(c, profiles, fitOpen)}
     <div class="sect">About</div>
     <textarea id="mk-about" class="desc-in" aria-label="About: who the contact is and what they cover" placeholder="Who they are and what they cover.">${esc(c.about ?? "")}</textarea>
     <div class="sect">Notes<span id="saved"></span></div>

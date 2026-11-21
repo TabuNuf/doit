@@ -64,13 +64,35 @@ test("the detail pane shows channels as safe links, fit with reason, and touches
   assert.match(html, /<a href="https:\/\/example.org\/yt" target="_blank" rel="noopener" title="Open [^"]*">Open<\/a>/);
   assert.match(html, /<a href="https:\/\/example.social\/x" target="_blank" rel="noopener" title="Open [^"]*">Open<\/a>/);
   assert.doesNotMatch(html, /href="javascript/);
-  assert.match(html, /storm-haven<\/span><\/div>Plays &lt;tactics&gt;/);
-  assert.ok(html.indexOf("2026-03-02") < html.indexOf("2026-02-01"));
+  assert.match(html, /storm-haven<\/span><button data-mk-unfit="storm-haven"[^>]*>Remove<\/button><\/div>\s*Plays &lt;tactics&gt;/);
+  const hist = html.slice(html.indexOf(">History<"));
+  assert.ok(hist.indexOf("2026-03-02") < hist.indexOf("2026-02-01"));
   assert.match(html, /<option value="dormant" selected>/);
   assert.match(html, /id="mk-next" value="2026-04-01"/);
   assert.match(html, /a &quot;note&quot;<\/textarea>/);
   assert.doesNotMatch(html, /id="mk-touch"/);
   assert.match(detailPane(null, [], false, "2026-03-05"), /Select a contact/);
+});
+
+test("the Games block has one block per game with fit, last contact and Remove, and a + Fit form", async () => {
+  const { gamesOf, fitRequest, unfitRequest } = await import("../web/contactGames.js");
+  const { detailPane } = await import("../web/contactDetail.js");
+  const profiles = [{ game: "good-box", name: "Good Box" }, { game: "bunny", name: "Bunny" }];
+  const c = contact(5, { fit: [{ game: "good-box", reason: "likes puzzles" }], touches: [
+    { date: "2026-03-02", kind: "mail", game: "bunny", note: "" }, { date: "2026-01-02", kind: "mail", game: "bunny", note: "" }, { date: "2026-03-09", kind: "reply", game: "", note: "" }] });
+  assert.deepEqual(gamesOf(c, profiles), [
+    { game: "bunny", name: "Bunny", reason: null, contacted: "2026-03-02" },
+    { game: "good-box", name: "Good Box", reason: "likes puzzles", contacted: "" }]);
+  const html = detailPane(c, profiles, false, "2026-03-05");
+  assert.match(html, /Bunny<\/span><\/div>\s*<span class="muted">no fit<\/span>\s*<div class="muted">contacted 2026-03-02/);
+  assert.match(html, /data-mk-unfit="good-box"/);
+  assert.doesNotMatch(html, /data-mk-unfit="bunny"/);
+  assert.match(html, /not contacted yet/);
+  assert.match(html, /data-mk-fit>\+ Fit/);
+  const form = detailPane(c, profiles, false, "2026-03-05", null, true);
+  assert.match(form, /id="mk-fit"[\s\S]*<option value="bunny">Bunny[\s\S]*id="mk-fit-reason"/);
+  assert.deepEqual(fitRequest(c, "bunny", "why"), { method: "POST", path: "/api/contacts/5/fit", body: { game: "bunny", reason: "why" } });
+  assert.deepEqual(unfitRequest(c, "good-box"), { method: "DELETE", path: "/api/contacts/5/fit/good-box" });
 });
 
 test("the touch form lists the kinds and games and defaults the date to today", async () => {

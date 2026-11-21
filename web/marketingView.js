@@ -4,6 +4,7 @@
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest } from "./contactDetail.js";
 import { EMPTY_FILTERS, FILTERS, contactPath, filterPane } from "./contactFilters.js";
+import { fitRequest, unfitRequest } from "./contactGames.js";
 import { channelRemove, channelAdd } from "./contactChannels.js";
 import { clickSort, orderContacts, headerRow, rowCells, specialMark } from "./contactColumns.js";
 import { festivalPath, eventsInfoPane, festivalsPane } from "./festivalsPane.js";
@@ -63,7 +64,7 @@ export function marketingPanes() {
   // A festival or event picked in another tab keeps its own fields here too, never a contact's.
   const detail = () => m.detail && m.detail.event
     ? eventPane(m.detail, ["steam", "epic", "gog", "itch"].includes(m.detail.event.where) ? "Event" : "Festival")
-    : detailPane(m.detail, m.profiles, m.touchOpen, today(), m.history);
+    : detailPane(m.detail, m.profiles, m.touchOpen, today(), m.history, m.fitOpen);
   if (m.pane === "overview") return overviewPanes(m.week, m.sel, m.game);
   if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game), m.newCampaign ? campaignForm(m.profiles, m.game, m.events) : "") + detail();
   if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + eventPane(m.detail && m.detail.event ? m.detail : null, title === "Events" ? "Event" : "Festival"); }
@@ -89,7 +90,7 @@ export function marketingKey(ev) {
   ev.preventDefault();
   const id = nextContact(ids, m.sel, ev.key);
   if (id === null || String(id) === String(m.sel)) return true;
-  m.sel = id; m.touchOpen = false;
+  m.sel = id; m.touchOpen = false; m.fitOpen = false;
   refreshMarketing().then(() => $(`[data-contact="${id}"]`)?.focus());
   return true;
 }
@@ -112,7 +113,7 @@ export async function refreshMarketing() {
     if (m.pane === "campaigns") m.campaigns = (await api("GET", "/api/board?project=all")).epics;
     m.detail = m.sel ? await api("GET", `/api/contacts/${encodeURIComponent(m.sel)}`).catch(() => null) : null;
     m.history = m.detail ? await api("GET", `/api/contacts/${encodeURIComponent(m.sel)}/history`).catch(() => null) : null;
-    if (!m.detail) { m.sel = null; m.touchOpen = false; }
+    if (!m.detail) { m.sel = null; m.touchOpen = false; m.fitOpen = false; }
     redraw();
   } catch (e) { toast(e.message); }
 }
@@ -122,6 +123,7 @@ async function send(req) {
   try {
     S.mk.detail = await api(req.method, req.path, req.body);
     if (req.path.endsWith("/touch")) S.mk.touchOpen = false;
+    if (req.path.endsWith("/fit")) S.mk.fitOpen = false;
   } catch (e) { toast(e.message); }
   return refreshMarketing();
 }
@@ -129,8 +131,8 @@ async function send(req) {
 /** Handles a click on a Marketing control; true when the click was one. */
 export function marketingClick(d) {
   const m = S.mk;
-  if (d.taskContact) { S.view = "marketing"; m.pane = "contacts"; m.sel = d.taskContact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
-  if (d.contact) { if (d.mkTo) m.pane = d.mkTo; m.sel = d.contact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
+  if (d.taskContact) { S.view = "marketing"; m.pane = "contacts"; m.sel = d.taskContact; m.detail = null; m.touchOpen = false; m.fitOpen = false; redraw(); refreshMarketing(); return true; }
+  if (d.contact) { if (d.mkTo) m.pane = d.mkTo; m.sel = d.contact; m.detail = null; m.touchOpen = false; m.fitOpen = false; redraw(); refreshMarketing(); return true; }
   if (d.mkSort) { m.sort = clickSort(m.sort, d.mkSort); try { localStorage.setItem("doit.contacts.sort", JSON.stringify(m.sort)); } catch { /* storage off */ } redraw(); return true; }
   if (d.mkSettings) { openSettingsFor(d.mkSettings); return true; }
   if ("mkNewcamp" in d) { m.newCampaign = !m.newCampaign; if (m.newCampaign) openCampaignForm(); else redraw(); return true; }
@@ -141,6 +143,9 @@ export function marketingClick(d) {
   if (d.mkChDel !== undefined && m.detail) { send(channelRemove(m.detail, d.mkChDel)); return true; }
   if ("mkChAdd" in d && m.detail) { const req = channelAdd(m.detail, $("#mk-chk-new").value, $("#mk-chu-new").value); req ? send(req) : toast("Give the channel a URL first."); return true; }
   if ("mkTouch" in d) { m.touchOpen = true; redraw(); $("#mk-tk-kind")?.focus(); return true; }
+  if (d.mkUnfit !== undefined && m.detail) { send(unfitRequest(m.detail, d.mkUnfit)); return true; }
+  if ("mkFit" in d) { m.fitOpen = true; redraw(); $("#mk-fit-reason")?.focus(); return true; }
+  if ("mkFitCancel" in d) { m.fitOpen = false; redraw(); return true; }
   if ("mkTouchCancel" in d) { m.touchOpen = false; redraw(); return true; }
   if ("mkClear" in d) { m.f = { ...EMPTY_FILTERS }; refreshMarketing(); return true; }
   return false;
@@ -203,6 +208,7 @@ async function startCampaign() {
 /** The add-touch form; true when the form was this one. */
 export function marketingSubmit(f) {
   if (f.id === "mk-campaign") { startCampaign(); return true; }
+  if (f.id === "mk-fit" && S.mk.detail) { send(fitRequest(S.mk.detail, $("#mk-fit-game").value, $("#mk-fit-reason").value)); return true; }
   if (f.id !== "mk-touch" || !S.mk.detail) return false;
   send(touchRequest(S.mk.detail, { kind: $("#mk-tk-kind").value, game: $("#mk-tk-game").value, date: $("#mk-tk-date").value }, today()));
   return true;

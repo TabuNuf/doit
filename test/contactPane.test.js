@@ -58,7 +58,8 @@ test("the pane lists history in date order with a sent draft and shows Last cont
     { date: "2026-10-05", kind: "mail", game: "good-box", note: "Hello", draft: false },
   ];
   const html = detailPane(c, [], false, "2026-11-21", log);
-  assert.ok(html.indexOf("2026-11-02") < html.indexOf("2026-10-20") && html.indexOf("2026-10-20") < html.indexOf("2026-10-05"));
+  const hist = html.slice(html.indexOf(">History<"));
+  assert.ok(hist.indexOf("2026-11-02") < hist.indexOf("2026-10-20") && hist.indexOf("2026-10-20") < hist.indexOf("2026-10-05"));
   assert.match(html, /bunny-bunker · Demo <span class="pill" title="A draft sent from Doit">sent draft/);
   assert.match(html, /<dt>Last contact<\/dt><dd>2026-11-02<\/dd>/, "the pane takes the newest of touches and drafts");
   assert.match(html, /History<span[^>]*> · 3</);
