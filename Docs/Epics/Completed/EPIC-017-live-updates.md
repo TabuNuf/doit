@@ -1,6 +1,7 @@
 # EPIC-017: Live updates
 
-Status: Active
+Status: Done
+Closed: 2026-11-21
 Goal: A change Claude or Tabu makes anywhere shows on the open page within about a second, with no refresh.
 Design: Design.md, section Tasks (Live updates)
 
