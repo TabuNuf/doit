@@ -95,3 +95,15 @@ test("a game with no profile logs the touch without the game", t => {
   w.board.update(`game/${id}`, { state: "done" });
   assert.equal(w.book.get(1).touches[0].game, "");
 });
+
+test("a touch for an unknown contact is skipped; any other failure reaches the log", t => {
+  const w = world(t);
+  const logged = () => (fs.existsSync(path.join(w.home, "activity.log")) ? fs.readFileSync(path.join(w.home, "activity.log"), "utf8") : "");
+  const { id } = w.board.addTask({ project: "game", epic: w.epic, title: "Mail nobody", contact: 99 });
+  w.board.update(`game/${id}`, { state: "done" });
+  assert.doesNotMatch(logged(), /follow-up failed/, "unknown contact: skipped quietly");
+  w.book.source.addTouch = () => { throw new Error("disk full"); };
+  const second = w.board.addTask({ project: "game", epic: w.epic, title: "Mail Ada", contact: 1 });
+  w.board.update(`game/${second.id}`, { state: "done" });
+  assert.match(logged(), /follow-up failed: disk full/);
+});

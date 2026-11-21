@@ -2,7 +2,7 @@
 // so the root subscribes taskDone to the board's done facts.
 
 import { planWeek, pickContacts } from "./outreachPlan.js";
-import { checkDate } from "./contacts.js";
+import { checkDate, ContactError } from "./contacts.js";
 
 export class Outreach {
   constructor(board, book, now = () => new Date()) {
@@ -47,13 +47,13 @@ export class Outreach {
     });
   }
 
-  /** A contact task was ticked: log a mail touch for the campaign's game; the ref makes a re-tick log once. */
+  /** A contact task was ticked: log a mail touch for the campaign's game; the ref makes a re-tick log once.
+   *  A game without a profile logs it without the game, an unknown contact is skipped, any other failure is thrown to the notifier. */
   taskDone(fact) {
     const touch = { kind: "mail", date: fact.date, note: `${fact.epic}: ${fact.title}`, ref: fact.ref };
-    // A game without a profile still logs the touch, without the game; a missing contact is ignored.
-    for (const game of fact.game ? [fact.game, ""] : [""]) {
-      try { this.book.addTouch(fact.contact, { ...touch, game }); return; } catch { /* try next */ }
-    }
+    const game = fact.game && this.book.profiles().some(p => p.game === fact.game) ? fact.game : "";
+    try { this.book.addTouch(fact.contact, { ...touch, game }); }
+    catch (e) { if (!(e instanceof ContactError && e.status === 404)) throw e; }
   }
 
   #festival(id) {

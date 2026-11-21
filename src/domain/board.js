@@ -25,7 +25,7 @@ export class Board {
     this.source = source;
     this.now = now;
     this.record = record;
-    this.done = new DoneNotifier();
+    this.done = new DoneNotifier((fact, e) => record(fact.ref, `done follow-up failed: ${e.message}`));
     this.mover = new TaskMover();
     this.moves = new EpicMoves(source, now, (task, what) => this.#write(task, what));
   }
