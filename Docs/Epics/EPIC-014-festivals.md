@@ -39,6 +39,9 @@ Design: Design.md, section Marketing (step 4)
 
 Decisions and deviations, newest first.
 
+- T-014.4: added `doit festivals --state <s>` (not in the plan): festivals in state `past` are hidden by default and this is how to list them. `--fits` also drops events past their deadline. `festival upsert` takes `--url` (a website channel) so the gathering run can keep the source link.
+- T-014.2: an event is stored per contact as `event` (null for other contacts); the table column for `where` is `place`, since `where` is an SQL keyword.
+
 - T-014.7 added 2026-11-21 from design input (Design.md, Marketing); worked before T-014.5. T-014.3 now migrates from version 2, since EPIC-013 moved `marketing.db` there.
 
 - Open: whether Tabu has paid access to the howtomarketagame.com festival list; the run reads only what is public otherwise.
