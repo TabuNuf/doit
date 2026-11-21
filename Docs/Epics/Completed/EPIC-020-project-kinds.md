@@ -1,6 +1,7 @@
 # EPIC-020: Project kinds
 
-Status: Active
+Status: Done
+Closed: 2026-11-21
 Goal: Each project on the board says whether it is a game, an application or a podcast, and Marketing offers them by that kind.
 Design: Design.md, sections Projects and Marketing
 
