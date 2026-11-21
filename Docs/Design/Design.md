@@ -164,7 +164,6 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 
 ## Changelog
 
-- 2026-11-21, EPIC-019: the navy logo in the top bar and on the launcher; the Claude badge reads `<n> due` and its tasks show under Waiting on you; numeric order in the docs tree; profiles in each project's `Marketing/` folder with release notes beside them; the Marketing top bar gets a game picker and the tabs Campaigns, Contacts, Festivals, Events, Drafts, Overview (sections Look, Claude view, Docs, Marketing).
 - 2026-11-20, EPIC-001: first version, from the interview (`Brief.md`) and the wireframe.
 - 2026-11-20, EPIC-005: clicking an epic opens a read-only view of its document; the task filter moves to a Filter button on each epic. `epic close` is added to the CLI.
 - 2026-11-20: clicking an epic both filters the list and shows the epic's document in the Detail pane; the separate Filter button and the full-width epic view are gone.
@@ -191,3 +190,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-21, EPIC-014: festival and conference event fields (year, starts, ends, deadline, cost, where, criteria, watching state) and the matching rule fixed (section Marketing, step 4).
 - 2026-11-21, EPIC-014: in the Marketing view the top bar shows Marketing's tabs (Contacts, Drafts, Festivals, Campaigns) instead of the projects (section Marketing).
 - 2026-11-21, EPIC-015: campaigns are specified: `Game:` and `Event:` lines, the task `contact` field with a touch on completion, Add contacts, the weekly list (5 contacts, 3 steps, 14 days), the This week pane and the campaign and outreach commands (sections Marketing and The CLI).
+- 2026-11-21, EPIC-019: the navy logo in the top bar and on the launcher; the Claude badge reads `<n> due` and its tasks show under Waiting on you; numeric order in the docs tree; profiles in each project's `Marketing/` folder with release notes beside them; the Marketing top bar gets a game picker and the tabs Campaigns, Contacts, Festivals, Events, Drafts, Overview (sections Look, Claude view, Docs, Marketing).
