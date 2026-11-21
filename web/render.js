@@ -9,11 +9,13 @@ import { docsPanes } from "./docsView.js";
 import { claudePanes } from "./claudeView.js";
 import { marketingPanes, marketingTabs } from "./marketingView.js";
 import { setLayout } from "./resize.js";
+import { contactButton, ensureContactNames } from "./contactNames.js";
 
 /* ---------- Render ---------- */
 
 export function render() {
   if (!S.data) return;
+  if (S.data.tasks.some(t => t.contact)) ensureContactNames();
   document.documentElement.style.setProperty("--fs", S.font + "px");
   renderTop();
   setLayout(S.view, S.view === "docs" && S.docs.linkedClosed);
@@ -66,7 +68,7 @@ function epicPane() {
     <div class="pane-b">${groups || `<div class="empty">No projects yet. Add one under Projects ▾, + New project.</div>`}</div></section>`;
 }
 
-function rowHtml(t, i, sec) {
+export function rowHtml(t, i, sec) {
   const dl = t.deadline ? daysLeft(t.deadline) : null;
   const due = t.deadline && tabOf(t.state) === "open" ? `<span class="pill due ${dl <= 2 ? "late" : ""}" title="Deadline ${t.deadline}">${dl < 0 ? "late" : "due " + fmtDate(t.deadline)}</span>` : "";
   const open = sec === "active" || sec === "backlog";
@@ -76,10 +78,11 @@ function rowHtml(t, i, sec) {
   const st = sec === "active" ? `<button class="pill st ${t.state === "progress" ? "prog" : ""}" data-cyc="${k}" title="Click to switch">${t.state === "progress" ? "In progress" : "To-do"}</button>` : "";
   const left = t.state === "done" && t.completed ? `<span class="pill due" title="Moves to the archive">archives in ${Math.max(0, S.data.settings.keepCompletedDays + daysLeft(t.completed))} d</span><button class="pill st" data-reopen="${k}">Reopen</button>` : "";
   const arch = t.state === "archived" ? `<button class="pill st" data-reopen="${k}">Restore</button>` : "";
+  const contact = t.contact ? contactButton(t.contact) : "";
   const projPill = S.project === "all" ? `<span class="pill"><span class="dot" style="background:${color(t.project)}"></span>${esc(proj(t.project).name)}</span>` : "";
   return `<div class="row" tabindex="0" role="option" aria-selected="${S.sel === keyOf(t)}" data-id="${k}" data-sec="${sec}" draggable="${open}">
     ${grip}${rank}<span class="tdot ${t.type}" title="${t.type === "bug" ? "Bug" : "Task"}"></span><span class="mono muted">${t.id}</span><span class="title">${esc(t.title)}</span>
-    <span class="pills">${st}${due}${projPill}${left}${arch}<span class="own" title="${t.owner === "ai" ? "Claude" : "You"}">${t.owner === "ai" ? "🤖" : "🧑"}</span></span></div>`;
+    <span class="pills">${st}${due}${contact}${projPill}${left}${arch}<span class="own" title="${t.owner === "ai" ? "Claude" : "You"}">${t.owner === "ai" ? "🤖" : "🧑"}</span></span></div>`;
 }
 
 function listBody(base) {
@@ -160,6 +163,7 @@ function detailPane() {
       <dt>Deadline</dt><dd><label class="toggle"><input type="checkbox" id="dlon" ${t.deadline ? "checked" : ""}> Archive when passed</label>
         ${t.deadline ? `<div><input type="date" id="dl" value="${t.deadline}" aria-label="Deadline"> <span class="muted">${dl < 0 ? "passed" : dl + " days left"}</span></div>` : ""}</dd>
       <dt>Blocks</dt><dd><input id="blk" value="${esc(t.blocks || "")}" placeholder="T-014.3" pattern="T-\\d+\\.\\d+" size="10" aria-label="The task this one holds up"> <span class="muted">the task this holds up</span></dd>
+      ${t.contact ? `<dt>Contact</dt><dd>${contactButton(t.contact)}</dd>` : ""}
       <dt>Created</dt><dd class="mono">${t.created || "-"}</dd>
       <dt>Updated</dt><dd class="mono">${t.updated || "-"}</dd>
       ${t.completed ? `<dt>Completed</dt><dd class="mono">${t.completed}</dd>` : ""}

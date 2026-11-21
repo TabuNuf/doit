@@ -4,6 +4,7 @@
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail.js";
 import { festivalPath, gamePane, festivalsPane } from "./festivalsPane.js";
+import { weekPane } from "./weekPane.js";
 import { draftsPane, draftEditRequest, sendQuestion, sweepSummary } from "./draftsPane.js";
 
 export const TYPES = ["influencer", "blogger", "press", "publisher", "tester", "festival", "conference"];
@@ -59,6 +60,10 @@ export function marketingTabs(pane) {
 }
 
 export function marketingPanes() {
+  return weekPane(S.mk.week, S.mk.sel) + tabPanes();
+}
+
+function tabPanes() {
   const m = S.mk;
   if (m.pane === "festivals") return gamePane(m.festGame, m.profiles) + festivalsPane(m.fest, m.sel) + detailPane(m.detail, m.profiles, m.touchOpen, today());
   const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length);
@@ -78,6 +83,7 @@ export async function refreshMarketing() {
   const m = S.mk;
   try {
     [m.profiles, m.contacts, m.drafts, m.status] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f)), api("GET", "/api/drafts"), api("GET", "/api/mail/status")]);
+    m.week = await api("GET", "/api/outreach").catch(() => null);
     if (m.pane === "festivals") m.fest = await api("GET", festivalPath(m.festGame));
     m.detail = m.sel ? await api("GET", `/api/contacts/${encodeURIComponent(m.sel)}`).catch(() => null) : null;
     if (!m.detail) { m.sel = null; m.touchOpen = false; }
@@ -97,6 +103,7 @@ async function send(req) {
 /** Handles a click on a Marketing control; true when the click was one. */
 export function marketingClick(d) {
   const m = S.mk;
+  if (d.taskContact) { S.view = "marketing"; m.pane = "contacts"; m.sel = d.taskContact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
   if (d.contact) { m.sel = d.contact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
   if (d.mkPane) { m.pane = d.mkPane; redraw(); if (m.pane === "festivals") refreshMarketing(); return true; }
   if (d.mkSend) { sendDraft(d.mkSend); return true; }

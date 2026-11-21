@@ -4,7 +4,7 @@ import { S, $, keyOf, tabOf, api, act, load, patch, task, reloadHeld } from "./s
 import { render } from "./render.js";
 import { nudge, dragKey } from "./ordering.js";
 import { epicDragging } from "./epicMove.js";
-import { openEpic, closeEpic } from "./epicView.js";
+import { openEpic, closeEpic, addContacts } from "./epicView.js";
 import { toggleFold } from "./epicList.js";
 import { docsClick, docsInput, refreshDocs } from "./docsView.js";
 import { claudeClick, refreshClaude } from "./claudeView.js";
@@ -39,6 +39,7 @@ document.addEventListener("click", ev => {
     return openEpic(d.openEpic);
   }
   if (d.closeEpic) return closeEpic(d.closeEpic);
+  if (d.addContacts) return addContacts(d.addContacts);
   if (d.epicFold) { toggleFold(d.epicFoldP, d.epicFold); return render(); }
   if ("clearEpic" in d) { S.epic = null; S.epicView = null; return render(); }
   if (d.t) { const reload = d.t === "archived" || S.tab === "archived"; S.tab = d.t; return reload ? load() : render(); }

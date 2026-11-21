@@ -254,3 +254,8 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mk-mail { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
 .mk-actions { display: flex; gap: 8px; margin-top: 8px; }
 .mk-status { font-size: 12px; margin-bottom: 8px; }
+.panes > .week-pane { grid-column: 1 / -1; max-height: 200px; }
+.panes:has(> .week-pane) { grid-template-rows: auto minmax(0, 1fr); }
+.week-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1100px) { .panes > .week-pane ~ .pane:nth-child(3) { grid-column: auto; min-height: 0; } .panes > .week-pane ~ .pane:nth-child(4) { grid-column: 1 / -1; min-height: 360px; } }
+@media (max-width: 720px) { .week-cols { grid-template-columns: minmax(0, 1fr); } }

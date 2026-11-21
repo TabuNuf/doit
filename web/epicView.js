@@ -1,6 +1,6 @@
 // The epic view: one epic's document, read only, shown in the Detail pane while its tasks fill the list.
 
-import { S, esc, api, act } from "./state.js";
+import { S, esc, api, act, toast } from "./state.js";
 import { renderMarkdown } from "./markdown.js";
 
 /** Filters the list to the epic and shows its document in the Detail pane. */
@@ -20,10 +20,20 @@ export const closeEpic = key => {
   });
 };
 
+/** Makes one task per fitting contact for a campaign epic, then reloads. */
+export const addContacts = key => act(async () => {
+  const [project, id] = key.split("/");
+  const { refs } = await api("POST", `/api/campaigns/${encodeURIComponent(project)}/${encodeURIComponent(id)}/contacts`, {});
+  toast(refs.length ? `Added ${refs.length} contact task${refs.length === 1 ? "" : "s"}` : "No contacts to add");
+});
+
+/** True for an open epic whose document has a Game line: a campaign. */
+export const isCampaign = e => !e.completed && /^Game:\s*\S/m.test(e.text || "");
+
 /** The Detail pane holding the open epic's document; `tools` is the header's right-hand controls. */
 export function epicViewPane(tools) {
   const e = S.epicView;
   return `<section class="pane" aria-label="Epic ${esc(e.id)}">
-    <div class="pane-h">Epic · ${esc(e.id)} · ${esc(e.status)}${e.completed ? "" : `<button class="fsz" data-close-epic="${esc(S.epic || `${e.project}/${e.id}`)}" style="text-transform:none">Close epic</button>`}${tools}</div>
+    <div class="pane-h">Epic · ${esc(e.id)} · ${esc(e.status)}${e.completed ? "" : `<button class="fsz" data-close-epic="${esc(S.epic || `${e.project}/${e.id}`)}" style="text-transform:none">Close epic</button>`}${isCampaign(e) ? `<button class="fsz" data-add-contacts="${esc(S.epic || `${e.project}/${e.id}`)}" style="text-transform:none">Add contacts</button>` : ""}${tools}</div>
     <div class="pane-b doc">${renderMarkdown(e.text)}</div></section>`;
 }

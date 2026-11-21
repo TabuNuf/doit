@@ -6,14 +6,15 @@ import path from "node:path";
 import { contactRoutes } from "./contactRoutes.js";
 import { festivalRoutes } from "./festivalRoutes.js";
 import { mailRoutes } from "./mailRoutes.js";
+import { outreachRoutes } from "./outreachRoutes.js";
 
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png" };
 
 export class HttpServer {
   /** `commit` is the git commit the process started from (null when unknown); GET /api/version reports it.
    *  `changes` is a port, `subscribe(listener) -> unsubscribe` (and optionally `close()`), that fires when files change.
-   *  `contacts` is the ContactBook behind `/api/contacts` and `/api/profiles`; `mailroom` is the Mailroom behind `/api/drafts` and `/api/mail`. A handler may be async. */
-  constructor(board, webDir, commit = null, docs = null, claude = null, changes = null, contacts = null, mailroom = null) {
+   *  `contacts` is the ContactBook behind `/api/contacts` and `/api/profiles`; `mailroom` is the Mailroom behind `/api/drafts` and `/api/mail`. `outreach` is the Outreach behind `/api/outreach` and the campaign routes. A handler may be async. */
+  constructor(board, webDir, commit = null, docs = null, claude = null, changes = null, contacts = null, mailroom = null, outreach = null) {
     this.changes = changes;
     this.streams = new Map();
     this.board = board;
@@ -43,6 +44,7 @@ export class HttpServer {
       ...(contacts ? contactRoutes(contacts) : []),
       ...(contacts ? festivalRoutes(contacts) : []),
       ...(mailroom ? mailRoutes(mailroom) : []),
+      ...(outreach ? outreachRoutes(outreach) : []),
     ];
   }
 
