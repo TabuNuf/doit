@@ -38,6 +38,9 @@ Design: Design.md, section Marketing (step 3)
 
 Decisions and deviations, newest first.
 
+- T-013.4: header decoding (`decodeHeader`, `parseMessageHeaders`) is pure and lives in `domain/mail.js`, not the store; `headers()` returns `from` as the bare address (original case), `date` as an ISO UTC string (`""` if unparsable; the Mailroom takes the local day) and `messageId`, `inReplyTo` with their angle brackets (In-Reply-To is the first id).
+- T-013.4: `session` returns `{ok: true, value}` (the callback's result) or `{ok: false, error}`; only IMAP and network errors become results, a bug in the callback still throws. `move`, `copyByMessageId` and `select` name a missing mailbox as `Mailbox <name> not found`. `ImapMailbox` also takes `timeoutMs`. The test responses are inline in `test/imap.test.js` in Gmail's format, no fixture files.
+
 - T-013.3: `SmtpSender.send(account, {from, to, text})` takes the envelope addresses and `composeMail`'s text; it also takes a `timeoutMs` option (default 30 s) so a test of the timeout is fast. QUIT is best effort after the mail is accepted (waits at most 1 s) so it cannot turn a sent mail into a failure.
 - T-013.3: `MailAccount.read()` is async (the Keychain read is); `run(cmd, args)` resolves to stdout or null on failure.
 

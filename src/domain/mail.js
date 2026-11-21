@@ -123,3 +123,49 @@ export function composeMail(draft, contact, identity, now, random) {
   ].join("\r\n");
   return { from: address, to, messageId, text };
 }
+
+const WORD = /=\?([^?\s]+)\?([bBqQ])\?([^?\s]*)\?=/g;
+
+function decodeWord(charset, enc, payload) {
+  let bytes;
+  if (enc.toLowerCase() === "b") {
+    try { bytes = Uint8Array.from(atob(payload), c => c.charCodeAt(0)); } catch { return null; }
+  } else {
+    const raw = payload.replace(/_/g, " ").replace(/=([0-9A-Fa-f]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+    bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
+  }
+  try { return new TextDecoder(charset.toLowerCase()).decode(bytes); } catch { return new TextDecoder().decode(bytes); }
+}
+
+/** A header value with its RFC 2047 encoded words (B and Q, any charset TextDecoder knows) decoded; blanks between two words are dropped. */
+export function decodeHeader(value) {
+  const s = String(value ?? "");
+  let out = "";
+  let last = 0;
+  let afterWord = false;
+  for (const m of s.matchAll(WORD)) {
+    const between = s.slice(last, m.index);
+    const text = decodeWord(m[1], m[2], m[3]);
+    if (text === null) continue;
+    out += (afterWord && !between.trim() ? "" : between) + text;
+    last = m.index + m[0].length;
+    afterWord = true;
+  }
+  return out + s.slice(last);
+}
+
+/** The fields Doit reads from a header block: {from (address), subject (decoded), date (ISO UTC or ""), messageId, inReplyTo}. */
+export function parseMessageHeaders(block) {
+  const h = {};
+  for (const line of String(block).replace(/\r?\n[ \t]+/g, " ").split(/\r?\n/)) {
+    const m = line.match(/^([A-Za-z-]+):\s*(.*?)\s*$/);
+    if (m && !(m[1].toLowerCase() in h)) h[m[1].toLowerCase()] = m[2];
+  }
+  const from = h.from ?? "";
+  const addr = from.match(/<([^<>]*)>/)?.[1] ?? from.match(/[^\s<>"]+@[^\s<>"]+/)?.[0] ?? from;
+  const t = new Date(h.date ?? "");
+  return {
+    from: addr.trim(), subject: decodeHeader(h.subject ?? ""), date: Number.isNaN(t.getTime()) ? "" : t.toISOString(),
+    messageId: h["message-id"] ?? "", inReplyTo: (h["in-reply-to"] ?? "").split(/\s+/)[0],
+  };
+}
