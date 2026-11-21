@@ -6,6 +6,8 @@ One line per change: date, project, file, what changed and why. Newest first wit
 
 Every game that uses the standard adds its lines here when it pushes (`README.md`, Syncing). The version closes when the designer names it (`README.md`, Versions).
 
+- 2026-11-21, Doit EPIC-014, `Core/02-Working.md` Claude setup: a scheduled run's prompt lives in the repo, uses only the CLI with exact flags, logs one summary line, and a test runs the commands it names. Why: the festivals gathering run is an unattended prompt whose commands would otherwise drift from the CLI unnoticed.
+
 - 2026-11-21, Doit, `App/README.md` Pages over local files: a local server checks Host and Origin on every write; a network client takes an injectable `connect` so tests run a scripted server; a hand check sets the data-folder override once, not per command. Why: from EPIC-013 (mail), where a cross-site POST could have sent an unapproved mail and one unprefixed command touched the real data folder.
 
 - 2026-11-21, Doit EPIC-012, `App/README.md` Pages over local files and Decided so far: personal, cross-project data goes in a built-in SQLite file in the data folder, store tier only, versioned schema, opened on first use; a scripted page check dispatches `change` on a select; the boundary test sees tiers, not facades, so the close audit reads interface imports. Why: contacts must stay out of every repo, a filter looked broken under a form fill, and an interface called a mapper past its facade unnoticed by the test.
