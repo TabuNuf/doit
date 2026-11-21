@@ -8,7 +8,7 @@ const USAGE = {
   set: "doit contact set <id> key=value ...   keys: name types topic email reach notes status next channels",
   fit: "doit fit <id> <game> <reason>",
   touch: "doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]",
-  profile: "doit profile add <project> [--kind game|podcast]",
+  profile: "doit profile add <project> [--kind game|application|podcast]",
 };
 
 const need = (v, usage) => { if (v === undefined || v === "") throw new Error(`Usage: ${usage}`); return v; };
@@ -89,7 +89,7 @@ export class ContactsCli {
 
   profile(pos, flags) {
     if (pos[0] !== "add") throw new Error(USAGE.profile);
-    const p = this.book.addProfile(need(pos[1], USAGE.profile), flags.kind || "game");
+    const p = this.book.addProfile(need(pos[1], USAGE.profile), flags.kind);
     this.print(`Wrote ${p.file}`);
   }
 

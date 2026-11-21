@@ -98,3 +98,23 @@ test("doit profile add writes the template into the project's Marketing folder, 
   await cli.run(["profile", "add", "box-trainer"]);
   assert.match(out.join(""), /already has a profile/);
 });
+
+test("the project's kind wins over the file's Kind line, and a project with a kind but no file is listed as missing", () => {
+  const { settings } = withProject("# Box Trainer\n\nKind: game\nGenres: puzzle\n");
+  const s = settings.read();
+  s.projects.find(p => p.id === "box-trainer").kind = "application";
+  s.projects.find(p => p.id === "polyspice-marketing").kind = "podcast";
+  settings.write(s);
+  const list = new ProfileShelf(settings).list();
+  assert.equal(list.find(p => p.game === "box-trainer").kind, "application");
+  assert.deepEqual(list.find(p => p.game === "polyspice-marketing"), { game: "polyspice-marketing", name: "Polyspice Marketing", kind: "podcast", genres: [], platforms: [], stage: "", release: "", needs: [], project: "polyspice-marketing", missing: true });
+});
+
+test("doit profile add takes the project's kind when none is given", async () => {
+  const { home, game, settings } = withProject(null);
+  const s = settings.read(); s.projects.find(p => p.id === "box-trainer").kind = "application"; settings.write(s);
+  const { makeCli } = await import("../src/root.js");
+  const io = { write() {} };
+  await makeCli({ home, out: io, err: io }).run(["profile", "add", "box-trainer"]);
+  assert.match(fs.readFileSync(path.join(game, "Docs", "Marketing", "Profile.md"), "utf8"), /Kind: application/);
+});

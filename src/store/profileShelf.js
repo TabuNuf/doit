@@ -1,6 +1,7 @@
 // ProfileShelf: the game profiles. A project's own `<docs>/Marketing/Profile.md` (the game is the
 // project id), and `Docs/Profiles/*.md` in the marketing project (settings key `marketingProject`)
-// for games without a project (the game is the file name without `.md`). A project's own wins.
+// for games without a project (the game is the file name without `.md`). A project's own wins, and
+// its kind is the project's kind; a project with a kind but no file is listed with `missing: true`.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -8,7 +9,7 @@ import { ContactError } from "../domain/contacts.js";
 
 const DEFAULT_PROJECT = "polyspice-marketing";
 const STAGES = ["in development", "demo", "released"];
-const KINDS = ["game", "podcast"];
+const KINDS = ["game", "application", "podcast"];
 const OWN = path.join("Marketing", "Profile.md");
 const list = v => String(v ?? "").split(",").map(s => s.trim()).filter(Boolean);
 
@@ -44,7 +45,10 @@ export class ProfileShelf {
     }
     for (const p of this.settingsFile.read().projects) {
       const file = path.join(p.path, p.docs, OWN);
-      if (fs.existsSync(file)) byGame.set(p.id, { ...parseProfile(p.id, fs.readFileSync(file, "utf8")), project: p.id });
+      if (fs.existsSync(file)) {
+        const own = parseProfile(p.id, fs.readFileSync(file, "utf8"));
+        byGame.set(p.id, { ...own, kind: p.kind || own.kind, project: p.id });
+      } else if (p.kind) byGame.set(p.id, { ...parseProfile(p.id, `# ${p.name}\n`), kind: p.kind, project: p.id, missing: true });
     }
     return [...byGame.values()].sort((a, b) => a.game.localeCompare(b.game));
   }
@@ -54,10 +58,11 @@ export class ProfileShelf {
   }
 
   /** Writes the template into a registered project's `<docs>/Marketing/Profile.md`; the game is the project id. */
-  createFor(projectId, kind = "game") {
-    if (!KINDS.includes(kind)) throw new ContactError(`Kind must be ${KINDS.join(" or ")}: ${kind}`);
+  createFor(projectId, kind) {
     const p = this.settingsFile.read().projects.find(x => x.id === projectId);
     if (!p) throw new ContactError(`No project ${projectId}`);
+    kind = kind || p.kind || "game";
+    if (!KINDS.includes(kind)) throw new ContactError(`Kind must be ${KINDS.join(", ")}: ${kind}`);
     const file = path.join(p.path, p.docs, OWN);
     if (fs.existsSync(file)) throw new ContactError(`${projectId} already has a profile: ${file}`);
     fs.mkdirSync(path.dirname(file), { recursive: true });

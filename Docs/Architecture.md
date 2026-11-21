@@ -43,7 +43,7 @@ Module order, low to high: domain → store → cli, server → root.
 - `domain/eventMatch.js`: `EventMatch.check(profile, festival)`, pure: `{match:true}`, `{match:true, criteriaUnknown:true}` (no criteria at all) or `{match:false, reason}`. Each criterion that is given must hold: a genre in common, the game's stage among the allowed stages, a platform in common; a criterion left empty is not checked. Tests: `test/eventMatch.test.js` ("matches on a genre in common", "refuses on a genre not shared", "refuses on stage", "refuses on platform", "marks a festival without criteria as unknown", "checks only the criteria given", "refuses a contact that is not an event"); fields in `test/events.test.js`.
 - `domain/contactImport.js`: the sheet import, pure: `parseCsv` (quotes, commas and newlines in quoted fields), `mapStreamers` (header aliases, BB1 and BB2 ignored, a reach count kept as the number, a band letter or other text left out of reach and noted as `Sheet reach: <cell>`, links to channels, Replied and Posted Video to touches). `ContactBook.import(rows)` matches by email, then YouTube link, and returns `{added, updated, skipped}`.
 - `store/sqliteContacts.js`: `SqliteContacts`, the `ContactSource` port on `marketing.db` in the data folder (`node:sqlite`): tables contacts, channels, fit, touches, events (a festival's event, one row per contact); the handle and the schema (`PRAGMA user_version` 3) come from `MarketingDb`, opened on first use, so a command that never reads contacts leaves no file. A touch carries a note and a ref (a ref is logged once).
-- `store/profileShelf.js`: `ProfileShelf`, the profile port: reads each registered project's `<docs folder>/Marketing/Profile.md` (the game is the project id) and `<docs folder>/Profiles/*.md` of the marketing project (settings key `marketingProject`, default `polyspice-marketing`, resolved through `SettingsFile`) for games without a project; a project's own wins. Writes a template with `createFor(project, kind)` or `create(game, name)`.
+- `store/profileShelf.js`: `ProfileShelf`, the profile port: reads each registered project's `<docs folder>/Marketing/Profile.md` (the game is the project id) and `<docs folder>/Profiles/*.md` of the marketing project (settings key `marketingProject`, default `polyspice-marketing`, resolved through `SettingsFile`) for games without a project; a project's own wins and takes the project's kind, and a project with a kind but no file is listed with `missing`. Writes a template with `createFor(project, kind)` or `create(game, name)`.
 - `domain/mail.js`: the mail vocabulary, pure: `parseTemplate`, `fillTemplate` (refuses a `{{...}}` left over with a `MailError`), the draft value and its states (draft, approved, sent, failed) with edit and approve rules, and `composeMail` (headers, RFC 2047 subject, base64 body, Message-ID).
 - `domain/mail.js` also decodes headers read from IMAP (`decodeHeader`, `parseMessageHeaders`: encoded words, From address, date, Message-ID).
 - `domain/mailroom.js`: `Mailroom`, the mail facade: templates, draft, edit, discard, approve and send (daily cap, touch, copy to Marketing), `sweep` (replies in Inbox logged as touches and moved to Marketing), `status`. Over ports for drafts, the `ContactBook`, templates, account, sender and mailbox. The root builds one `MarketingDb` per process (`makeMarketing`) and gives it to the contacts and the drafts store.
@@ -79,6 +79,7 @@ Module order, low to high: domain → store → cli, server → root.
 classDiagram
   class Board {
     +list(filter) Task[]
+    +setProjectKind(id, kind)
     +get(ref) Task
     +addTask(...)
     +update(ref, changes)
@@ -108,7 +109,7 @@ classDiagram
   class FestivalRoutes { +festivalRoutes(book) }
   class ContactsCli { +contacts() +contact() +fit() +touch() +profiles() }
   class SqliteContacts { +all() +get(id) +insert(c) +update(id, c) +setFit() +addTouch() }
-  class ProfileShelf { +list() +has(game) +create(game, name) +createFor(project, kind) }
+  class ProfileShelf { +list() +has(game) +create(game, name) +createFor(project, kind?) }
   class Mailroom { +templates() +draft() +drafts() +edit() +discard() +approveAndSend() +send() +sweep() +status() }
   class MarketingDb { +db() +atomic(fn) +close() }
   class SqliteDrafts { +all(filter) +get(id) +insert(d) +update(id, d) +remove(id) +sentOn(day) }

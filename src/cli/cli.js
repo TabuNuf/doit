@@ -27,7 +27,7 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit fit <id> <game> <reason>                   the contact fits a game (a profile's file name)
   doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]
   doit profiles                                   the game profiles contacts can fit
-  doit profile add <project> [--kind game|podcast]   write <docs>/Marketing/Profile.md in the project; the game is its id
+  doit profile add <project> [--kind k]           write <docs>/Marketing/Profile.md in the project; the game is its id, the kind the project's
 
   doit festivals [--fits <game>] [--deadline-within <days>] [--state s] [--json]   festivals and conferences by deadline with days left; past ones hidden unless --state past; --fits keeps those matching the game's profile (and not past their deadline), --deadline-within n those due in n days
   doit festival upsert <name> --year <yyyy> [--type festival,conference] [--topic] [--starts d] [--ends d] [--deadline d] [--cost] [--where steam|epic|gog|itch|physical|online]

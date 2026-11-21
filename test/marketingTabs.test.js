@@ -23,10 +23,10 @@ test("the Marketing view shows its tabs where the other views show the projects"
   assert.match(bar, /data-mk-pane="festivals" aria-pressed="true"/);
   assert.match(bar, /^<select id="mk-pick"[^>]*aria-label="Game or podcast".*>Campaigns<.*>Contacts<.*>Festivals<.*>Events<.*>Drafts<.*>Overview</s, "the picker first, then the tabs in order");
   assert.doesNotMatch(bar, /data-p=|data-projmenu|All projects|Projects/);
-  S.mk.profiles = [{ game: "box-trainer", name: "Box Trainer", kind: "game" }, { game: "hbd", name: "Hidden by Design", kind: "podcast" }];
+  S.mk.profiles = [{ game: "box-trainer", name: "Box Trainer", kind: "game" }, { game: "doit", name: "Doit", kind: "application", missing: true, genres: [], platforms: [], needs: [] }, { game: "hbd", name: "Hidden by Design", kind: "podcast" }];
   S.mk.game = "hbd"; S.mk.pane = "campaigns";
   render();
-  assert.match(els.get("#projects").innerHTML, /<optgroup label="Games"><option value="box-trainer" >Box Trainer<\/option><\/optgroup><optgroup label="Podcasts"><option value="hbd" selected>Hidden by Design/);
+  assert.match(els.get("#projects").innerHTML, /<optgroup label="Games"><option value="box-trainer" >Box Trainer<\/option><\/optgroup><optgroup label="Applications"><option value="doit" >Doit \(no profile\)<\/option><\/optgroup><optgroup label="Podcasts"><option value="hbd" selected>Hidden by Design/);
   S.mk.profiles = []; S.mk.game = "";
 
   for (const view of ["board", "docs", "claude"]) {

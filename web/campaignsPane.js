@@ -14,6 +14,7 @@ export function campaignsFor(epics, game) {
 export function profilePane(game, profiles) {
   const p = profiles.find(x => x.game === game);
   if (!p) return `<section class="pane" aria-label="Profile"><div class="pane-h">Profile</div><div class="pane-b"><div class="empty">${profiles.length ? "Pick a game or podcast in the top bar to see its profile." : "No profiles yet. <code>doit profile add &lt;project&gt;</code> writes one in the project's Marketing folder."}</div></div></section>`;
+  if (p.missing) return `<section class="pane" aria-label="Profile"><div class="pane-h">Profile</div><div class="pane-b detail"><div class="mono muted">${esc(p.kind)}</div><h2>${esc(p.name)}</h2><div class="empty">No Marketing/Profile.md yet. <code>doit profile add ${esc(p.game)}</code> writes one.</div></div></section>`;
   const row = (k, v) => `<dt>${k}</dt><dd>${v ? esc(v) : "-"}</dd>`;
   const all = v => (v || []).join(", ");
   return `<section class="pane" aria-label="Profile"><div class="pane-h">Profile</div><div class="pane-b detail">

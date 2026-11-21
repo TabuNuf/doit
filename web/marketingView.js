@@ -60,11 +60,11 @@ export const MK_TABS = [["campaigns", "Campaigns"], ["contacts", "Contacts"], ["
 /** The event type each event tab lists. */
 const EVENT_TAB = { festivals: "festival", events: "conference" };
 
-/** The game or podcast picker: the profiles, games then podcasts. */
+/** The picker: the profiles, grouped as games, applications and podcasts. */
 export function gamePicker(game, profiles) {
-  const opt = p => `<option value="${esc(p.game)}" ${p.game === game ? "selected" : ""}>${esc(p.name || p.game)}</option>`;
+  const opt = p => `<option value="${esc(p.game)}" ${p.game === game ? "selected" : ""}>${esc(p.name || p.game)}${p.missing ? " (no profile)" : ""}</option>`;
   const group = (label, kind) => { const ps = profiles.filter(p => (p.kind || "game") === kind); return ps.length ? `<optgroup label="${label}">${ps.map(opt).join("")}</optgroup>` : ""; };
-  return `<select id="mk-pick" class="mk-pick" aria-label="Game or podcast" title="The game or podcast every tab shows"><option value="">Any game or podcast</option>${group("Games", "game")}${group("Podcasts", "podcast")}</select>`;
+  return `<select id="mk-pick" class="mk-pick" aria-label="Game or podcast" title="The game, application or podcast every tab shows"><option value="">Any game or podcast</option>${group("Games", "game")}${group("Applications", "application")}${group("Podcasts", "podcast")}</select>`;
 }
 
 /** The picker, then Marketing's own tabs, shown in the top bar where the project chips are on the other views. */
