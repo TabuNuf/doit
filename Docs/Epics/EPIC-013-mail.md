@@ -38,6 +38,9 @@ Design: Design.md, section Marketing (step 3)
 
 Decisions and deviations, newest first.
 
+- T-013.5: the root has `makeMarketing(options)` (one `MarketingDb`, the `ContactBook` and the `Mailroom` over it) beside `makeContacts` (which now takes an optional `db`) and `makeMailroom`; `makeMailroom` takes `ports` to swap account, sender, mailbox or random in tests.
+- T-013.5: `approveAndSend` also takes an `approved` draft that waited for the cap and sends it; the cap-wait result is the draft itself, still `approved`. Drafts come back with `contactName` and `to` added. `edit` with only `personal` refills the template (subject and body are replaced); with a subject or body it stores the text as given. A reply whose Message-ID is missing is logged without a `ref`, so it cannot be deduped. `status()` is async (it reads the account); with no account `cap` is 20.
+
 - T-013.4: header decoding (`decodeHeader`, `parseMessageHeaders`) is pure and lives in `domain/mail.js`, not the store; `headers()` returns `from` as the bare address (original case), `date` as an ISO UTC string (`""` if unparsable; the Mailroom takes the local day) and `messageId`, `inReplyTo` with their angle brackets (In-Reply-To is the first id).
 - T-013.4: `session` returns `{ok: true, value}` (the callback's result) or `{ok: false, error}`; only IMAP and network errors become results, a bug in the callback still throws. `move`, `copyByMessageId` and `select` name a missing mailbox as `Mailbox <name> not found`. `ImapMailbox` also takes `timeoutMs`. The test responses are inline in `test/imap.test.js` in Gmail's format, no fixture files.
 
