@@ -1,6 +1,6 @@
 # EPIC-012: Contacts
 
-Status: Planned
+Status: Active
 Goal: Every marketing contact lives in Doit, filtered by the game it fits, with its history, so Tabu can see who to contact next and Claude can research and link contacts through the CLI.
 Design: Design.md, section Marketing (steps 1 and 2)
 
