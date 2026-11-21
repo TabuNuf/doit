@@ -32,6 +32,10 @@ for s in 16 32 128 256 512; do
 done
 iconutil -c icns "$set" -o "$out/Contents/Resources/applet.icns"
 rm -rf "$work"
+# osacompile also writes Assets.car with the default script icon, and CFBundleIconName
+# makes macOS prefer it over applet.icns; drop both so the logo shows.
+rm -f "$out/Contents/Resources/Assets.car"
+/usr/libexec/PlistBuddy -c "Delete :CFBundleIconName" "$out/Contents/Info.plist" 2>/dev/null || true
 # The new icon breaks osacompile's ad-hoc signature, so sign again.
 codesign --force --sign - "$out" 2>/dev/null
 touch "$out"

@@ -59,3 +59,11 @@ test("check-server.sh and stop-server.sh work with an event stream open", async 
   assert.equal(await check(free), 1, "nothing answers after stop");
   req.destroy();
 });
+
+// osacompile's Assets.car and CFBundleIconName would win over applet.icns and hide the logo.
+test("build.sh removes the applet's asset catalog and icon name", async () => {
+  const fs = await import("node:fs");
+  const text = fs.readFileSync(path.join(ROOT, "launcher", "build.sh"), "utf8");
+  assert.match(text, /rm -f "\$out\/Contents\/Resources\/Assets\.car"/);
+  assert.match(text, /Delete :CFBundleIconName/);
+});
