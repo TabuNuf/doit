@@ -23,12 +23,13 @@ test("a short title is not split", () => {
   assert.deepEqual(headline(t), { head: t, rest: "" });
 });
 
-test("a long title with no early sentence end is cut at a word and keeps the whole text as the spec", () => {
+test("a long title with no early sentence end is cut at a word and the spec carries on from the cut", () => {
   const t = "word ".repeat(40).trim();
   const { head, rest } = headline(t);
   assert.ok(head.endsWith("…") && head.length <= LONG_TITLE);
   assert.ok(!/\s…$/.test(head));
-  assert.equal(rest, t);
+  assert.ok(rest.startsWith("…word"));
+  assert.equal(head.slice(0, -1) + " " + rest.slice(1), t);
 });
 
 test("a title's markdown renders inline and is escaped", () => {

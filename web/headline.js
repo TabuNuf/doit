@@ -12,5 +12,6 @@ export function headline(title) {
   while ((m = end.exec(text)) && m.index < LONG_TITLE) if (m.index >= 3) { cut = m.index; break; }
   if (cut >= 0) return { head: text.slice(0, cut + 1), rest: text.slice(cut + 1).trim() };
   const space = text.lastIndexOf(" ", LONG_TITLE - 1);
-  return { head: text.slice(0, space > 20 ? space : LONG_TITLE - 1) + "…", rest: text };
+  const at = space > 20 ? space : LONG_TITLE - 1;
+  return { head: text.slice(0, at) + "…", rest: "…" + text.slice(at).trim() };
 }
