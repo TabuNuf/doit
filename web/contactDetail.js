@@ -52,6 +52,7 @@ export function detailPane(c, profiles, touchOpen, now) {
       <dt>Next contact</dt><dd><input type="date" id="mk-next" value="${esc(c.next)}" aria-label="Next contact date">${c.due ? ` <span class="pill due late">due</span>` : ""}</dd>
       <dt>Reach</dt><dd><input type="number" id="mk-reach-n" min="0" step="1" value="${esc(c.reach ?? "")}" aria-label="Reach in followers" placeholder="-"></dd>
       <dt>Email</dt><dd>${c.email ? esc(c.email) : "-"}</dd>
+      <dt>Genres</dt><dd><input type="text" id="mk-genres" value="${esc((c.genres ?? []).join(", "))}" aria-label="Genres, separated by commas" placeholder="Indie, Horror"></dd>
     </dl>
     <div class="sect">Channels</div>${channels(c.channels)}
     <div class="sect">Fit</div>${fit}
@@ -66,6 +67,7 @@ export function editRequest(el, c) {
   if (el.id === "mk-status" && el.value !== c.status) return { method: "PATCH", path, body: { status: el.value } };
   if (el.id === "mk-next" && el.value !== c.next) return { method: "PATCH", path, body: { next: el.value } };
   if (el.id === "mk-reach-n" && (el.value === "" ? null : Number(el.value)) !== c.reach) return { method: "PATCH", path, body: { reach: el.value === "" ? null : Number(el.value) } };
+  if (el.id === "mk-genres") { const genres = el.value.split(",").map(g => g.trim()).filter(Boolean); if (genres.join(",") !== (c.genres ?? []).join(",")) return { method: "PATCH", path, body: { genres } }; }
   if (el.id === "mk-notes" && el.value !== c.notes) return { method: "PATCH", path, body: { notes: el.value } };
   return null;
 }

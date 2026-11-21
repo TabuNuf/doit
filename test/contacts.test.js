@@ -110,3 +110,15 @@ test("touch defaults to today and may name a game with a profile", () => {
   assert.throws(() => b.addTouch(1, { kind: "mail", game: "nope" }), /No profile/);
   assert.equal(b.addTouch(1, { kind: "reply", date: "2026-11-02" }).touches.length, 2);
 });
+
+test("genres: set as tags without repeats, filtered without case, listed", () => {
+  const b = book();
+  assert.deepEqual(b.get(1).genres, []);
+  b.update(1, { genres: "Indie, horror, indie, " });
+  b.update(2, { genres: ["Puzzle", "Indie"] });
+  assert.deepEqual(b.get(1).genres, ["Indie", "horror"]);
+  assert.deepEqual(names(b.list({ genre: "INDIE" })), ["Ada Plays", "Bit Blog"]);
+  assert.deepEqual(names(b.list({ genre: "puzzle" })), ["Bit Blog"]);
+  assert.deepEqual(b.genres(), ["horror", "Indie", "Puzzle"]);
+  assert.equal(b.get(1).last, "");
+});

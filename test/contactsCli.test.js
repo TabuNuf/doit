@@ -84,3 +84,27 @@ test("refused values and missing arguments exit 1 with a message", t => {
   }
   assert.match(run("help").out, /doit contacts \[--type/);
 });
+
+test("contact set genres= and about=, shown in contact show and filtered with --genre", t => {
+  const s = setup(); t.after(s.cleanup);
+  const run = cliFor(s);
+  run("contact", "add", "Ada", "--type", "influencer");
+  run("contact", "add", "Bit", "--type", "press", "--genres", "Horror");
+  assert.equal(run("contact", "set", "1", "genres=Indie,Co-op", "about=Cozy co-op streamer").code, 0);
+  const shown = run("contact", "show", "1").out;
+  assert.match(shown, /^genres Indie, Co-op$/m);
+  assert.match(shown, /^about Cozy co-op streamer$/m);
+  assert.match(run("contacts", "--genre", "indie").out, /^1  Ada/);
+  assert.doesNotMatch(run("contacts", "--genre", "indie").out, /Bit/);
+  run("contact", "set", "1", "genres=");
+  assert.equal(JSON.parse(run("contact", "show", "1", "--json").out).genres.length, 0);
+  assert.match(run("help").out, /genres a,b|genres \(a,b\)/);
+});
+
+test("importing the fixture fills genres from the Genre column and keeps them out of the notes", t => {
+  const s = setup(); t.after(s.cleanup);
+  const run = cliFor(s);
+  run("contacts", "import", FIXTURE);
+  assert.match(run("contacts", "--genre", "co-op").out, /Pixel Pat/);
+  assert.doesNotMatch(run("contact", "show", "1").out, /Genre:/);
+});

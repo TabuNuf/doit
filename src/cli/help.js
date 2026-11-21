@@ -19,11 +19,11 @@ export const HELP = `doit: the task board, from the command line. Every command 
   doit morning                                    sweep, then write the morning report to the activity log and print it
   doit log <name> <text>                          one line in the activity log under <name> (lower case, like festivals), for a scheduled run's summary
 
-  doit contacts [--type t] [--fits <game>] [--status active|dormant|archived] [--due] [--reach <n>] [--json]   one line per contact, due first; --reach n = at least n followers
-  doit contacts import <file>                     import the New Streamers CSV; re-import updates by email or YouTube link
+  doit contacts [--type t] [--fits <game>] [--genre g] [--status active|dormant|archived] [--due] [--reach <n>] [--json]   one line per contact, due first; --reach n = at least n followers
+  doit contacts import <file>                     import every column of the New Streamers CSV (email, channels, reach, genres, dates, Last Contact and BB1/BB2 as mail touches); re-import updates in place by email or channel
   doit contact show <id> [--json]
-  doit contact add <name> --type a,b [--email] [--reach <followers>] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]
-  doit contact set <id> key=value ...             keys: name types topic email reach (a number, e.g. reach=12400) notes status next channels
+  doit contact add <name> --type a,b [--email] [--reach <followers>] [--genres a,b] [--about text] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]
+  doit contact set <id> key=value ...             keys: name types topic email reach (a number, e.g. reach=12400) genres (a,b) about notes status next channels
   doit fit <id> <game> <reason>                   the contact fits a game (a profile's file name)
   doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]
   doit profiles                                   the game profiles contacts can fit

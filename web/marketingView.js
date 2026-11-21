@@ -18,7 +18,7 @@ export const REACH_OPTIONS = [["", "Any"], ["100", "100"], ["1000", "1 000"], ["
 export function contactPath(f, game = "") {
   const q = new URLSearchParams();
   if (game) q.set("fits", game);
-  for (const k of ["type", "reach", "status"]) if (f[k]) q.set(k, f[k]);
+  for (const k of ["type", "reach", "status", "genre"]) if (f[k]) q.set(k, f[k]);
   q.set("except", EVENT_TYPES);
   const s = q.toString();
   return "/api/contacts" + (s ? "?" + s : "");
@@ -30,11 +30,12 @@ export const dueFirst = list => [...list.filter(c => c.due), ...list.filter(c =>
 const select = (id, label, options, value) => `<label for="${id}">${label}<select id="${id}">${options.map(([v, l]) => `<option value="${esc(v)}" ${v === value ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`;
 
 /** The filter column; the game is picked in the top bar. */
-export function filterPane(f) {
+export function filterPane(f, genres = []) {
   const any = l => ["", l];
   return `<section class="pane" aria-label="Filters"><div class="pane-h">Filters</div><div class="pane-b form mk-filters">
     ${select("mk-type", "Type", [any("Any type"), ...TYPES.map(t => [t, t])], f.type)}
     ${select("mk-reach", "Reach at least", REACH_OPTIONS, f.reach)}
+    ${select("mk-genre", "Genre", [any("Any genre"), ...genres.map(g => [g, g])], f.genre)}
     ${select("mk-fstatus", "Status", [any("Any status"), ...STATUSES.map(s => [s, s])], f.status)}
     <button data-mk-clear>Clear filters</button></div></section>`;
 }
@@ -79,7 +80,7 @@ export function marketingPanes() {
   if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game)) + detail();
   if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + detail(); }
   const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length);
-  return filterPane(m.f) + middle + detail();
+  return filterPane(m.f, m.genres) + middle + detail();
 }
 
 /** Opening the view: loads it, then sweeps the mailbox once, quietly (its result is a line in the Drafts pane). */
@@ -94,7 +95,7 @@ export async function openMarketing() {
 export async function refreshMarketing() {
   const m = S.mk;
   try {
-    [m.profiles, m.contacts, m.drafts, m.status] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f, m.game)), api("GET", "/api/drafts"), api("GET", "/api/mail/status")]);
+    [m.profiles, m.contacts, m.drafts, m.status, m.genres] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f, m.game)), api("GET", "/api/drafts"), api("GET", "/api/mail/status"), api("GET", "/api/genres")]);
     if (m.pane === "overview") m.week = await api("GET", "/api/outreach").catch(() => null);
     if (EVENT_TAB[m.pane]) m.fest = await api("GET", festivalPath(m.game, EVENT_TAB[m.pane]));
     if (m.pane === "campaigns") m.campaigns = (await api("GET", "/api/board?project=all")).epics;
@@ -124,7 +125,7 @@ export function marketingClick(d) {
   if (d.mkDiscard) { discardDraft(d.mkDiscard); return true; }
   if ("mkTouch" in d) { m.touchOpen = true; redraw(); $("#mk-tk-kind")?.focus(); return true; }
   if ("mkTouchCancel" in d) { m.touchOpen = false; redraw(); return true; }
-  if ("mkClear" in d) { m.f = { type: "", reach: "", status: "" }; refreshMarketing(); return true; }
+  if ("mkClear" in d) { m.f = { type: "", reach: "", status: "", genre: "" }; refreshMarketing(); return true; }
   return false;
 }
 
@@ -146,7 +147,7 @@ async function discardDraft(id) {
   return refreshMarketing();
 }
 
-const FILTERS = { "mk-type": "type", "mk-reach": "reach", "mk-fstatus": "status" };
+const FILTERS = { "mk-type": "type", "mk-reach": "reach", "mk-fstatus": "status", "mk-genre": "genre" };
 
 /** A changed filter or detail field; true when the change was one. */
 export function marketingChange(ev) {

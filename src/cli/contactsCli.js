@@ -2,10 +2,10 @@
 // Files are read through `readText(path)`, given by the root: the CLI tier does not touch the disk.
 
 const USAGE = {
-  contacts: "doit contacts [--type t] [--fits <game>] [--status s] [--due] [--reach <n>] [--json] | doit contacts import <file>",
+  contacts: "doit contacts [--type t] [--fits <game>] [--genre g] [--status s] [--due] [--reach <n>] [--json] | doit contacts import <file>",
   show: "doit contact show <id> [--json]",
-  add: "doit contact add <name> --type a,b [--email] [--reach <followers>] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]",
-  set: "doit contact set <id> key=value ...   keys: name types topic email reach notes status next channels",
+  add: "doit contact add <name> --type a,b [--email] [--reach <followers>] [--genres a,b] [--about text] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]",
+  set: "doit contact set <id> key=value ...   keys: name types topic email reach genres about notes status next channels",
   fit: "doit fit <id> <game> <reason>",
   touch: "doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]",
   profile: "doit profile add <project> [--kind game|application|podcast]",
@@ -29,8 +29,9 @@ function fields(src) {
   for (const [k, v] of Object.entries(src)) {
     if (k === "type" || k === "types") out.types = csv(v);
     else if (k === "channels") out.channels = channels(v);
-    else if (["name", "topic", "email", "reach", "notes", "status", "next"].includes(k)) out[k] = v;
-    else throw new Error(`Unknown field "${k}"; use name types topic email reach notes status next channels`);
+    else if (k === "genres" || k === "genre") out.genres = csv(v);
+    else if (["name", "about", "topic", "email", "reach", "notes", "status", "next"].includes(k)) out[k] = v;
+    else throw new Error(`Unknown field "${k}"; use name types topic email reach genres about notes status next channels`);
   }
   return out;
 }
@@ -44,7 +45,7 @@ export class ContactsCli {
 
   contacts(pos, flags) {
     if (pos[0] === "import") return this.#import(pos[1]);
-    const list = this.book.list({ type: flags.type, fits: flags.fits, status: flags.status, reach: flags.reach, due: flags.due });
+    const list = this.book.list({ type: flags.type, fits: flags.fits, genre: flags.genre, status: flags.status, reach: flags.reach, due: flags.due });
     if (flags.json) return this.print(JSON.stringify(list, null, 1));
     if (!list.length) return this.print("No contacts.");
     for (const c of list) this.print(line(c));
@@ -99,6 +100,8 @@ export class ContactsCli {
     this.print(line(c));
     if (c.email) this.print(`email ${c.email}`);
     if (c.topic) this.print(`topic ${c.topic}`);
+    if (c.genres.length) this.print(`genres ${c.genres.join(", ")}`);
+    if (c.about) this.print(`about ${c.about}`);
     for (const ch of c.channels) this.print(`${ch.kind} ${ch.url}`);
     for (const f of c.fit) this.print(`fits ${f.game}: ${f.reason}`);
     for (const t of c.touches) this.print(`${t.date} ${t.kind}${t.game ? " " + t.game : ""}`);

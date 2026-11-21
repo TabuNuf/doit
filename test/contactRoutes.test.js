@@ -81,3 +81,15 @@ test("except= leaves festivals and conferences out of the contacts, and type= sp
   assert.deepEqual((await api("/api/festivals?type=conference")).body.map(c => c.name), ["GDC"]);
   book.source.close();
 });
+
+test("genres are patched, filtered and listed", async t => {
+  const { s, api } = await serve(t);
+  const book = makeContacts({ home: s.home, now: () => s.clock.t });
+  book.add({ name: "Ada Plays", types: ["influencer"] });
+  book.add({ name: "Bit Blog", types: ["press"] });
+  const r = await api("/api/contacts/1", "PATCH", { genres: ["Indie", "Horror"], about: "Plays horror." });
+  assert.deepEqual([r.body.genres, r.body.about], [["Indie", "Horror"], "Plays horror."]);
+  await api("/api/contacts/2", "PATCH", { genres: ["Puzzle"] });
+  assert.deepEqual((await api("/api/contacts?genre=horror")).body.map(c => c.name), ["Ada Plays"]);
+  assert.deepEqual((await api("/api/genres")).body, ["Horror", "Indie", "Puzzle"]);
+});

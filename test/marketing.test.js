@@ -128,3 +128,15 @@ test("a touch shows its note, and the contacts pane offers the drafts", async ()
   assert.match(html, /2026-11-21<\/span> · mail · good-box · Good Box for Ada/);
   assert.match(listPane([contact(1)], null, 2), /data-mk-pane="drafts"[^>]*>Drafts \(2\)/);
 });
+
+test("genres: the pane edits them as tags, the filter lists those in use and becomes a query parameter", async () => {
+  const { detailPane, editRequest } = await import("../web/contactDetail.js");
+  const { contactPath, filterPane } = await import("../web/marketingView.js");
+  const c = contact(7, { genres: ["Indie", "Horror"] });
+  assert.match(detailPane(c, [], false, "2026-03-05"), /id="mk-genres" value="Indie, Horror"/);
+  assert.deepEqual(editRequest({ id: "mk-genres", value: "Indie, Puzzle ,, " }, c), { method: "PATCH", path: "/api/contacts/7", body: { genres: ["Indie", "Puzzle"] } });
+  assert.equal(editRequest({ id: "mk-genres", value: "Indie,Horror" }, c), null);
+  assert.match(contactPath({ type: "", reach: "", status: "", genre: "Horror" }), /genre=Horror/);
+  const html = filterPane({ type: "", reach: "", status: "", genre: "Horror" }, ["Horror", "Indie"]);
+  assert.match(html, /<option value="" >Any genre<\/option><option value="Horror" selected>Horror<\/option><option value="Indie" >Indie/);
+});
