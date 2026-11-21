@@ -55,7 +55,9 @@ One local board where Tabu and Claude share every project's epics, tasks and bug
 - **+ Task** creates a task in a chosen epic with title, type and owner, at the bottom of Active.
 - **Detail pane:** number, epic, title, type, owner, project; state, owner and deadline editable; created and updated times; the description (editable); done when; comments with author and time, and a box to add one. Text size A− / A+, 12 to 22 px, starting at 15.
 - **Column widths:** dragging the gap between two columns resizes them; the middle column takes what is left. Double-click a gap to reset it. Focused, a gap moves 20 px with the arrow keys. Widths are kept per browser. Below 1100 px wide the layout stacks and the gaps do not drag.
-- The board reloads from disk every 10 seconds, so changes Claude makes through the CLI show without a refresh.
+- **Live updates.** A change on disk shows on the page within about a second, with no refresh: a task, epic or doc changed through the CLI, by Claude editing a file, by git, or in another browser tab. The server watches each project's docs folder, the docs folder of each epic worktree, and the app's data folder, and tells every open page that something changed; the page then reloads what it shows.
+- A reload waits while Tabu is typing in a text field, dragging, or has a menu or a new-item form open, and runs as soon as that ends. A focused dropdown or checkbox does not hold it.
+- When the server stops and comes back, the page reconnects by itself and reloads once.
 
 ## Docs
 
@@ -166,3 +168,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20: contacts are stored in SQLite (`marketing.db`, built-in `node:sqlite`); the sheet's BB1 and BB2 columns are not imported (section Marketing).
 - 2026-11-20, EPIC-012: game profiles all live in the Polyspice Marketing project, not in each game's project (section Marketing).
 - 2026-11-20, EPIC-015: campaign epics also live in the Polyspice Marketing project; EPIC-013 to EPIC-015 planned, EPIC-016 parked (section Marketing).
+- 2026-11-21: live updates replace the 10-second reload: the server watches the docs and data folders and tells the page; only typing, dragging or an open menu or form holds a reload (section Tasks).
