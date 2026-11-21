@@ -17,6 +17,15 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit sweep                                      archive what is past its deadline or retention
   doit morning                                    sweep, then write the morning report to the activity log and print it
 
+  doit contacts [--type t] [--fits <game>] [--status active|dormant|archived] [--due] [--reach C+] [--json]   one line per contact, due first
+  doit contacts import <file>                     import the New Streamers CSV; re-import updates by email or YouTube link
+  doit contact show <id> [--json]
+  doit contact add <name> --type a,b [--email] [--reach A-E] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]
+  doit contact set <id> key=value ...             keys: name types topic email reach notes status next channels
+  doit fit <id> <game> <reason>                   the contact fits a game (a profile's file name)
+  doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]
+  doit profiles                                   the game profiles contacts can fit
+
 States: todo, progress, backlog, done, archived. "open" = todo + progress + backlog. Archived is never listed unless asked.`;
 
 import { ContactsCli } from "./contactsCli.js";
@@ -47,7 +56,7 @@ export class Cli {
 
   print(s) { this.out.write(s + "\n"); }
 
-  contact(name, pos, flags) {
+  delegate(name, pos, flags) {
     if (!this.contactCommands) throw new Error("Contacts are not available here");
     this.contactCommands[name](pos, flags);
   }
@@ -141,7 +150,11 @@ const COMMANDS = {
 
   morning() { for (const line of this.claude.morning()) this.print(line); },
 
-  contacts(pos, flags) { this.contact("contacts", pos, flags); },
+  contacts(pos, flags) { this.delegate("contacts", pos, flags); },
+  contact(pos, flags) { this.delegate("contact", pos, flags); },
+  fit(pos, flags) { this.delegate("fit", pos, flags); },
+  touch(pos, flags) { this.delegate("touch", pos, flags); },
+  profiles(pos, flags) { this.delegate("profiles", pos, flags); },
 };
 
 function row(t) {
@@ -165,7 +178,7 @@ function parse(argv) {
     const a = argv[i];
     if (a.startsWith("--")) {
       const key = a.slice(2);
-      if (key === "json") flags.json = true;
+      if (key === "json" || key === "due") flags[key] = true;
       else flags[key] = argv[++i];
     } else pos.push(a);
   }

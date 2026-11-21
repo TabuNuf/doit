@@ -137,6 +137,7 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - `projects`, `project add <name> <folder> [--docs Docs]`
 - `list [--project <id>] [--epic EPIC-<nnn>] [--state open|active|backlog|done|archived] [--owner ai|human]`: default open tasks of every project, never archived ones unless asked.
 - `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `epic close <project> <EPIC-nnn>` (archives the epic's task files, sets it Done, writes its `Closed:` date and moves it to Completed/), `sweep`, `morning` (sweeps and writes the morning report to the activity log, section Claude view).
+- Contacts (section Marketing): `contacts [--type t] [--fits <game>] [--status s] [--due] [--reach C+] [--json]` (one line per contact: id, name, types, reach, status, next contact with `due` marked, the games it fits; due first, then largest reach), `contacts import <file>` (the New Streamers CSV; a re-import updates by email or YouTube link), `contact show <id> [--json]`, `contact add <name> --type a,b [--email] [--reach] [--topic] [--notes] [--status] [--next] [--channels kind=url,...]`, `contact set <id> key=value ...`, `fit <id> <game> <reason>`, `touch <id> mail|reply|video [--game] [--date]`, `profiles`. A refused value prints the message and exits 1.
 
 ## Running it
 
@@ -171,3 +172,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20, EPIC-015: campaign epics also live in the Polyspice Marketing project; EPIC-013 to EPIC-015 planned, EPIC-016 parked (section Marketing).
 - 2026-11-21: live updates replace the 10-second reload: the server watches the docs and data folders and tells the page; only typing, dragging or an open menu or form holds a reload (section Tasks).
 - 2026-11-21, EPIC-012: contacts are built in `marketing.db` (`node:sqlite`, Node 24), with game profiles read from the Polyspice Marketing project; Data names the file and its personal data.
+- 2026-11-21, EPIC-012: the CLI gets the contact commands (`contacts`, `contacts import`, `contact show|add|set`, `fit`, `touch`, `profiles`).

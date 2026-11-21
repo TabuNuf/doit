@@ -72,7 +72,7 @@ classDiagram
   class DocsLibrary { +tree(project) +read(project, path) +save(project, path, text) +linked(project, path) }
   class DocsFiles { +tree(id) +read(id, path) +write(id, path, text) +lastChange(id, path) }
   class ContactBook { +list(filter) +get(id) +add(input) +update(id, changes) +setFit(id, game, reason) +addTouch(id, touch) +profiles() +import(rows) }
-  class ContactsCli { +contacts() }
+  class ContactsCli { +contacts() +contact() +fit() +touch() +profiles() }
   class SqliteContacts { +all() +get(id) +insert(c) +update(id, c) +setFit() +addTouch() }
   class ProfileShelf { +list() +has(game) +create(game, name) }
   class TaskMover { +plan(task, tasks, placement) changes }

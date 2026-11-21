@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { makeCli, makeContacts } from "../src/root.js";
-import { setup } from "./helpers.js";
+import { setup, addProfiles } from "./helpers.js";
 
 const FIXTURE = path.join(import.meta.dirname, "fixtures", "new-streamers.csv");
 
@@ -33,4 +33,54 @@ test("a command that does not use contacts leaves no marketing.db", t => {
   const s = setup(); t.after(s.cleanup);
   assert.equal(cliFor(s)("sweep").code, 0);
   assert.ok(!fs.existsSync(path.join(s.home, "marketing.db")));
+});
+
+test("contact add, set, show, fit, touch and the contacts list", t => {
+  const s = setup(); t.after(s.cleanup);
+  addProfiles(s);
+  const run = cliFor(s);
+  assert.equal(run("contacts").out, "No contacts.\n");
+  assert.equal(run("contact", "add", "Ada", "Plays", "--type", "influencer,blogger", "--reach", "b", "--next", "2026-11-01", "--channels", "youtube=https://youtube.com/@ada,twitch=https://twitch.tv/ada", "--email", "ada@example.test").out, "Added contact 1: Ada Plays\n");
+  run("contact", "add", "Bit", "Blog", "--type", "press", "--reach", "D");
+  assert.equal(run("contact", "set", "2", "status=dormant", "next=2026-12-01", "notes=Slow to reply").out, "2  Bit Blog  press  D  dormant  next 2026-12-01\n");
+  assert.equal(run("fit", "1", "bunny-bunker", "plays", "cozy", "co-op").out, "Ada Plays fits bunny-bunker\n");
+  assert.equal(run("touch", "1", "mail", "--game", "bunny-bunker", "--date", "2026-11-10").out, "Ada Plays: mail 2026-11-10 bunny-bunker\n");
+  assert.match(run("touch", "1", "reply").out, /Ada Plays: reply 2026-11-20/);
+
+  const shown = run("contact", "show", "1").out;
+  assert.match(shown, /^1  Ada Plays  influencer\+blogger  B  active  due 2026-11-01  fits bunny-bunker\n/);
+  assert.match(shown, /youtube https:\/\/youtube.com\/@ada\ntwitch https:\/\/twitch.tv\/ada\n/);
+  assert.match(shown, /fits bunny-bunker: plays cozy co-op\n2026-11-20 reply\n2026-11-10 mail bunny-bunker/);
+  assert.equal(JSON.parse(run("contact", "show", "2", "--json").out).notes, "Slow to reply");
+
+  assert.equal(run("contacts", "--fits", "bunny-bunker").out, "1  Ada Plays  influencer+blogger  B  active  due 2026-11-01  fits bunny-bunker\n");
+  assert.equal(run("contacts", "--due").out.trim().split("\n").length, 1);
+  assert.equal(run("contacts", "--type", "press", "--status", "dormant").out.trim().split("\n").length, 1);
+  assert.equal(run("contacts", "--reach", "C+").out.trim().split("\n").length, 1);
+  assert.deepEqual(JSON.parse(run("contacts", "--json").out).map(c => c.name), ["Ada Plays", "Bit Blog"]);
+  assert.match(run("profiles").out, /^bunny-bunker  Bunny Bunker  demo  2027-03-01  co-op, cozy\ngood-box  Good Box  released  puzzle\n$/);
+});
+
+test("refused values and missing arguments exit 1 with a message", t => {
+  const s = setup(); t.after(s.cleanup);
+  addProfiles(s);
+  const run = cliFor(s);
+  run("contact", "add", "Ada", "--type", "influencer");
+  for (const [args, re] of [
+    [["contact", "add", "X", "--type", "alien"], /Unknown type/],
+    [["contact", "add", "X"], /at least one type/],
+    [["contact", "add", "--type", "press"], /Usage: doit contact add/],
+    [["contact", "set", "1", "reach=Z"], /Unknown reach band/],
+    [["contact", "set", "1", "colour=red"], /Unknown field/],
+    [["contact", "show", "9"], /No contact 9/],
+    [["fit", "1", "no-game", "why"], /No profile/],
+    [["fit", "1", "good-box"], /needs a reason/],
+    [["touch", "1", "call"], /Unknown touch kind/],
+    [["contact", "frob"], /Usage/],
+  ]) {
+    const r = run(...args);
+    assert.equal(r.code, 1, args.join(" "));
+    assert.match(r.err, re, args.join(" "));
+  }
+  assert.match(run("help").out, /doit contacts \[--type/);
 });
