@@ -7,6 +7,7 @@ import { epicViewPane } from "./epicView.js";
 import { epicBtn, epicSections } from "./epicList.js";
 import { docsPanes } from "./docsView.js";
 import { claudePanes } from "./claudeView.js";
+import { marketingPanes } from "./marketingView.js";
 import { setLayout } from "./resize.js";
 
 /* ---------- Render ---------- */
@@ -18,6 +19,7 @@ export function render() {
   setLayout(S.view, S.view === "docs" && S.docs.linkedClosed);
   if (S.view === "docs") { $("#panes").innerHTML = docsPanes(fontCtl()); return; }
   if (S.view === "claude") { $("#panes").innerHTML = claudePanes(); return; }
+  if (S.view === "marketing") { $("#panes").innerHTML = marketingPanes(); return; }
   $("#panes").innerHTML = epicPane() + listPane() + detailPane();
   bindDrag();
   bindEpicDrag();
@@ -26,7 +28,7 @@ export function render() {
 function renderTop() {
   const due = dueSoonCount();
   const badge = due ? `<span class="badge" title="Your tasks due within 7 days">${due}</span>` : "";
-  $("#views").innerHTML = [["board", "Board", ""], ["docs", "Docs", ""], ["claude", "Claude", badge]]
+  $("#views").innerHTML = [["board", "Board", ""], ["docs", "Docs", ""], ["claude", "Claude", badge], ["marketing", "Marketing", ""]]
     .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${due} of your tasks due within 7 days"` : ""}>${l}${b}</button>`).join("");
   $("#projects").innerHTML = projectBar();
   $("#modal").innerHTML = S.newProj ? `<form class="form" id="np" aria-label="New project">

@@ -3,13 +3,15 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { contactRoutes } from "./contactRoutes.js";
 
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png" };
 
 export class HttpServer {
   /** `commit` is the git commit the process started from (null when unknown); GET /api/version reports it.
-   *  `changes` is a port, `subscribe(listener) -> unsubscribe` (and optionally `close()`), that fires when files change. */
-  constructor(board, webDir, commit = null, docs = null, claude = null, changes = null) {
+   *  `changes` is a port, `subscribe(listener) -> unsubscribe` (and optionally `close()`), that fires when files change.
+   *  `contacts` is the ContactBook behind `/api/contacts` and `/api/profiles`. */
+  constructor(board, webDir, commit = null, docs = null, claude = null, changes = null, contacts = null) {
     this.changes = changes;
     this.streams = new Map();
     this.board = board;
@@ -36,6 +38,7 @@ export class HttpServer {
       ["GET", /^\/api\/docs\/linked$/, q => this.docs.linked(q.get("project"), q.get("path"))],
       ["GET", /^\/api\/claude$/, q => this.claude.panes(q.get("project") || "all")],
       ["PUT", /^\/api\/settings$/, (q, b) => { this.board.setKeepDays(b.keepCompletedDays); return this.board.settings(); }],
+      ...(contacts ? contactRoutes(contacts) : []),
     ];
   }
 

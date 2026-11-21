@@ -7,7 +7,7 @@ import path from "node:path";
 const ROOT = path.join(import.meta.dirname, "..");
 const ALLOWED = {
   domain: { tiers: ["domain"], node: [] },
-  store: { tiers: ["domain", "store"], node: ["node:fs", "node:path", "node:os", "node:child_process"] },
+  store: { tiers: ["domain", "store"], node: ["node:fs", "node:path", "node:os", "node:child_process", "node:sqlite"] },
   cli: { tiers: ["domain", "cli"], node: [] },
   server: { tiers: ["domain", "server"], node: ["node:http", "node:fs", "node:path"] },
 };
@@ -49,4 +49,10 @@ test("no module imports a tier it may not", () => {
 test("the guard catches a forbidden import", () => {
   const bad = [["src/cli/cli.js", 'import { FileSource } from "../store/source.js";\n'], ["src/domain/x.js", 'import fs from "node:fs";\n']];
   assert.equal(violations(bad).length, 2);
+});
+
+test("node:sqlite is allowed in the store only", () => {
+  const sql = 'import { DatabaseSync } from "node:sqlite";\n';
+  assert.deepEqual(violations([["src/store/x.js", sql]]), []);
+  assert.equal(violations([["src/domain/x.js", sql], ["src/cli/x.js", sql], ["src/server/x.js", sql]]).length, 3);
 });

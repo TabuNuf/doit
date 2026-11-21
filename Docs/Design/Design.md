@@ -6,7 +6,7 @@ What the app is now. The source of truth for what gets built. When code and this
 
 ## Purpose
 
-One local board where Tabu and Claude share every project's epics, tasks and bugs, so Jira and Confluence can be cancelled. Claude reaches it through a CLI that returns only the slice it asks for. Left out for now: the Confluence import, a later epic. The Marketing view is designed (section Marketing) but not built. The wireframe for all of them is `Docs/Design/wireframe.html`.
+One local board where Tabu and Claude share every project's epics, tasks and bugs, so Jira and Confluence can be cancelled. Claude reaches it through a CLI that returns only the slice it asks for. Left out for now: the Confluence import, a later epic. The Marketing view (section Marketing) has game profiles and contacts; mail, festivals and campaigns are not built yet. The wireframe for all of them is `Docs/Design/wireframe.html`.
 
 ## Users and their jobs
 
@@ -89,17 +89,17 @@ One page shows what Claude is working on, what it waits on Tabu for, and what ch
 
 ## Marketing
 
-Not built yet. Doit becomes the marketing tool for every game and for Hidden by Design: who to contact, about which game, and which festivals to enter. The problem it solves is that outreach does not happen without a system, and time for it is short, so Doit picks the few relevant contacts and events and hides the rest.
+Game profiles and contacts are built (EPIC-012); mail, festivals and campaigns are not. Doit becomes the marketing tool for every game and for Hidden by Design: who to contact, about which game, and which festivals to enter. The problem it solves is that outreach does not happen without a system, and time for it is short, so Doit picks the few relevant contacts and events and hides the rest.
 
 When sitting down for outreach the order is festivals first, then people, then campaigns. The build order differs, because everything matches against the game profiles:
 
 1. **Game profiles.** One per project that is marketed (Bunny Bunker, Rapid Rocket Racing, Good Box and the others, Hidden by Design): genre tags, platforms, stage (in development, demo, released), release date, and what it needs now (wishlists, demo players, press). Kept as `Docs/Profiles/<game>.md` in the Polyspice Marketing project, all in one place, so a game needs no Doit project of its own; edited in the Docs view and tracked by that project's git.
-2. **Contacts.** A contact is a person, outlet or event. It has one or more types: influencer, blogger, press, publisher/distribution, tester, festival, conference (with a topic tag: game dev, podcast, design). Its fields: name, channels (YouTube, Twitch, Bluesky, X, Instagram, Facebook, Discord, Steam, website, Linktree), email, reach band (the sheet's A to E, from Tiny over 50 to Huge over 10 000), notes, status (active, dormant, archived) and the games it fits.
+2. **Contacts.** A contact is a person, outlet or event. It has one or more types: influencer, blogger, press, publisher/distribution, tester, festival, conference (with a topic tag: game dev, podcast, design). Its fields: name, channels (YouTube, Twitch, Bluesky, X, Instagram, Facebook, Discord, Steam, website, Linktree), email, reach (a follower count: the contact's largest audience on one channel, as last counted; Claude keeps it current while researching), notes, status (active, dormant, archived) and the games it fits.
    - **Fit** links a contact to a game profile with a one-line reason. Claude decides fit, by researching the contact (what they play, how recently they post, their size) in batches of 20 to 30, largest reach first. Tabu corrects it.
    - **Touches** replace the sheet's Replied and Posted Video columns: a log per contact of mails sent, replies and videos posted, each dated and tied to a game.
    - **Next contact** is a date on the contact; when it comes, the contact shows as due, for the games it fits.
    - First import: the Google Sheet `Marketing Contact List`, tab New Streamers (227 contacts, mostly YouTube). Its BB1 and BB2 columns were old campaigns and are not imported.
-   - **Storage:** SQLite, one file `marketing.db` in the app's data folder, through Node's built-in `node:sqlite` (Node 22 or newer, so no dependency). Contacts are personal data shared across projects and are queried more than read, so they are not files in a project's git. Tables: contacts, channels, fit (contact, game, reason), touches (contact, game, date, kind), later mail. Game profiles stay Markdown and are referred to by project id. The page and the CLI are the only ways in; Claude asks the CLI for a slice, as with tasks.
+   - **Storage:** SQLite, one file `marketing.db` in the app's data folder, through Node's built-in `node:sqlite` (Node 24, so no dependency). Contacts are personal data shared across projects and are queried more than read, so they are not files in a project's git. Tables: contacts, channels, fit (contact, game, reason), touches (contact, game, date, kind), later mail. Game profiles stay Markdown and are referred to by project id. The page and the CLI are the only ways in; Claude asks the CLI for a slice, as with tasks.
 3. **Mail.** Doit uses Tabu's Google Workspace account over IMAP and SMTP, with an app password kept in the macOS Keychain.
    - Doit only reads one label, **Marketing**. Mail from an address on the contact list is moved there from Inbox and logged as a touch; other mail is never opened.
    - Sending: one template per pitch (game, hook, trailer, Steam link, the ask), plus one or two personal lines per contact that Claude drafts from the contact's research. Claude only writes drafts; Tabu approves each mail before Doit sends it. A copy lands in Marketing.
@@ -137,6 +137,7 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - `projects`, `project add <name> <folder> [--docs Docs]`
 - `list [--project <id>] [--epic EPIC-<nnn>] [--state open|active|backlog|done|archived] [--owner ai|human]`: default open tasks of every project, never archived ones unless asked.
 - `show <project>/<T-id>`, `add <project> <EPIC-nnn> <title> [--owner] [--type] [--done-when] [--deadline] [--state]`, `set <project>/<T-id> key=value ...`, `comment <project>/<T-id> <text> [--as human]`, `epic add <project> <name>`, `epic close <project> <EPIC-nnn>` (archives the epic's task files, sets it Done, writes its `Closed:` date and moves it to Completed/), `sweep`, `morning` (sweeps and writes the morning report to the activity log, section Claude view).
+- Contacts (section Marketing): `contacts [--type t] [--fits <game>] [--status s] [--due] [--reach <n>] [--json]` (one line per contact: id, name, types, reach, status, next contact with `due` marked, the games it fits; due first, then largest reach), `--reach <n>` keeps contacts with a reach of at least n; `contacts import <file>` (the New Streamers CSV, where a follower count is kept and an A to E band letter is not a count, so it goes into notes as `Sheet reach: C` and reach stays empty; a re-import updates by email or YouTube link), `contact show <id> [--json]`, `contact add <name> --type a,b [--email] [--reach] [--topic] [--notes] [--status] [--next] [--channels kind=url,...]`, `contact set <id> key=value ...`, `fit <id> <game> <reason>`, `touch <id> mail|reply|video [--game] [--date]`, `profiles`. A refused value prints the message and exits 1.
 
 ## Running it
 
@@ -147,6 +148,7 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - The project list and settings: `~/Library/Application Support/Doit/settings.json` (`DOIT_HOME` overrides it). Kept until deleted.
 - The activity log: `activity.log` beside the settings, 30 days.
 - Tasks and epics: Markdown in each project's docs folder, tracked by that project's git. Nothing leaves the machine. No personal data beyond names Tabu types.
+- Contacts: `marketing.db` beside the settings (SQLite): names, emails, channel links and notes of marketing contacts. Personal data, kept only in the data folder and in no project's git.
 
 ## Changelog
 
@@ -169,3 +171,6 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-20, EPIC-012: game profiles all live in the Polyspice Marketing project, not in each game's project (section Marketing).
 - 2026-11-20, EPIC-015: campaign epics also live in the Polyspice Marketing project; EPIC-013 to EPIC-015 planned, EPIC-016 parked (section Marketing).
 - 2026-11-21: live updates replace the 10-second reload: the server watches the docs and data folders and tells the page; only typing, dragging or an open menu or form holds a reload (section Tasks).
+- 2026-11-21, EPIC-012: contacts are built in `marketing.db` (`node:sqlite`, Node 24), with game profiles read from the Polyspice Marketing project; Data names the file and its personal data.
+- 2026-11-21, EPIC-012: the CLI gets the contact commands (`contacts`, `contacts import`, `contact show|add|set`, `fit`, `touch`, `profiles`).
+- 2026-11-21, EPIC-012: reach is a follower count instead of the sheet's A to E band; Claude collects the counts while researching, which makes a band's manual estimate unnecessary.

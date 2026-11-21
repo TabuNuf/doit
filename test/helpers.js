@@ -65,3 +65,14 @@ export function setup(now = "2026-11-20T09:00:00") {
   const exists = rel => fs.existsSync(path.join(game, "GameDocs", rel));
   return { root, home, game, board, clock, read, exists, cleanup: () => fs.rmSync(root, { recursive: true, force: true }) };
 }
+
+/** Registers a marketing project beside the test data with two game profiles (bunny-bunker, good-box); returns its docs folder. */
+export function addProfiles(s) {
+  const proj = path.join(s.root, "marketing");
+  const dir = path.join(proj, "Docs", "Profiles");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "bunny-bunker.md"), "# Bunny Bunker\n\nGenres: co-op, cozy\nPlatforms: Steam\nStage: demo\nRelease: 2027-03-01\nNeeds: wishlists\n");
+  fs.writeFileSync(path.join(dir, "good-box.md"), "# Good Box\n\nGenres: puzzle\nStage: released\n");
+  s.board.addProject({ name: "Polyspice Marketing", path: proj, docs: "Docs" });
+  return path.join(proj, "Docs");
+}

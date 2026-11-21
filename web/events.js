@@ -8,9 +8,10 @@ import { openEpic, closeEpic } from "./epicView.js";
 import { toggleFold } from "./epicList.js";
 import { docsClick, docsInput, refreshDocs } from "./docsView.js";
 import { claudeClick, refreshClaude } from "./claudeView.js";
+import { marketingClick, marketingChange, marketingFocusOut, marketingSubmit, refreshMarketing } from "./marketingView.js";
 
 /** Loads what the current view shows beyond the board data. */
-const refreshView = () => S.view === "docs" ? refreshDocs() : S.view === "claude" ? refreshClaude() : undefined;
+const refreshView = () => S.view === "docs" ? refreshDocs() : S.view === "claude" ? refreshClaude() : S.view === "marketing" ? refreshMarketing() : undefined;
 
 /* ---------- Events ---------- */
 
@@ -21,7 +22,7 @@ document.addEventListener("click", ev => {
   const d = b.dataset;
   const sel = () => task(S.sel);
   if (d.view) { S.view = d.view; render(); return refreshView(); }
-  if (docsClick(d) || claudeClick(d)) return;
+  if (docsClick(d) || claudeClick(d) || marketingClick(d)) return;
   if ("projmenu" in d) { S.projOpen = !S.projOpen; return render(); }
   if (d.star) { const p = S.data.projects.find(x => x.id === d.star); return act(() => api("PATCH", `/api/projects/${encodeURIComponent(d.star)}`, { starred: !p.starred })); }
   if ("newproj" in d) { S.projOpen = false; S.newProj = true; S.npErr = ""; render(); $("#np-name").focus(); return; }
@@ -59,6 +60,7 @@ document.addEventListener("click", ev => {
 document.addEventListener("submit", ev => {
   ev.preventDefault();
   const f = ev.target;
+  if (marketingSubmit(f)) return;
   if (f.id === "np") {
     const body = { name: $("#np-name").value, path: $("#np-path").value, docs: $("#np-docs").value || "Docs" };
     api("POST", "/api/projects", body)
@@ -79,7 +81,7 @@ document.addEventListener("keydown", ev => {
   const r = ev.target.closest && ev.target.closest(".row");
   if (r && (ev.key === "Enter" || ev.key === " ") && ev.target === r) { ev.preventDefault(); S.sel = r.dataset.id; render(); }
   if (r && ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && r.draggable) { ev.preventDefault(); nudge(r.dataset.id, ev.key === "ArrowUp" ? -1 : 1); }
-  if (ev.key === "Escape") { S.fOpen = false; S.projOpen = false; S.newProj = false; S.newTask = false; S.newEpic = null; render(); }
+  if (ev.key === "Escape") { S.fOpen = false; S.projOpen = false; S.newProj = false; S.newTask = false; S.newEpic = null; S.mk.touchOpen = false; render(); }
 });
 
 document.addEventListener("input", ev => {
@@ -92,6 +94,7 @@ document.addEventListener("input", ev => {
 });
 
 document.addEventListener("change", ev => {
+  if (marketingChange(ev)) return;
   const id = ev.target.id;
   if (id === "keep") return act(() => api("PUT", "/api/settings", { keepCompletedDays: Number(ev.target.value) }));
   if (id === "f-task" || id === "f-bug") { S.f[id.slice(2)] = ev.target.checked; return render(); }
@@ -109,6 +112,7 @@ document.addEventListener("change", ev => {
 
 // Description saves when the field loses focus.
 document.addEventListener("focusout", ev => {
+  if (marketingFocusOut(ev)) return;
   if (ev.target.id !== "desc") return;
   const t = task(S.sel);
   if (!t || ev.target.value === t.description) return;

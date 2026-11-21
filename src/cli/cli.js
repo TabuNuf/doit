@@ -17,12 +17,25 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit sweep                                      archive what is past its deadline or retention
   doit morning                                    sweep, then write the morning report to the activity log and print it
 
+  doit contacts [--type t] [--fits <game>] [--status active|dormant|archived] [--due] [--reach <n>] [--json]   one line per contact, due first; --reach n = at least n followers
+  doit contacts import <file>                     import the New Streamers CSV; re-import updates by email or YouTube link
+  doit contact show <id> [--json]
+  doit contact add <name> --type a,b [--email] [--reach <followers>] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url,kind=url]
+  doit contact set <id> key=value ...             keys: name types topic email reach (a number, e.g. reach=12400) notes status next channels
+  doit fit <id> <game> <reason>                   the contact fits a game (a profile's file name)
+  doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]
+  doit profiles                                   the game profiles contacts can fit
+
 States: todo, progress, backlog, done, archived. "open" = todo + progress + backlog. Archived is never listed unless asked.`;
 
+import { ContactsCli } from "./contactsCli.js";
+
 export class Cli {
-  constructor(board, out, err, claude = null) {
+  /** `contacts` is the ContactBook and `readText(path)` reads a file; the contact commands need both. */
+  constructor(board, out, err, claude = null, contacts = null, readText = null) {
     this.board = board;
     this.claude = claude;
+    this.contactCommands = contacts && new ContactsCli(contacts, s => this.print(s), readText);
     this.out = out;
     this.err = err;
   }
@@ -42,6 +55,11 @@ export class Cli {
   }
 
   print(s) { this.out.write(s + "\n"); }
+
+  delegate(name, pos, flags) {
+    if (!this.contactCommands) throw new Error("Contacts are not available here");
+    this.contactCommands[name](pos, flags);
+  }
 }
 
 const COMMANDS = {
@@ -131,6 +149,12 @@ const COMMANDS = {
   sweep() { this.print(`Archived ${this.board.sweep()}`); },
 
   morning() { for (const line of this.claude.morning()) this.print(line); },
+
+  contacts(pos, flags) { this.delegate("contacts", pos, flags); },
+  contact(pos, flags) { this.delegate("contact", pos, flags); },
+  fit(pos, flags) { this.delegate("fit", pos, flags); },
+  touch(pos, flags) { this.delegate("touch", pos, flags); },
+  profiles(pos, flags) { this.delegate("profiles", pos, flags); },
 };
 
 function row(t) {
@@ -154,7 +178,7 @@ function parse(argv) {
     const a = argv[i];
     if (a.startsWith("--")) {
       const key = a.slice(2);
-      if (key === "json") flags.json = true;
+      if (key === "json" || key === "due") flags[key] = true;
       else flags[key] = argv[++i];
     } else pos.push(a);
   }

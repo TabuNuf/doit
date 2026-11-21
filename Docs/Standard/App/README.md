@@ -43,6 +43,8 @@ Why: three Core rules read literally would fight most app frameworks. Decided by
   Why: a select keeps focus after a choice until the next click elsewhere, so holding on any focused control held every reload after a filter change.
 - **A page that reloads on its own never redraws an open edit box.** The draft lives in page state on every keystroke, and the reload skips the view while it is editing.
   Why: a reload that rebuilds the view throws away what was typed since the last save, and nothing fails in a test.
+- **Data that is personal, shared across projects or queried by filters lives in one SQLite file in the app's data folder, through the runtime's built-in driver (`node:sqlite`), not in a project's git.** Only the store tier may import it (the boundary test's table says so), the schema carries a version (`PRAGMA user_version`) from the first table, and the file is opened on first use, so a command that never touches it creates nothing.
+  Why: contact lists are personal data that must stay out of every repo and are read as filtered slices; the built-in driver keeps the app free of packages, and a version from day one makes the first migration a step instead of a guess.
 - **Performance tests sit in their own folder with their own script** (`test/performance/`, `npm run test:performance`), so the Development run never includes them.
   Why: a measurement with a bar (a 500-file tree read under 200 ms) belongs to the Performance category, which runs only when a task changes what it measures.
 
@@ -53,6 +55,9 @@ Why: three Core rules read literally would fight most app frameworks. Decided by
 
 - **A drop target that opens on hover opens only after the dragged item rests on it (about half a second), and a reload waits during any drag.**
   Why: a folded header that opened as a drag passed over it pushed the next target down, so the drop landed on nothing; a reload mid-drag redraws the page and ends the drag.
+
+- **A scripted check of a page sets a select by assigning its value and dispatching a bubbling `change` event.** A browser tool's form fill can set the value without the event, and the page then looks as if its filter does nothing.
+  Why: an epic's reach filter looked broken in the in-app check; the same choice with a dispatched `change` filtered correctly.
 
 ## What the first app project decides
 
@@ -71,6 +76,8 @@ From the first app project. Items 3 and 5 above are still open.
 
 - **Boundaries (item 1):** one folder per tier under `src/`, and a Development test that reads every `import` and fails on a tier the architecture's table forbids, `node:` built-ins included (a pure domain may import none).
   Why: a test needs no linter set-up, runs in milliseconds, and its own test proves it catches a forbidden import.
+  The test sees tiers, not facades: an interface that imports a domain helper past its facade passes it, so the close audit reads interface imports by eye.
+  Why: a CLI called an import mapper directly instead of the facade's import, and only the audit found it.
 - **Test categories (item 2):** the runtime's own test runner, no packages. Development is the unit and API tests; Audit adds a folder of whole-flow tests that start the real entry points (the CLI and the server) as processes.
   Why: with no dependencies the Development run took under half a second, and the whole-flow test is the one that proves two entry points share the same files.
 - **Build agent (item 4):** `batch-builder` with Read, Edit, Write, Bash, Grep and Glob only, on the cheaper model, told the test command and never to start the server in the foreground.

@@ -8,7 +8,7 @@ export const FUNNEL = '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z
 export const S = {
   project: "all", epic: null, tab: "open", q: "", owner: "all",
   f: { task: true, bug: true, due: "any" }, fOpen: false, projOpen: false,
-  view: "board", claude: null, docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
+  view: "board", claude: null, mk: { contacts: null, profiles: [], f: { game: "", type: "", reach: "", status: "" }, sel: null, detail: null, touchOpen: false }, docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
   sel: null, font: 15, newProj: false, newTask: false, newEpic: null, epicView: null, epicFold: {}, data: null, npErr: "",
 };
 try { S.font = Number(localStorage.getItem("doit.font")) || 15; S.project = localStorage.getItem("doit.project") || "all"; S.docs.linkedClosed = localStorage.getItem("doit.docs.linked") === "closed"; } catch { /* storage off */ }
@@ -23,6 +23,12 @@ export const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;"
 export const keyOf = t => `${t.project}/${t.id}`;
 export const today = () => new Date().toISOString().slice(0, 10);
 export const daysLeft = d => Math.round((Date.parse(d) - Date.parse(today())) / 864e5);
+/** A follower count in few characters: 950, 12k, 1.3M; "" when empty. */
+export const compactCount = n => {
+  if (n === null || n === undefined) return "";
+  const f = (v, u) => (v >= 10 ? String(Math.round(v)) : String(Math.round(v * 10) / 10)) + u;
+  return n >= 1e6 ? f(n / 1e6, "M") : n >= 1e3 ? f(n / 1e3, "k") : String(n);
+};
 export const fmtDate = d => new Date(d.slice(0, 10) + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 export const tabOf = st => (st === "done" || st === "archived") ? st : "open";
 export const secOf = st => st === "backlog" ? "backlog" : "active";
@@ -44,7 +50,7 @@ export function reloadHeld(state, active, dragging = false) {
   const tag = active && active.tagName;
   const typing = tag === "TEXTAREA" || (tag === "INPUT" && !NON_TEXT.includes(active.type));
   return Boolean(typing || dragging || state.newProj || state.newTask || state.newEpic !== null || state.fOpen || state.projOpen
-    || (state.view === "docs" && state.docs.editing));
+    || (state.view === "docs" && state.docs.editing) || (state.view === "marketing" && state.mk.touchOpen));
 }
 
 export async function load() {
