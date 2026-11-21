@@ -38,6 +38,9 @@ Design: Design.md, section Marketing (step 3)
 
 Decisions and deviations, newest first.
 
+- T-013.3: `SmtpSender.send(account, {from, to, text})` takes the envelope addresses and `composeMail`'s text; it also takes a `timeoutMs` option (default 30 s) so a test of the timeout is fast. QUIT is best effort after the mail is accepted (waits at most 1 s) so it cannot turn a sent mail into a failure.
+- T-013.3: `MailAccount.read()` is async (the Keychain read is); `run(cmd, args)` resolves to stdout or null on failure.
+
 - T-013.2: `SqliteContacts.close()` stays and closes the shared `MarketingDb` (older tests and the profiles test call it); the root builds one `MarketingDb` per `makeContacts` call, and mail's `makeMailroom` must reuse the same one.
 - T-013.2: a draft's `contact` is the contact id and its `id` is the table's integer id; `created` and `sentAt` are local `YYYY-MM-DDTHH:MM:SS` strings so `sentOn(day)` counts by the local day. `SqliteDrafts.all()` is newest first.
 - T-013.2: `editDraft` also takes `personal` (stored as text only; the Mailroom decides whether to refill). Approving is from `draft` only.
