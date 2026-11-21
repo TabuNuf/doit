@@ -16,6 +16,7 @@ const HELP = `doit: the task board, from the command line. Every command archive
   doit keep <days>                                days a completed task stays before it is archived
   doit sweep                                      archive what is past its deadline or retention
   doit morning                                    sweep, then write the morning report to the activity log and print it
+  doit log <name> <text>                          one line in the activity log under <name> (lower case, like festivals), for a scheduled run's summary
 
   doit contacts [--type t] [--fits <game>] [--status active|dormant|archived] [--due] [--reach <n>] [--json]   one line per contact, due first; --reach n = at least n followers
   doit contacts import <file>                     import the New Streamers CSV; re-import updates by email or YouTube link
@@ -178,6 +179,12 @@ const COMMANDS = {
   },
 
   sweep() { this.print(`Archived ${this.board.sweep()}`); },
+
+  log(pos) {
+    const topic = need(pos[0], "doit log <name> <text>");
+    this.claude.note(topic, need(pos.slice(1).join(" "), "doit log <name> <text>"));
+    this.print(`Logged under ${topic}`);
+  },
 
   morning() { for (const line of this.claude.morning()) this.print(line); },
 
