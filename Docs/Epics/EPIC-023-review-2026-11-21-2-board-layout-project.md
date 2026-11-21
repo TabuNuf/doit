@@ -16,12 +16,23 @@ Source: review video Bandicam_20261121_151540.mp4, narrated by Tabu; times in ea
 - [x] T-023.7 Contacts carry a special relationship: a mark and a one-line reason, set in the contact pane and with doit contact set special=<text>, shown in the list row and pane (done when: domain, CLI and web tests set a reason on Special Geek 40, see the mark in the list row with the reason as tooltip and in the pane, and clear it; the field is in marketing.db)
 - [x] T-023.8 Campaigns for several projects: + Campaign and doit campaign add take more than one project; the Game: line lists them; Add contacts picks contacts that fit any of them (done when: domain, CLI and web tests create a campaign for Bunny Bunker and Box Trainer, see both on its Game: line and in the Campaigns list for either pick, and Add contacts takes contacts fitting either; a ticked reach-out logs one touch per game)
 - [x] T-023.9 Marketing profiles drafted from docs: Claude reads each marketed project's design docs and writes its Marketing/Profile.md (genres, platforms, stage, release date, needs now) for Tabu to correct (done when: every marketed project with a kind has a Profile.md whose fields name the doc they came from in a comment; the Marketing pane shows a profile for Box Trainer; Tabu has corrected them)
+- [x] T-023.10 Close audit fix: the Marketing empty states name the gear, not the removed Settings button (done when: no message in web/ says 'in Settings'; npm test passes)
 
 ## Test plan
 
 - Batch A: T-023.1 to .5 (design, left pane, docs tree, gear settings, not marketed): development
 - Batch B: T-023.6 to .8 (contact columns and sort, special relationship, multi-project campaigns): development, plus a migration run on a copy of marketing.db
 - Batch C: T-023.9 (profiles from docs, after .5): a hand run, then the Audit tests at close
+
+## Check in play
+
+Unchecked in the app (speed mode); Tabu looks at each on a copy of the data folder:
+- The left pane: Epics and Docs headlines, the rule between them, the gear beside the project name (T-023.2, .4).
+- The gear opens settings with Board still selected; a second click closes them (T-023.4).
+- The Marketed checkbox, and Doit, Day Drop and HBD Shorts gone from the Marketing picker and + Campaign (T-023.5).
+- The Contacts columns, sorting by a header click, and the special mark with its tooltip (T-023.6, .7).
+- The + Campaign checkboxes and a two-game campaign's pills (T-023.8).
+- The nine drafted profiles, corrected by Tabu (T-023.9).
 
 ## Notes
 
@@ -38,4 +49,13 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+2026-11-21. Audit tests: 334 pass; boundary and structure guards pass. Diff bcebfe1..HEAD read against Architecture.md, Core/03-Design.md and Design.md.
+
+- Fix now, fixed in T-023.10: two Marketing empty states (`web/campaignsPane.js`) still said to set the kind "in Settings", the top-bar button this epic removed.
+- Fix before release, in EPIC-022 (T-022.8): `splitGames` in rules.js is a fifth copy of the comma-list helper.
+- Deliberate: none.
+- Noted: the commits name Sonnet 5.5 as co-author (the build agents' model), not Opus 5.5 as the brief said; left as is.
+
 ## For the standard
+
+- `Core/02-Working.md`, Tests: when a control moves or goes, grep for every message that names it.

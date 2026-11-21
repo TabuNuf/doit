@@ -16,7 +16,7 @@ export function campaignsFor(epics, game) {
 /** The left column: what marketing knows about the picked game, from its profile. */
 export function profilePane(game, profiles) {
   const p = profiles.find(x => x.game === game);
-  if (!p) return `<section class="pane" aria-label="Profile"><div class="pane-h">Profile</div><div class="pane-b"><div class="empty">${profiles.length ? "Pick a game, application or podcast in the top bar to see its profile." : "No project has a kind yet, so there is nothing to show. Pick a project on the Board and set its kind in Settings."}</div></div></section>`;
+  if (!p) return `<section class="pane" aria-label="Profile"><div class="pane-h">Profile</div><div class="pane-b"><div class="empty">${profiles.length ? "Pick a game, application or podcast in the top bar to see its profile." : "No project has a kind yet, so there is nothing to show. On the Board, click the gear beside a project's name and set its kind."}</div></div></section>`;
   if (p.missing) return `<section class="pane" aria-label="Profile"><div class="pane-h">Profile</div><div class="pane-b detail"><div class="mono muted">${esc(p.kind)}</div><h2>${esc(p.name)}</h2><div class="empty">${esc(p.name)} has no marketing profile yet, so contacts and festivals cannot be matched to it. <button data-mk-settings="${esc(p.game)}">Set its profile</button></div></div></section>`;
   const row = (k, v) => `<dt>${k}</dt><dd>${v ? esc(v) : "-"}</dd>`;
   const all = v => (v || []).join(", ");
@@ -38,7 +38,7 @@ export const campaignProjects = profiles => profiles.filter(p => p.project);
 /** The + Campaign form: the project, a name and an optional event; `events` are the open festivals and events. */
 export function campaignForm(profiles, game, events) {
   const ps = campaignProjects(profiles);
-  if (!ps.length) return `<div class="empty">No project has a kind yet, so no campaign can be started. Pick a project on the Board and set its kind in Settings.</div>`;
+  if (!ps.length) return `<div class="empty">No project has a kind yet, so no campaign can be started. On the Board, click the gear beside a project's name and set its kind.</div>`;
   const opt = (v, l, sel) => `<option value="${esc(v)}" ${sel ? "selected" : ""}>${esc(l)}</option>`;
   return `<form class="form" id="mk-campaign" aria-label="New campaign">
     <fieldset id="mk-cp-project" class="mk-games"><legend>For (one or more)</legend>${ps.map(p => `<label><input type="checkbox" name="mk-cp-game" value="${esc(p.game)}" ${p.game === game ? "checked" : ""}> ${esc(p.name || p.game)} (${esc(p.kind)})</label>`).join("")}</fieldset>
