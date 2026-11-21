@@ -4,6 +4,7 @@
 import { esc } from "./state.js";
 import { channelsBlock, channelEdit } from "./contactChannels.js";
 import { historyList, lastContactOf } from "./contactHistory.js";
+import { specialMark } from "./contactColumns.js";
 
 export { channelHref } from "./contactChannels.js";
 
@@ -32,12 +33,13 @@ export function detailPane(c, profiles, touchOpen, now, log = null) {
   if (!c) return wrap(`<div class="empty">Select a contact.</div>`);
   const fit = c.fit.length ? c.fit.map(f => `<div class="cmt"><div class="cmt-h"><span>${esc(f.game)}</span></div>${esc(f.reason)}</div>`).join("") : `<div class="muted">No fit recorded.</div>`;
   return wrap(`<div class="mono muted">${c.due ? "due · " : ""}${esc(c.types.join(", "))}${c.topic ? " · " + esc(c.topic) : ""}</div>
-    <h2>${esc(c.name)}</h2>
+    <h2>${esc(c.name)}${specialMark(c)}</h2>
     <dl class="kv">
       <dt>Status</dt><dd><select id="mk-status" aria-label="Status">${STATUSES.map(s => opt(s, s, c.status)).join("")}</select></dd>
       <dt>Next contact</dt><dd><input type="date" id="mk-next" value="${esc(c.next)}" aria-label="Next contact date">${c.due ? ` <span class="pill due late">due</span>` : ""}</dd>
       <dt>Reach</dt><dd><input type="number" id="mk-reach-n" min="0" step="1" value="${esc(c.reach ?? "")}" aria-label="Reach in followers" placeholder="-"></dd>
       <dt>Last contact</dt><dd>${lastContactOf(c, log) || "No contact yet"}</dd>
+      <dt>Special</dt><dd><input type="text" id="mk-special" value="${esc(c.special ?? "")}" aria-label="Special relationship: a one-line reason" placeholder="A friend, a past collaborator"></dd>
       <dt>Email</dt><dd>${c.email ? esc(c.email) : "-"}</dd>
       <dt>Genres</dt><dd><input type="text" id="mk-genres" value="${esc((c.genres ?? []).join(", "))}" aria-label="Genres, separated by commas" placeholder="Indie, Horror"></dd>
     </dl>
@@ -57,6 +59,7 @@ export function editRequest(el, c) {
   if (el.id === "mk-next" && el.value !== c.next) return { method: "PATCH", path, body: { next: el.value } };
   if (el.id === "mk-reach-n" && (el.value === "" ? null : Number(el.value)) !== c.reach) return { method: "PATCH", path, body: { reach: el.value === "" ? null : Number(el.value) } };
   if (el.id === "mk-genres") { const genres = el.value.split(",").map(g => g.trim()).filter(Boolean); if (genres.join(",") !== (c.genres ?? []).join(",")) return { method: "PATCH", path, body: { genres } }; }
+  if (el.id === "mk-special" && el.value.trim() !== (c.special ?? "")) return { method: "PATCH", path, body: { special: el.value } };
   if (el.id === "mk-about" && el.value !== (c.about ?? "")) return { method: "PATCH", path, body: { about: el.value } };
   if (el.id.startsWith("mk-ch")) return channelEdit(el, c);
   if (el.id === "mk-notes" && el.value !== c.notes) return { method: "PATCH", path, body: { notes: el.value } };

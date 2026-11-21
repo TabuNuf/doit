@@ -6,7 +6,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { takeGenreLines } from "../domain/contactImport.js";
 
-const VERSION = 4;
+const VERSION = 5;
 
 const SCHEMA_V1 = `
   CREATE TABLE contacts (
@@ -61,6 +61,9 @@ const V4 = `
   ALTER TABLE contacts ADD COLUMN about TEXT NOT NULL DEFAULT '';
 `;
 
+// v5: a special relationship on a contact, a one-line reason (empty: none).
+const V5 = `ALTER TABLE contacts ADD COLUMN special TEXT NOT NULL DEFAULT '';`;
+
 export class MarketingDb {
   constructor(dir) {
     this.dir = dir;
@@ -96,6 +99,7 @@ export class MarketingDb {
       if (v < 2) this.db.exec(V2);
       if (v < 3) this.db.exec(V3);
       if (v < 4) this.#genresFromNotes();
+      if (v < 5) this.db.exec(V5);
       this.db.exec(`PRAGMA user_version = ${VERSION}`);
     });
   }

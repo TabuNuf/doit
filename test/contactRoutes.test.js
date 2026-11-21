@@ -93,3 +93,11 @@ test("genres are patched, filtered and listed", async t => {
   assert.deepEqual((await api("/api/contacts?genre=horror")).body.map(c => c.name), ["Ada Plays"]);
   assert.deepEqual((await api("/api/genres")).body, ["Horror", "Indie", "Puzzle"]);
 });
+
+test("PATCH sets and clears a contact's special reason", async t => {
+  const { s, api } = await serve(t);
+  makeContacts({ home: s.home }).add({ name: "Special Geek 40", types: ["influencer"] });
+  assert.equal((await api("/api/contacts/1", "PATCH", { special: "Friend" })).body.special, "Friend");
+  assert.equal((await api("/api/contacts")).body[0].special, "Friend");
+  assert.equal((await api("/api/contacts/1", "PATCH", { special: "" })).body.special, "");
+});

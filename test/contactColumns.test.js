@@ -51,3 +51,24 @@ test("a header click saves the sort in the browser and redraws", async () => {
   S.mk.sort = null;
   delete globalThis.localStorage;
 });
+
+test("T-023.7: a special reason on Special Geek 40 shows as a mark with the reason as tooltip in the row and the pane, and clears", async () => {
+  const { listPane } = await import("../web/marketingView.js");
+  const { detailPane, editRequest } = await import("../web/contactDetail.js");
+  const b = new ContactBook(new MemoryContacts(), shelf, () => new Date("2026-11-21T10:00:00"));
+  b.add({ name: "Special Geek 40", types: ["influencer"] });
+  assert.equal(b.get(1).special, "");
+  const c = b.update(1, { special: "  Good   relationship with Tabu " });
+  assert.equal(c.special, "Good relationship with Tabu");
+  const row = listPane([c], null);
+  assert.match(row, /class="pill special" title="Good relationship with Tabu">special</);
+  const pane = detailPane(c, [], false, "2026-11-21");
+  assert.match(pane, /<h2>Special Geek 40<span class="pill special" title="Good relationship with Tabu">/);
+  assert.match(pane, /id="mk-special" value="Good relationship with Tabu"/);
+  assert.deepEqual(editRequest({ id: "mk-special", value: "Old friend" }, c).body, { special: "Old friend" });
+  assert.equal(editRequest({ id: "mk-special", value: "Good relationship with Tabu" }, c), null);
+  const cleared = b.update(1, { special: "" });
+  assert.equal(cleared.special, "");
+  assert.doesNotMatch(listPane([cleared], null), /pill special/);
+  assert.equal(editRequest({ id: "mk-special", value: "" }, c).body.special, "");
+});

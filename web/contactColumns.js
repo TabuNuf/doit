@@ -33,6 +33,9 @@ export function headerRow(sort) {
 
 const date = (d, what) => d ? `<span class="mono" title="${what}: ${esc(d)}">${esc(d)}</span>` : `<span class="muted">-</span>`;
 
+/** The mark for a special relationship, its reason as the tooltip; none when the contact has none. */
+export const specialMark = c => c.special ? `<span class="pill special" title="${esc(c.special)}">special</span>` : "";
+
 /** The six cells of a row; the name cell also carries the fit mark, the special mark and the next-contact date. */
 export function rowCells(c, mark = "") {
   const next = c.next ? `<span class="pill due ${c.due ? "late" : ""}" title="Next contact ${esc(c.next)}">${c.due ? "due " : ""}${esc(fmtDate(c.next))}</span>` : "";

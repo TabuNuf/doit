@@ -108,3 +108,14 @@ test("importing the fixture fills genres from the Genre column and keeps them ou
   assert.match(run("contacts", "--genre", "co-op").out, /Pixel Pat/);
   assert.doesNotMatch(run("contact", "show", "1").out, /Genre:/);
 });
+
+test("contact set special= sets a one-line reason and an empty value clears it; show prints it", t => {
+  const s = setup(); t.after(s.cleanup);
+  const run = cliFor(s);
+  run("contact", "add", "Special", "Geek", "40", "--type", "influencer");
+  assert.equal(run("contact", "set", "1", "special=Good friend of Tabu").code, 0);
+  assert.match(run("contact", "show", "1").out, /\nspecial Good friend of Tabu\n/);
+  assert.equal(JSON.parse(run("contact", "show", "1", "--json").out).special, "Good friend of Tabu");
+  assert.equal(run("contact", "set", "1", "special=").code, 0);
+  assert.doesNotMatch(run("contact", "show", "1").out, /special/);
+});

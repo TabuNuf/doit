@@ -4,7 +4,7 @@
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail.js";
 import { channelRemove, channelAdd } from "./contactChannels.js";
-import { clickSort, orderContacts, headerRow, rowCells } from "./contactColumns.js";
+import { clickSort, orderContacts, headerRow, rowCells, specialMark } from "./contactColumns.js";
 import { festivalPath, eventsInfoPane, festivalsPane } from "./festivalsPane.js";
 import { eventPane, eventEditRequest } from "./eventDetail.js";
 import { overviewPanes } from "./weekPane.js";
@@ -53,7 +53,7 @@ export function fitMark(c, game) {
 }
 
 export function contactRow(c, sel, game = null) {
-  return `<button class="mk-row mk-cols" data-contact="${esc(c.id)}" aria-pressed="${String(sel) === String(c.id)}">${rowCells(c, fitMark(c, game))}</button>`;
+  return `<button class="mk-row mk-cols" data-contact="${esc(c.id)}" aria-pressed="${String(sel) === String(c.id)}">${rowCells(c, specialMark(c) + fitMark(c, game))}</button>`;
 }
 
 /** The list column: a header row, then (with no sort chosen) a Due group when any contact is due and the rest, or one list in the chosen order. */

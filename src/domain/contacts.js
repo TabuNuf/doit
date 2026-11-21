@@ -72,6 +72,7 @@ export function makeContact(input = {}) {
     genres: checkGenres(input.genres),
     about: String(input.about ?? "").trim(),
     notes: String(input.notes ?? "").trim(),
+    special: text(input.special),
     status: input.status ? oneOf(input.status, STATUSES, "status") : "active",
     next: input.next ? checkDate(input.next, "Next contact") : "",
     channels: checkChannels(input.channels ?? []),
