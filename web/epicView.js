@@ -25,6 +25,8 @@ export const addContacts = key => act(async () => {
   const [project, id] = key.split("/");
   const { refs } = await api("POST", `/api/campaigns/${encodeURIComponent(project)}/${encodeURIComponent(id)}/contacts`, {});
   toast(refs.length ? `Added ${refs.length} contact task${refs.length === 1 ? "" : "s"}` : "No contacts to add");
+  // The document lists the new task lines, so it is read again.
+  S.epicView = await api("GET", `/api/epics/${encodeURIComponent(project)}/${encodeURIComponent(id)}`);
 });
 
 /** True for an open epic whose document has a Game line: a campaign. */
