@@ -65,7 +65,7 @@ Each project's docs folder (design, specs, architecture) is read and edited in p
 
 - **Board / Docs** in the top bar switches the view. The Docs view shows the selected project; in All projects it shows the first project and says so.
 - Three panes: **Documents** (the folder tree), the **document**, and **Linked**.
-- **The tree** lists the Markdown files of the docs folder, folders first, by name. `Archive/`, `Epics/Tasks/` and `Standard/` are left out. `Epics/Completed/` is listed but folded until clicked.
+- **The tree** lists the Markdown files of the docs folder, folders first, by name, with numbers compared as numbers (`0.9` before `0.10`). `Archive/`, `Epics/Tasks/` and `Standard/` are left out. `Epics/Completed/` is listed but folded until clicked.
 - **The document** is rendered with the epic view's renderer plus tables. Above it: its path and who changed it last, from git (author and date of the last commit that touched it; "not committed" when none).
 - **Edit** swaps the rendered page for a plain text box with the file's text; **Done** writes the file and shows it rendered again. Text size A− / A+ applies, as in the Detail pane.
 - **Linked** lists the project's open tasks whose description or done-when names the document's file name (`Design.md`); clicking one opens it on the Board.
@@ -79,9 +79,10 @@ Each project's docs folder (design, specs, architecture) is read and edited in p
 
 One page shows what Claude is working on, what it waits on Tabu for, and what changed. Everything on it comes from task data and the activity log; it keeps no state of its own.
 
-- **Board / Docs / Claude** in the top bar switches the view and keeps the selected project. Claude carries a badge with the count of Tabu's tasks due within 7 days, the same count as the Board's "due within 7 days" filter on 🧑 tasks.
-- Three panes: **Working on now**, **Blocked on you** with **Up next for Claude** below it, and **Activity log**.
+- **Board / Docs / Claude** in the top bar switches the view and keeps the selected project. Claude carries a badge reading `<n> due`, the count of Tabu's tasks due within 7 days (the Board's "due within 7 days" filter on 🧑 tasks); its tooltip says so, and the tasks it counts are listed in the Claude view under Waiting on you.
+- Three panes: **Working on now**, **Waiting on you** (Blocked on you, then Due within 7 days) with **Up next for Claude** below it, and **Activity log**.
 - **Working on now:** AI tasks In progress. **Up next:** AI To-do tasks in rank order.
+- **Due within 7 days:** Tabu's open tasks with a deadline 7 days away or nearer, soonest first: what the badge counts.
 - **Blocked on you:** human To-do tasks with a `blocks: T-<id>` field naming the AI task they hold up. The field is set with `doit set <project>/<T-id> blocks=T-<id>` or in the Detail pane, and is kept in the task file.
 - A card shows number, project pill, title and last change. Clicking it opens that task on the Board.
 - **Activity log:** every change to a task, from the CLI or the page, appends one line (time, project/task, what changed) to `activity.log` in the app's data folder. Lines older than 30 days are dropped on write. The pane shows the newest first.
@@ -93,7 +94,8 @@ Game profiles and contacts are built (EPIC-012); mail, festivals and campaigns a
 
 When sitting down for outreach the order is festivals first, then people, then campaigns. The build order differs, because everything matches against the game profiles:
 
-1. **Game profiles.** One per project that is marketed (Bunny Bunker, Rapid Rocket Racing, Good Box and the others, Hidden by Design): genre tags, platforms, stage (in development, demo, released), release date, and what it needs now (wishlists, demo players, press). Kept as `Docs/Profiles/<game>.md` in the Polyspice Marketing project, all in one place, so a game needs no Doit project of its own; edited in the Docs view and tracked by that project's git.
+1. **Game profiles.** One per project that is marketed (Bunny Bunker, Rapid Rocket Racing, Good Box and the others, Hidden by Design): genre tags, platforms, stage (in development, demo, released), release date, and what it needs now (wishlists, demo players, press). A profile also has a kind, `game` or `podcast`. It is kept in the game's own project as `<docs>/Marketing/Profile.md`, and the game is that project's id; `doit profile add <project>` writes the template. A game without a Doit project keeps its profile as `Docs/Profiles/<game>.md` in the Polyspice Marketing project. Edited in the Docs view and tracked by the project's git.
+   - **The Marketing folder.** `<docs>/Marketing/` holds what marketing uses about a game: the profile, and each release's notes in `Marketing/Releases/<version>/`, so marketing finds everything in one place.
 2. **Contacts.** A contact is a person, outlet or event. It has one or more types: influencer, blogger, press, publisher/distribution, tester, festival, conference (with a topic tag: game dev, podcast, design). Its fields: name, channels (YouTube, Twitch, Bluesky, X, Instagram, Facebook, Discord, Steam, website, Linktree), email, reach (a follower count: the contact's largest audience on one channel, as last counted; Claude keeps it current while researching), notes, status (active, dormant, archived) and the games it fits.
    - **Fit** links a contact to a game profile with a one-line reason. Claude decides fit, by researching the contact (what they play, how recently they post, their size) in batches of 20 to 30, largest reach first. Tabu corrects it.
    - **Touches** replace the sheet's Replied and Posted Video columns: a log per contact of mails sent, replies and videos posted, each dated and tied to a game.
@@ -111,7 +113,7 @@ When sitting down for outreach the order is festivals first, then people, then c
    - **Add contacts.** On an open campaign, the button (or `doit campaign contacts`) makes one task per contact: `Reach out to <name>`, owner human, with the contact set. It picks contacts that are active, fit the game, are not due later than the event (a festival's start, else its deadline, or the date) and are not already on a task of the campaign, largest reach first, up to a limit (default 10). Nothing is added without that click or a Claude run.
    - **The weekly list.** Up to 5 contacts (open campaign tasks with a contact first, then contacts due for a game they fit, oldest due first), every festival whose deadline falls within 14 days and that fits a game, and up to 3 open campaign steps without a contact. It shows as the This week pane at the top of the Marketing view and as lines in the morning report; an empty week says `Outreach this week: nothing`.
 
-**The Marketing top bar.** In the Marketing view the project chips and the Projects menu are gone, since contacts, drafts and festivals belong to no project. In their place are Marketing's own tabs: Contacts, Drafts, and each later part as it is built (Festivals, Campaigns). The Board, Docs and Claude views keep the projects.
+**The Marketing top bar.** In the Marketing view the project chips and the Projects menu are gone, since contacts, drafts and festivals belong to no project. In their place, first, a **game or podcast** dropdown (the profiles, games then podcasts, or Any), then Marketing's own tabs in this order: **Campaigns**, **Contacts**, **Festivals**, **Events**, **Drafts**, **Overview**. The pick filters every tab. Campaigns lists the campaign epics (open first) and opens one on the Board. Contacts lists people only: festivals and conferences have their own tabs. Festivals lists events of type festival that fit the game, Events those of type conference. Overview is the This week pane, on its own so the other lists get the full height. The Board, Docs and Claude views keep the projects.
 
 Left out: following people on social media to answer their posts. The platforms' APIs are closed or unstable; a recurring "check these people" task stands in for it.
 
@@ -131,7 +133,7 @@ Blueprint: the board reads as a drafting sheet. It replaces the greyscale wirefr
 - **Rows and selection.** Rows divided by dashed rules, square corners. The selected row or epic gets an accent outline on a light accent fill. The active tab is underlined in the accent.
 - **Progress.** Epic bars are segmented like a scale rule, filled in the accent.
 - **Detail.** The field block has a dashed outline instead of a grey fill.
-- **Logo.** A checkmark in a circle over a drafting frame, cyan with orange crop marks. The board shows the transparent mark (`web/logo.svg`) before the name in the top bar and as the tab icon; the launcher uses the navy icon (`launcher/icon.svg`), which `launcher/build.sh` turns into the app icon. The logo keeps its own colours and is not themed.
+- **Logo.** A checkmark in a circle over a drafting frame, cyan with orange crop marks, on a navy rounded square. The board shows it (`web/logo.svg`) before the name in the top bar and as the tab icon; the launcher uses the same logo in the macOS icon grid (`launcher/icon.svg`), which `launcher/build.sh` turns into the app icon, removing the applet's own asset catalog so macOS shows it. The logo keeps its own colours and is not themed.
 - Every colour comes from a token defined for light and dark; no literal colour in a component rule.
 
 The comparison of the five candidate styles, with this one as "Blueprint", is the private artifact `Doit Style Options` (claude.ai/artifact/L8qjksrvdhpyhEDjTd4unB).
@@ -162,6 +164,7 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 
 ## Changelog
 
+- 2026-11-21, EPIC-019: the navy logo in the top bar and on the launcher; the Claude badge reads `<n> due` and its tasks show under Waiting on you; numeric order in the docs tree; profiles in each project's `Marketing/` folder with release notes beside them; the Marketing top bar gets a game picker and the tabs Campaigns, Contacts, Festivals, Events, Drafts, Overview (sections Look, Claude view, Docs, Marketing).
 - 2026-11-20, EPIC-001: first version, from the interview (`Brief.md`) and the wireframe.
 - 2026-11-20, EPIC-005: clicking an epic opens a read-only view of its document; the task filter moves to a Filter button on each epic. `epic close` is added to the CLI.
 - 2026-11-20: clicking an epic both filters the list and shows the epic's document in the Detail pane; the separate Filter button and the full-width epic view are gone.
