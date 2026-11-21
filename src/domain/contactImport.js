@@ -112,7 +112,7 @@ export function mergeNotes(known, fresh) {
 }
 
 /** The New Streamers CSV as contact rows: {name, email, reach, genres, notes, types, channels, touches [{kind, date, game?, note?}]}; date "" means the import day.
- *  Last Contact is a mail touch; BB1 and BB2 are mail touches for `BB_GAME`, dated by Last Contact (the cells only say yes or no). Rows with no name and no link are left out by the caller as skipped. */
+ *  Last Contact is a mail touch; BB1 and BB2 are mail touches for `BB_GAME`, dated by the cell when it holds a date, else by Last Contact (the sheet's cells say only yes or no). Rows with no name and no link are left out by the caller as skipped. */
 export function mapStreamers(text) {
   const [head = [], ...body] = parseCsv(text);
   const cols = head.map(h => { const k = h.trim().toLowerCase(); return FIELD_OF[k] ? { field: FIELD_OF[k] } : KIND_OF[k] ? { kind: KIND_OF[k] } : null; });
@@ -131,8 +131,10 @@ export function mapStreamers(text) {
     if (when) touches.push({ kind: "mail", date: when });
     if (isYes(f.replied)) touches.push({ kind: "reply", date: when });
     if (isYes(f.video)) touches.push({ kind: "video", date: when });
-    if (isYes(f.bb1)) touches.push({ kind: "mail", date: when, game: BB_GAME, note: "BB1" });
-    if (isYes(f.bb2)) touches.push({ kind: "mail", date: when, game: BB_GAME, note: "BB2" });
+    for (const [cell, note] of [[f.bb1, "BB1"], [f.bb2, "BB2"]]) {
+      const own = dateOf(cell || "");
+      if (own || isYes(cell)) touches.push({ kind: "mail", date: own || when, game: BB_GAME, note });
+    }
     const reach = reachOf(f.reach || "");
     const sheetReach = reach === null && f.reach ? `Sheet reach: ${f.reach}` : "";
     const notes = [f.notes, sheetReach, f.platform && `Platform: ${f.platform}`].filter(Boolean).join("\n");

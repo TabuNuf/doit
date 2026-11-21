@@ -15,4 +15,5 @@ You build tasks of one epic in the <Project> project from the brief you are give
 - Never start a server or watcher that keeps running; a command that does not return is run with a timeout or left to the coordinator.
 - A whole read of a text file over 40 KB is refused by a hook: read a range.
 - Commit each task as the brief says, staging only your own paths. Never push.
+- One commit per task, even when tasks share files: finish, test and commit one task before starting the next.
 - Report in under 200 words: what was built, what deviated from the plan, what is unverified.

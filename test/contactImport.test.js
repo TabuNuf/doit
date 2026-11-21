@@ -107,3 +107,8 @@ test("a row with no name and no link is skipped", () => {
   const b = book();
   assert.deepEqual(b.import(mapStreamers("Name,YouTube,Notes\n,,orphan\nCy,,ok\n")), { added: 1, updated: 0, skipped: 1 });
 });
+
+test("a BB1 or BB2 cell that holds a date gives a Bunny Bunker mail touch on that day", () => {
+  const [row] = mapStreamers("Name,Last Contact,BB1,BB2\nAda,16-Sep-2025,3-Mar-2024,FALSE\n");
+  assert.deepEqual(row.touches, [{ kind: "mail", date: "2025-09-16" }, { kind: "mail", date: "2024-03-03", game: "bunny-bunker", note: "BB1" }]);
+});

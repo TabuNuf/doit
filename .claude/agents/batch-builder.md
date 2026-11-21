@@ -14,4 +14,5 @@ You build tasks of one epic in the Doit app (Node.js, no dependencies) from the 
 - After edits run `npm test` (Development, under 2 minutes) and fix every failure. Never start the server in the foreground.
 - A whole read of a text file over 40 KB is refused by a hook: read a range.
 - Commit each task as the brief says, staging only your own paths. Never push.
+- One commit per task, even when tasks share files: finish, test and commit one task before starting the next.
 - Report in under 200 words: what was built, what deviated from the plan, what is unverified.

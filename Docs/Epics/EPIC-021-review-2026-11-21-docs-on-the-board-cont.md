@@ -22,6 +22,7 @@ Source: review video Bandicam_20261121_111550.mp4, narrated by Tabu; times in ea
 - [x] T-021.13 Festivals run reads howtomarketagame.com/festivals (Upcoming and New) and logs which festivals are new since the last run (done when: a hand run adds or updates festivals from that page and its activity-log line names the new ones; no source is skipped without a reason and a next step)
 - [x] T-021.14 Decide where the marketing scan lives: Polyspice Marketing or Doit (done when: Tabu picks one and T-021.1 records it in Design.md)
 - [x] T-021.15 Task detail: a long checklist title shows its first sentence as the heading and the rest as the task's spec, rendered as markdown; the description shows rendered and opens for editing on click (done when: a web test sees a 300-character title split into a short heading and a rendered spec with <code> and <strong>, a list row showing only the first sentence, and the epic line unchanged; a short title is not split)
+- [x] T-021.16 Close audit fixes: BB cells with a date, Architecture.md and Design.md brought in line with the code (done when: the six fix-now findings in the epic's Close audit are fixed and npm test passes)
 
 ## Test plan
 
@@ -46,4 +47,14 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+2026-11-21. Audit tests: 309 pass; boundary and structure guards pass. Diff 7ff4e5f^..HEAD read against Architecture.md, Core/03-Design.md and Design.md.
+
+- Fix now, fixed in T-021.16: a BB1/BB2 cell holding a date gave no touch; Architecture.md lacked `ContactBook.saveProfile`, `ProfileShelf.save` and `PUT /api/projects/:id/profile`, and still sent festival rows to the contact pane; Design.md still said a re-import matches by email or YouTube link, that a reach band goes into notes, had no `--genre`, and said Save writes the kind (it saves on pick).
+- Fix before release, in EPIC-022: the store-event list repeated in marketingView.js; checkProfile in events.js; the comma-list helper written four times; the default marketing project id in four places; the leave-the-layout condition twice; the stage list twice in web/; marketingView.js at 235 lines with no size guard.
+- Deliberate: none.
+- Found in the browser check, fixed in 2baeb32: an event picked in Events showed contact fields in the Campaigns tab.
+
 ## For the standard
+
+- `Core/02-Working.md`, Tests: check the running app on a copy of its data folder, and switch tab or view with something selected.
+- `App/Starter/.claude/agents/batch-builder.md`: one commit per task, even when tasks share files.
