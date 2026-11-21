@@ -24,7 +24,7 @@ Design: Design.md, section Marketing (steps 1 and 2)
 - [x] T-012.6 CLI: `doit contacts [--type] [--fits <game>] [--status] [--due] [--reach C+] [--json]`, `doit contact show|add|set <id>`, `doit fit <id> <game> <reason>`, `doit touch <id> <kind> [--game] [--date]`, `doit profiles` (done when: CLI tests cover each command, and `contacts --fits` prints one line per contact)
 - [x] T-012.7 Server: `/api/contacts` routes for list with filters, show, update, fit and touch, and `/api/profiles` (done when: server tests cover each route and a refused value returns 400)
 - [x] T-012.8 Web: a Marketing view beside Board, Docs and Claude: contacts list with filters for game, type, reach and status, due contacts on top (done when: web tests render the list from a fixture; the view shows in the app with filters working)
-- [ ] T-012.9 Web: contact detail pane: channels as links, fit per game with reason, touches newest first, edit status, next contact date and notes, add a touch (done when: web tests cover the edits; a status change in the app persists after reload)
+- [x] T-012.9 Web: contact detail pane: channels as links, fit per game with reason, touches newest first, edit status, next contact date and notes, add a touch (done when: web tests cover the edits; a status change in the app persists after reload)
 
 ## Test plan
 
@@ -42,6 +42,8 @@ Design: Design.md, section Marketing (steps 1 and 2)
 
 Decisions and deviations, newest first.
 
+- T-012.9: fit is shown per game with its reason but not edited on the page (the plan asks for display only); a touch's game picker lists the profiles. Channel urls link only as http(s) (a bare host gets https://); other schemes show as text.
+- T-012.9: its code and tests were built together with T-012.8 and are in that commit (`web/contactDetail.js`, `test/marketing.test.js`); this commit ticks the task.
 - T-012.8: the Marketing view has three columns like the Claude view: filters, list, detail. Filters go to the server (`fits`, `type`, `reach`, `status`); reach options are A, then B to E "and larger". Contact rows are buttons, not `.row`, so the Board's row keys do not touch them. The view has its own column widths (`doit.columns.marketing`). A reload is held while the add-touch form is open.
 - T-012.7: no route adds a contact (the plan lists none); the page edits, fits and touches existing ones. PATCH takes name, types, topic, email, reach, notes, status, next and channels; other keys are ignored. `HttpServer` takes the `ContactBook` as a seventh argument; without it the contact routes are absent.
 - T-012.6: `contact add` takes the types from `--type a,b` and channels from `--channels kind=url,kind=url`; `contact set` takes `channels=kind=url,...` the same way. `--due` is a flag with no value. The commit trailer of T-012.5 names Opus (the brief's line); later ones name Sonnet 5.5, the attribution given for this session.
