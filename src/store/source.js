@@ -43,10 +43,19 @@ export class FileSource {
 
   /** Sets or clears a project's star (pinned to the top bar). */
   setStarred(projectId, starred) {
+    return this.#changeProject(projectId, p => { if (starred) p.starred = true; else delete p.starred; });
+  }
+
+  /** Sets a project's kind (game, application, podcast), or clears it with "". */
+  setKind(projectId, kind) {
+    return this.#changeProject(projectId, p => { if (kind) p.kind = kind; else delete p.kind; });
+  }
+
+  #changeProject(projectId, change) {
     const data = this.settingsFile.read();
     const project = data.projects.find(p => p.id === projectId);
     if (!project) throw new Error(`No project ${projectId}`);
-    if (starred) project.starred = true; else delete project.starred;
+    change(project);
     this.settingsFile.write(data);
     return project;
   }

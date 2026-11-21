@@ -13,6 +13,10 @@ test("every command runs", t => {
   const s = setup(); t.after(s.cleanup);
   const b = s.board;
   assert.match(run(b, "projects").out, /^game  Game  /);
+  assert.match(run(b, "project", "set", "game", "kind=application").out, /game: application/);
+  assert.match(run(b, "projects").out, /^game  Game  application  /);
+  assert.match(run(b, "project", "set", "game", "kind=").out, /game: no kind/);
+  assert.match(run(b, "project", "set", "game", "kind=toaster").err, /Kind must be/);
   assert.match(run(b, "epics", "game").out, /EPIC-014  Active  1\/3  Online lobby/);
   assert.match(run(b, "list", "--project", "game", "--state", "active").out, /game\/T-014.2  todo     ai    task Host migration/);
   assert.equal(JSON.parse(run(b, "list", "--owner", "human", "--json").out).length, 0);

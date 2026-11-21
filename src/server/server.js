@@ -27,7 +27,7 @@ export class HttpServer {
       ["GET", /^\/api\/version$/, () => ({ commit: this.commit })],
       ["GET", /^\/api\/board$/, (q) => this.board.view({ project: q.get("project") || "all", archived: q.get("archived") === "1" })],
       ["POST", /^\/api\/projects$/, (q, b) => this.board.addProject(b)],
-      ["PATCH", /^\/api\/projects\/([^/]+)$/, (q, b, m) => this.board.starProject(m[1], b.starred)],
+      ["PATCH", /^\/api\/projects\/([^/]+)$/, (q, b, m) => "kind" in b ? this.board.setProjectKind(m[1], b.kind) : this.board.starProject(m[1], b.starred)],
       ["GET", /^\/api\/epics\/([^/]+)\/([^/]+)$/, (q, b, m) => this.board.epicDocument(m[1], m[2])],
       ["POST", /^\/api\/epics$/, (q, b) => ({ id: this.board.addEpic(b.project, b.name, b.status || "Planned") })],
       ["POST", /^\/api\/epics\/([^/]+)\/([^/]+)\/move$/, (q, b, m) => this.board.moveEpic(m[1], m[2], b.to)],

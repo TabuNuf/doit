@@ -40,6 +40,9 @@ test("the API reads and changes tasks, and serves the page", async t => {
   assert.equal(starred.body.starred, true);
   assert.equal((await api("/api/board?project=all")).body.projects[0].starred, true);
   assert.equal((await api("/api/projects/nope", send("PATCH", { starred: true }))).status, 400);
+  assert.equal((await api("/api/projects/game", send("PATCH", { kind: "podcast" }))).body.kind, "podcast");
+  assert.equal((await api("/api/board?project=all")).body.projects[0].kind, "podcast");
+  assert.equal((await api("/api/projects/game", send("PATCH", { kind: "toaster" }))).status, 400);
 
   const page = await fetch(`http://127.0.0.1:${port}/`);
   assert.equal(page.status, 200);

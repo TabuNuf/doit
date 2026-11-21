@@ -4,6 +4,7 @@ const HELP = `doit: the task board, from the command line. Every command archive
 
   doit projects                                   list projects
   doit project add <name> <folder> [--docs Docs]  register a project (creates folders it lacks)
+  doit project set <id> kind=game|application|podcast   what the project is (kind= clears it); Marketing offers games, applications and podcasts
   doit epics <project>                            open epics with done/total
   doit epic add <project> <name> [--status Planned|Active|Parked]
   doit epic close <project> <EPIC-nnn>            archive the epic's task files, set it Done, move it to Completed/
@@ -119,11 +120,12 @@ const COMMANDS = {
   projects() {
     const ps = this.board.projects();
     if (!ps.length) return this.print("No projects. Add one: doit project add <name> <folder>");
-    for (const p of ps) this.print(`${p.id}  ${p.name}  ${p.path}/${p.docs}`);
+    for (const p of ps) this.print(`${p.id}  ${p.name}  ${p.kind || "-"}  ${p.path}/${p.docs}`);
   },
 
   project(pos, flags) {
-    if (pos[0] !== "add") throw new Error("Usage: doit project add <name> <folder> [--docs Docs]");
+    if (pos[0] === "set" && /^kind=/.test(pos[2] ?? "")) return this.print(`${pos[1]}: ${this.board.setProjectKind(pos[1], pos[2].slice(5)).kind || "no kind"}`);
+    if (pos[0] !== "add") throw new Error("Usage: doit project add <name> <folder> [--docs Docs] | doit project set <id> kind=game|application|podcast");
     const p = this.board.addProject({ name: pos[1], path: pos[2], docs: flags.docs });
     this.print(`Added ${p.id}: ${p.path}/${p.docs}`);
   },

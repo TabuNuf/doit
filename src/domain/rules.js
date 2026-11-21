@@ -2,6 +2,16 @@
 
 export const DEFAULT_KEEP_DAYS = 14;
 
+/** What a project is; Marketing offers each kind in its picker. */
+export const PROJECT_KINDS = ["game", "application", "podcast"];
+
+/** A project's kind, lower case, or "" to clear it; anything else is refused. */
+export function checkKind(kind) {
+  const k = String(kind ?? "").trim().toLowerCase();
+  if (k && !PROJECT_KINDS.includes(k)) throw new Error(`Kind must be ${PROJECT_KINDS.join(", ")} or empty: ${kind}`);
+  return k;
+}
+
 /** Whole days from date a to date b, both "YYYY-MM-DD" (or longer, the date part is used). */
 export function daysBetween(a, b) {
   const d = s => Date.UTC(Number(s.slice(0, 4)), Number(s.slice(5, 7)) - 1, Number(s.slice(8, 10)));

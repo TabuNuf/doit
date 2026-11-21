@@ -119,6 +119,16 @@ test("a star pins a project and comes off again", t => {
   assert.throws(() => s.board.starProject("nope", true), /No project nope/);
 });
 
+test("a project's kind is set, kept beside the star, and cleared; an unknown kind is refused", t => {
+  const s = setup(); t.after(s.cleanup);
+  assert.equal(s.board.setProjectKind("game", "Game").kind, "game");
+  s.board.starProject("game", true);
+  assert.deepEqual([s.board.projects()[0].kind, s.board.projects()[0].starred], ["game", true]);
+  assert.equal(s.board.setProjectKind("game", "").kind, undefined);
+  assert.throws(() => s.board.setProjectKind("game", "toaster"), /Kind must be game, application, podcast/);
+  assert.throws(() => s.board.setProjectKind("nope", "game"), /No project nope/);
+});
+
 test("rejects bad input", t => {
   const s = setup(); t.after(s.cleanup);
   assert.throws(() => s.board.update("game/T-014.2", { state: "doing" }), /state must be/);
