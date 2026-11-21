@@ -4,7 +4,7 @@
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail.js";
 import { channelRemove, channelAdd } from "./contactChannels.js";
-import { lastPill } from "./contactHistory.js";
+import { clickSort, orderContacts, headerRow, rowCells } from "./contactColumns.js";
 import { festivalPath, eventsInfoPane, festivalsPane } from "./festivalsPane.js";
 import { eventPane, eventEditRequest } from "./eventDetail.js";
 import { overviewPanes } from "./weekPane.js";
@@ -30,8 +30,8 @@ export function contactPath(f) {
 /** The picked game as {id, name} for the fit mark, or null. */
 const pickedGame = m => (m.game ? { id: m.game, name: m.profiles.find(p => p.game === m.game)?.name || m.game } : null);
 
-/** Due contacts first, each group in the order the server gave. */
-export const dueFirst = list => [...list.filter(c => c.due), ...list.filter(c => !c.due)];
+/** Due contacts first, each group in the order the server gave (the order with no sort chosen). */
+export const dueFirst = list => orderContacts(list, null);
 
 const select = (id, label, options, value) => `<label for="${id}">${label}<select id="${id}">${options.map(([v, l]) => `<option value="${esc(v)}" ${v === value ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`;
 
@@ -53,19 +53,16 @@ export function fitMark(c, game) {
 }
 
 export function contactRow(c, sel, game = null) {
-  const next = c.next ? `<span class="pill due ${c.due ? "late" : ""}" title="Next contact ${esc(c.next)}">${c.due ? "due " : ""}${esc(fmtDate(c.next))}</span>` : "";
-  return `<button class="mk-row" data-contact="${esc(c.id)}" aria-pressed="${String(sel) === String(c.id)}">
-    <span class="title">${esc(c.name)}</span>
-    <span class="pills">${c.types.map(t => `<span class="pill">${esc(t)}</span>`).join("")}${c.reach !== null && c.reach !== undefined ? `<span class="pill mono" title="Reach ${esc(c.reach)}">${esc(compactCount(c.reach))}</span>` : ""}${fitMark(c, game)}<span class="pill${c.status === "active" ? "" : " ai"}">${esc(c.status)}</span>${lastPill(c)}${next}</span></button>`;
+  return `<button class="mk-row mk-cols" data-contact="${esc(c.id)}" aria-pressed="${String(sel) === String(c.id)}">${rowCells(c, fitMark(c, game))}</button>`;
 }
 
-/** The list column: a Due group when any contact is due, then the rest. */
-export function listPane(contacts, sel, draftCount = null, game = null, filtered = false) {
+/** The list column: a header row, then (with no sort chosen) a Due group when any contact is due and the rest, or one list in the chosen order. */
+export function listPane(contacts, sel, draftCount = null, game = null, filtered = false, sort = null) {
   if (!contacts) return `<section class="pane"><div class="pane-h">Contacts</div><div class="pane-b"><div class="empty">Loading…</div></div></section>`;
-  const sorted = dueFirst(contacts);
-  const due = sorted.filter(c => c.due), rest = sorted.filter(c => !c.due);
-  const group = (name, list) => list.length ? `<div class="sec-h">${name}<span class="c">${list.length}</span></div>${list.map(c => contactRow(c, sel, game)).join("")}` : "";
-  const body = contacts.length ? group("Due", due) + group(due.length ? "Others" : "All", rest) : filtered ? `<div class="empty">No contact matches these filters. <button data-mk-clear>Clear filters</button></div>` : `<div class="empty">No contacts yet.</div>`;
+  const rows = list => list.map(c => contactRow(c, sel, game)).join("");
+  const due = sort ? [] : contacts.filter(c => c.due), rest = sort ? orderContacts(contacts, sort) : contacts.filter(c => !c.due);
+  const group = (name, list) => list.length ? `<div class="sec-h">${name}<span class="c">${list.length}</span></div>${rows(list)}` : "";
+  const body = contacts.length ? headerRow(sort) + (sort ? rows(rest) : group("Due", due) + group(due.length ? "Others" : "All", rest)) : filtered ? `<div class="empty">No contact matches these filters. <button data-mk-clear>Clear filters</button></div>` : `<div class="empty">No contacts yet.</div>`;
   return `<section class="pane" aria-label="Contacts"><div class="pane-h">Contacts<span class="c">${contacts.length}</span><button data-mk-pane="drafts" class="pane-close">Drafts${draftCount === null ? "" : ` (${draftCount})`}</button></div><div class="pane-b">${body}</div></section>`;
 }
 
@@ -94,7 +91,7 @@ export function marketingPanes() {
   if (m.pane === "overview") return overviewPanes(m.week, m.sel, m.game);
   if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game), m.newCampaign ? campaignForm(m.profiles, m.game, m.events) : "") + detail();
   if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + eventPane(m.detail && m.detail.event ? m.detail : null, title === "Events" ? "Event" : "Festival"); }
-  const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length, pickedGame(m), Object.values(m.f).some(Boolean));
+  const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length, pickedGame(m), Object.values(m.f).some(Boolean), m.sort);
   return filterPane(m.f, m.genres) + middle + detail();
 }
 
@@ -111,7 +108,7 @@ export function marketingKey(ev) {
   const m = S.mk;
   if (S.view !== "marketing" || (ev.key !== "ArrowUp" && ev.key !== "ArrowDown") || ev.altKey || ev.ctrlKey || ev.metaKey) return false;
   if (/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) || ev.target.isContentEditable) return false;
-  const ids = m.pane === "contacts" ? dueFirst(m.contacts || []).map(c => c.id) : EVENT_TAB[m.pane] ? (m.fest || []).map(c => c.id) : null;
+  const ids = m.pane === "contacts" ? orderContacts(m.contacts || [], m.sort).map(c => c.id) : EVENT_TAB[m.pane] ? (m.fest || []).map(c => c.id) : null;
   if (!ids) return false;
   ev.preventDefault();
   const id = nextContact(ids, m.sel, ev.key);
@@ -158,6 +155,7 @@ export function marketingClick(d) {
   const m = S.mk;
   if (d.taskContact) { S.view = "marketing"; m.pane = "contacts"; m.sel = d.taskContact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
   if (d.contact) { if (d.mkTo) m.pane = d.mkTo; m.sel = d.contact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
+  if (d.mkSort) { m.sort = clickSort(m.sort, d.mkSort); try { localStorage.setItem("doit.contacts.sort", JSON.stringify(m.sort)); } catch { /* storage off */ } redraw(); return true; }
   if (d.mkSettings) { openSettingsFor(d.mkSettings); return true; }
   if ("mkNewcamp" in d) { m.newCampaign = !m.newCampaign; if (m.newCampaign) openCampaignForm(); else redraw(); return true; }
   if (d.mkPane) { m.pane = d.mkPane; m.fest = null; redraw(); refreshMarketing(); return true; }

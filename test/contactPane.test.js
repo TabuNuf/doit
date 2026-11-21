@@ -65,8 +65,8 @@ test("the pane lists history in date order with a sent draft and shows Last cont
   assert.match(detailPane(c, [], false, "2026-11-21"), /<dt>Last contact<\/dt><dd>2026-10-05<\/dd>/, "before the history loads, the touches' own date");
   assert.match(detailPane({ ...c, last: "", touches: [] }, [], false, "2026-11-21", []), /No contact yet: no mail, reply or video is logged/);
   const row = listPane([c], null);
-  assert.match(row, /class="pill mono" title="Last contact 2026-10-05: [^"]*">last 2026-10-05</);
-  assert.doesNotMatch(listPane([{ ...c, last: "" }], null), /last 20/);
+  assert.match(row, /class="mono" title="Last contact, [^"]*: 2026-10-05">2026-10-05</);
+  assert.doesNotMatch(listPane([{ ...c, last: "" }], null), /2026-10-05/);
 });
 
 test("with a game picked the Contacts list still holds every contact and marks the ones that fit, with a title saying why", async () => {

@@ -6,7 +6,7 @@
 //   a contact carries id, fit [{game, reason}], touches [{date, kind, game, note}] newest first.
 // The ProfileShelf it is given: list() -> profiles, has(game) -> bool.
 
-import { makeContact, contactFilter, byReach, isDue, checkDate, checkTouchKind, lastContact, genresOf, ContactError } from "./contacts.js";
+import { makeContact, contactFilter, byReach, isDue, checkDate, checkTouchKind, lastContact, lastActive, genresOf, ContactError } from "./contacts.js";
 import { mapStreamers, mergeNotes } from "./contactImport.js";
 import { EventMatch } from "./eventMatch.js";
 import { daysLeft, checkWatchState, checkYear, checkProfile, isPlatformEvent } from "./events.js";
@@ -17,7 +17,7 @@ const day = d => {
 };
 
 /** The input fields of a stored contact: what `makeContact` takes, without the facts the book adds. */
-const plain = ({ fit, touches, due, id, last, ...fields }) => fields;
+const plain = ({ fit, touches, due, id, last, active, ...fields }) => fields;
 
 /** Channel kinds that name one person; a shared Discord server or a website does not. */
 const PERSONAL = new Set(["youtube", "twitch", "bluesky", "x", "instagram", "facebook", "linktree", "steam"]);
@@ -38,14 +38,14 @@ export class ContactBook {
   list(filter = {}) {
     const today = this.today();
     const keep = contactFilter(filter, today);
-    return this.source.all().filter(keep).map(c => ({ ...c, due: isDue(c, today), last: lastContact(c.touches) }))
+    return this.source.all().filter(keep).map(c => ({ ...c, due: isDue(c, today), last: lastContact(c.touches), active: lastActive(c.touches) }))
       .sort((a, b) => Number(b.due) - Number(a.due) || byReach(a, b));
   }
 
   get(id) {
     const c = this.source.get(this.#id(id));
     if (!c) throw new ContactError(`No contact ${id}`, 404);
-    return { ...c, due: isDue(c, this.today()), last: lastContact(c.touches) };
+    return { ...c, due: isDue(c, this.today()), last: lastContact(c.touches), active: lastActive(c.touches) };
   }
 
   /** Every genre in use, for the Genre filter. */

@@ -121,6 +121,11 @@ export function lastContact(touches) {
   return touches.reduce((best, t) => (t.date > best ? t.date : best), "");
 }
 
+/** The newest date of a touch of kind reply or video (what the contact did), or "" when there is none. */
+export function lastActive(touches) {
+  return lastContact(touches.filter(t => t.kind === "reply" || t.kind === "video"));
+}
+
 /** Every genre in use, sorted without case. */
 export function genresOf(contacts) {
   const seen = new Map();
