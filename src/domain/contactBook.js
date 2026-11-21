@@ -77,8 +77,8 @@ export class ContactBook {
   /** Festivals and conferences by deadline (those with none last), each with `daysLeft`.
    *  `state` keeps one watching state; by default the past ones are left out.
    *  `fits` (a game) keeps the events whose criteria match that game's profile, each with `match`, and drops those past their deadline.
-   *  `deadlineWithin` (days) keeps deadlines from today to that many days ahead. */
-  festivals({ fits, deadlineWithin, state } = {}) {
+   *  `open` drops events past their deadline without a game (a game always does). `deadlineWithin` (days) keeps deadlines from today to that many days ahead. */
+  festivals({ fits, deadlineWithin, state, open = false } = {}) {
     const today = this.today();
     const profile = fits ? this.shelf.list().find(p => p.game === String(fits).trim()) : null;
     if (fits && !profile) throw new ContactError(`No profile for game "${fits}"`);
@@ -88,7 +88,8 @@ export class ContactBook {
     return this.source.all().filter(c => c.event)
       .map(c => ({ ...c, due: isDue(c, today), daysLeft: daysLeft(c.event.deadline, today), match: profile ? this.matcher.check(profile, c) : null }))
       .filter(c => (want ? c.event.state === want : c.event.state !== "past")
-        && (!profile || (c.match.match && (c.daysLeft === null || c.daysLeft >= 0)))
+        && (!profile || c.match.match)
+        && (!(profile || open) || c.daysLeft === null || c.daysLeft >= 0)
         && (within === null || (c.daysLeft !== null && c.daysLeft >= 0 && c.daysLeft <= within)))
       .sort((a, b) => (a.event.deadline || "9999").localeCompare(b.event.deadline || "9999") || a.name.localeCompare(b.name));
   }

@@ -54,13 +54,15 @@ Module order, low to high: domain → store → cli, server → root.
 - `cli/mailCli.js`: `MailCli`, the mail commands (`templates`, `draft`, `drafts`, `mail sweep`), over the `Mailroom`. Nothing approves or sends. `Cli.run` returns a promise of the exit code when a command is async (`mail sweep`); `bin/doit.js` awaits it.
 - `server/mailRoutes.js`: `mailRoutes(mailroom)`, the `/api/drafts` (list, show, edit, discard, send) and `/api/mail` (sweep, status) routes; refusals are 400, a missing draft 404. `HttpServer` awaits async handlers and takes the `Mailroom` as its last argument.
 - `web/draftsPane.js`: the Drafts pane of the Marketing view (each draft as the mail will look, edit, approve and send, discard, status line); pure HTML and request builders like `contactDetail.js`. `marketingView.js` switches between the Contacts and Drafts panes and sweeps once when the view opens.
+- `server/festivalRoutes.js`: `festivalRoutes(book)`, `GET /api/festivals[?game=<game>]`: the festivals by deadline with `daysLeft`, `match` (so the criteria-unknown mark) and state, from `ContactBook.festivals({fits, open: true})`; events past their deadline are never in it. An unknown game is a 400.
+- `web/festivalsPane.js`: the Festivals tab of the Marketing view (game picker, list rows with days left, cost, state and the criteria-unknown mark; a row opens the festival in the contact detail pane); pure HTML like `draftsPane.js`.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board`, output streams, the `ClaudeView` (for `morning`), the `ContactBook` and `readText(path)` (a file reader the root supplies, since the CLI tier has no `node:fs`); the contact commands go to `ContactsCli`, the festival commands to `FestivalsCli`.
 - `cli/contactsCli.js`: `ContactsCli`, the contact commands (`contacts`, `contact`, `fit`, `touch`, `profiles`), over the `ContactBook`.
 - `cli/festivalsCli.js`: `FestivalsCli`, the festival commands (`festivals`, `festival upsert|set`), over the `ContactBook`; an upsert finds the festival by name and year.
 - `server/server.js`: `HttpServer`, the JSON API (including `GET /api/version`, the start commit) and the static page. Given a `Board`, the web folder, the commit, the `DocsLibrary` (the `/api/docs/` routes) and the `ClaudeView` (`GET /api/claude`), and `GET /api/events`, a server-sent event stream that sends `changed` on connect and on every event of the optional `changes` port (`subscribe(listener)` returning an unsubscribe; the root passes the `ChangeWatcher`); `close()` ends the open streams first and closes the port, since the server is its only user. `bin/server.js` reads the commit with `git rev-parse HEAD`. It also takes the `ContactBook` and adds the contact routes.
 - `server/contactRoutes.js`: `contactRoutes(book)`, the rows for `GET /api/contacts` (filters `type`, `fits`, `status`, `reach`, `due`), `GET` and `PATCH /api/contacts/:id`, `POST /api/contacts/:id/fit` and `/touch`, and `GET /api/profiles`; a refused value is a 400 with the message, a missing contact a 404.
 - `launcher/`: `Doit.applescript` (the app), `start-server.sh`, `check-server.sh` (running server on the checked-out commit? exit 0, 1 none, 3 other), `stop-server.sh`, and `morning-run.md` (the desktop app scheduled task's prompt for `doit morning`; created by hand).
-- `web/`: the board page, plain HTML, CSS and JS as ES modules, none over 300 lines: `state.js` (page state, helpers, API calls), `render.js` (views), `epicView.js` (the epic document view and its Close epic button), `epicList.js` (the left pane's epic buttons and the Closed and Archived sections), `docsView.js` (the Docs view: tree, document, linked tasks), `claudeView.js` (the Claude view: its three panes; a card opens the task on the Board), `marketingView.js` (the Marketing view: its tabs Contacts, Drafts and Festivals, which replace the project chips in the top bar while Marketing is shown; filters, contacts with due ones on top, and the send and reload of edits), `contactDetail.js` (the contact detail pane and the requests its edits send, pure), `markdown.js` (markdown to HTML, no packages), `ordering.js` (drag and keyboard moves), `resize.js` (column widths), `events.js` (listeners and live updates: an `EventSource` on `/api/events` reloads the page, held while the user types, drags or has a menu or form open), `app.js` (wires them).
+- `web/`: the board page, plain HTML, CSS and JS as ES modules, none over 300 lines: `state.js` (page state, helpers, API calls), `render.js` (views), `epicView.js` (the epic document view and its Close epic button), `epicList.js` (the left pane's epic buttons and the Closed and Archived sections), `docsView.js` (the Docs view: tree, document, linked tasks), `claudeView.js` (the Claude view: its three panes; a card opens the task on the Board), `festivalsPane.js` (the Festivals tab), `marketingView.js` (the Marketing view: its tabs Contacts, Drafts and Festivals, which replace the project chips in the top bar while Marketing is shown; filters, contacts with due ones on top, and the send and reload of edits), `contactDetail.js` (the contact detail pane and the requests its edits send, pure), `markdown.js` (markdown to HTML, no packages), `ordering.js` (drag and keyboard moves), `resize.js` (column widths), `events.js` (listeners and live updates: an `EventSource` on `/api/events` reloads the page, held while the user types, drags or has a menu or form open), `app.js` (wires them).
 - `root.js`: `makeContacts` builds the contact book over `SqliteContacts` and `ProfileShelf` (handed to the CLI, with a file reader, and to the server); builds the change watcher (server only), the activity log and points the board's `record` at it, the Claude view over both, the settings file, the worktree finder, the source, the board, the docs files and library, and hands the board to the CLI or the server.
 
 ## Class diagram
@@ -91,6 +93,7 @@ classDiagram
   class EventMatch { +check(profile, festival) }
   class FestivalsCli { +festivals() +festival() }
   class ContactRoutes { +contactRoutes(book) }
+  class FestivalRoutes { +festivalRoutes(book) }
   class ContactsCli { +contacts() +contact() +fit() +touch() +profiles() }
   class SqliteContacts { +all() +get(id) +insert(c) +update(id, c) +setFit() +addTouch() }
   class ProfileShelf { +list() +has(game) +create(game, name) }
@@ -150,6 +153,8 @@ classDiagram
   HttpServer --> ClaudeView
   HttpServer --> ContactRoutes
   ContactRoutes --> ContactBook
+  HttpServer --> FestivalRoutes
+  FestivalRoutes --> ContactBook
   HttpServer ..> ChangeWatcher : changes port
   ChangeWatcher --> SettingsFile
   ChangeWatcher --> EpicWorktrees

@@ -4,6 +4,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { contactRoutes } from "./contactRoutes.js";
+import { festivalRoutes } from "./festivalRoutes.js";
 import { mailRoutes } from "./mailRoutes.js";
 
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png" };
@@ -40,6 +41,7 @@ export class HttpServer {
       ["GET", /^\/api\/claude$/, q => this.claude.panes(q.get("project") || "all")],
       ["PUT", /^\/api\/settings$/, (q, b) => { this.board.setKeepDays(b.keepCompletedDays); return this.board.settings(); }],
       ...(contacts ? contactRoutes(contacts) : []),
+      ...(contacts ? festivalRoutes(contacts) : []),
       ...(mailroom ? mailRoutes(mailroom) : []),
     ];
   }
