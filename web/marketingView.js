@@ -16,15 +16,17 @@ export const TYPES = ["influencer", "blogger", "press", "publisher", "tester"];
 const EVENT_TYPES = "festival,conference";
 export const REACH_OPTIONS = [["", "Any"], ["100", "100"], ["1000", "1 000"], ["10000", "10 000"], ["100000", "100 000"]];
 
-/** The list request for the picked game and the chosen filters; events are left out. */
-export function contactPath(f, game = "") {
+/** The list request for the chosen filters; events are left out. The picked game does not filter: contacts are contacts, the game only marks the ones that fit. */
+export function contactPath(f) {
   const q = new URLSearchParams();
-  if (game) q.set("fits", game);
   for (const k of ["type", "reach", "status", "genre"]) if (f[k]) q.set(k, f[k]);
   q.set("except", EVENT_TYPES);
   const s = q.toString();
   return "/api/contacts" + (s ? "?" + s : "");
 }
+
+/** The picked game as {id, name} for the fit mark, or null. */
+const pickedGame = m => (m.game ? { id: m.game, name: m.profiles.find(p => p.game === m.game)?.name || m.game } : null);
 
 /** Due contacts first, each group in the order the server gave. */
 export const dueFirst = list => [...list.filter(c => c.due), ...list.filter(c => !c.due)];
@@ -42,20 +44,26 @@ export function filterPane(f, genres = []) {
     <button data-mk-clear>Clear filters</button></div></section>`;
 }
 
-export function contactRow(c, sel) {
+/** The mark on a contact that fits the picked game, saying what it means and why. */
+export function fitMark(c, game) {
+  const fit = game && (c.fit ?? []).find(f => f.game === game.id);
+  return fit ? `<span class="pill fit" title="Fits ${esc(game.name)}: ${esc(fit.reason)}">fits</span>` : "";
+}
+
+export function contactRow(c, sel, game = null) {
   const next = c.next ? `<span class="pill due ${c.due ? "late" : ""}" title="Next contact ${esc(c.next)}">${c.due ? "due " : ""}${esc(fmtDate(c.next))}</span>` : "";
   return `<button class="mk-row" data-contact="${esc(c.id)}" aria-pressed="${String(sel) === String(c.id)}">
     <span class="title">${esc(c.name)}</span>
-    <span class="pills">${c.types.map(t => `<span class="pill">${esc(t)}</span>`).join("")}${c.reach !== null && c.reach !== undefined ? `<span class="pill mono" title="Reach ${esc(c.reach)}">${esc(compactCount(c.reach))}</span>` : ""}<span class="pill${c.status === "active" ? "" : " ai"}">${esc(c.status)}</span>${lastPill(c)}${next}</span></button>`;
+    <span class="pills">${c.types.map(t => `<span class="pill">${esc(t)}</span>`).join("")}${c.reach !== null && c.reach !== undefined ? `<span class="pill mono" title="Reach ${esc(c.reach)}">${esc(compactCount(c.reach))}</span>` : ""}${fitMark(c, game)}<span class="pill${c.status === "active" ? "" : " ai"}">${esc(c.status)}</span>${lastPill(c)}${next}</span></button>`;
 }
 
 /** The list column: a Due group when any contact is due, then the rest. */
-export function listPane(contacts, sel, draftCount = null) {
+export function listPane(contacts, sel, draftCount = null, game = null, filtered = false) {
   if (!contacts) return `<section class="pane"><div class="pane-h">Contacts</div><div class="pane-b"><div class="empty">Loading…</div></div></section>`;
   const sorted = dueFirst(contacts);
   const due = sorted.filter(c => c.due), rest = sorted.filter(c => !c.due);
-  const group = (name, list) => list.length ? `<div class="sec-h">${name}<span class="c">${list.length}</span></div>${list.map(c => contactRow(c, sel)).join("")}` : "";
-  const body = contacts.length ? group("Due", due) + group(due.length ? "Others" : "All", rest) : `<div class="empty">No contact matches.</div>`;
+  const group = (name, list) => list.length ? `<div class="sec-h">${name}<span class="c">${list.length}</span></div>${list.map(c => contactRow(c, sel, game)).join("")}` : "";
+  const body = contacts.length ? group("Due", due) + group(due.length ? "Others" : "All", rest) : filtered ? `<div class="empty">No contact matches these filters. <button data-mk-clear>Clear filters</button></div>` : `<div class="empty">No contacts yet.</div>`;
   return `<section class="pane" aria-label="Contacts"><div class="pane-h">Contacts<span class="c">${contacts.length}</span><button data-mk-pane="drafts" class="pane-close">Drafts${draftCount === null ? "" : ` (${draftCount})`}</button></div><div class="pane-b">${body}</div></section>`;
 }
 
@@ -81,8 +89,31 @@ export function marketingPanes() {
   if (m.pane === "overview") return overviewPanes(m.week, m.sel, m.game);
   if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game)) + detail();
   if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + detail(); }
-  const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length);
+  const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length, pickedGame(m), Object.values(m.f).some(Boolean));
   return filterPane(m.f, m.genres) + middle + detail();
+}
+
+/** The contact id above or below `sel` in `ids` (`key` ArrowUp or ArrowDown); the first when none is selected, the same at either end. */
+export function nextContact(ids, sel, key) {
+  if (!ids.length) return null;
+  const i = ids.findIndex(id => String(id) === String(sel));
+  if (i < 0) return ids[0];
+  return ids[Math.max(0, Math.min(ids.length - 1, i + (key === "ArrowDown" ? 1 : -1)))];
+}
+
+/** Arrow up and down in a Contacts, Festivals or Events list move the selection, and the pane follows; true when the key was one of those. */
+export function marketingKey(ev) {
+  const m = S.mk;
+  if (S.view !== "marketing" || (ev.key !== "ArrowUp" && ev.key !== "ArrowDown") || ev.altKey || ev.ctrlKey || ev.metaKey) return false;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) || ev.target.isContentEditable) return false;
+  const ids = m.pane === "contacts" ? dueFirst(m.contacts || []).map(c => c.id) : EVENT_TAB[m.pane] ? (m.fest || []).map(c => c.id) : null;
+  if (!ids) return false;
+  ev.preventDefault();
+  const id = nextContact(ids, m.sel, ev.key);
+  if (id === null || String(id) === String(m.sel)) return true;
+  m.sel = id; m.touchOpen = false;
+  refreshMarketing().then(() => $(`[data-contact="${id}"]`)?.focus());
+  return true;
 }
 
 /** Opening the view: loads it, then sweeps the mailbox once, quietly (its result is a line in the Drafts pane). */
@@ -97,7 +128,7 @@ export async function openMarketing() {
 export async function refreshMarketing() {
   const m = S.mk;
   try {
-    [m.profiles, m.contacts, m.drafts, m.status, m.genres] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f, m.game)), api("GET", "/api/drafts"), api("GET", "/api/mail/status"), api("GET", "/api/genres")]);
+    [m.profiles, m.contacts, m.drafts, m.status, m.genres] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f)), api("GET", "/api/drafts"), api("GET", "/api/mail/status"), api("GET", "/api/genres")]);
     if (m.pane === "overview") m.week = await api("GET", "/api/outreach").catch(() => null);
     if (EVENT_TAB[m.pane]) m.fest = await api("GET", festivalPath(m.game, EVENT_TAB[m.pane]));
     if (m.pane === "campaigns") m.campaigns = (await api("GET", "/api/board?project=all")).epics;

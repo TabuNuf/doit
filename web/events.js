@@ -8,7 +8,7 @@ import { openEpic, closeEpic, addContacts } from "./epicView.js";
 import { toggleFold } from "./epicList.js";
 import { docsClick, docsInput, docsLeave, refreshDocs } from "./docsView.js";
 import { claudeClick, refreshClaude } from "./claudeView.js";
-import { marketingClick, marketingChange, marketingFocusOut, marketingSubmit, refreshMarketing, openMarketing } from "./marketingView.js";
+import { marketingKey, marketingClick, marketingChange, marketingFocusOut, marketingSubmit, refreshMarketing, openMarketing } from "./marketingView.js";
 
 /** Loads what the current view shows beyond the board data. */
 const refreshView = () => S.view === "board" ? refreshDocs() : S.view === "claude" ? refreshClaude() : S.view === "marketing" ? refreshMarketing() : undefined;
@@ -81,6 +81,7 @@ document.addEventListener("submit", ev => {
 });
 
 document.addEventListener("keydown", ev => {
+  if (marketingKey(ev)) return;
   const r = ev.target.closest && ev.target.closest(".row");
   if (r && (ev.key === "Enter" || ev.key === " ") && ev.target === r) { ev.preventDefault(); S.sel = r.dataset.id; docsLeave({ id: 1 }); render(); }
   if (r && ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && r.draggable) { ev.preventDefault(); nudge(r.dataset.id, ev.key === "ArrowUp" ? -1 : 1); }

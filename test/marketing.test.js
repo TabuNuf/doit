@@ -25,13 +25,14 @@ test("a row shows name, types, reach, status and next date", async () => {
   const { contactRow, listPane } = await import("../web/marketingView.js");
   const html = contactRow(FIXTURE[1], null);
   for (const s of ["press", "blogger", ">950<", ">active<", "2 Jan"]) assert.ok(html.includes(s), s);
-  assert.match(listPane([], null), /No contact matches/);
+  assert.match(listPane([], null, null, null, true), /No contact matches these filters\. <button data-mk-clear>Clear filters<\/button>/);
+  assert.match(listPane([], null), /No contacts yet\./);
 });
 
 test("filters become query parameters, with a reach count", async () => {
   const { contactPath, filterPane } = await import("../web/marketingView.js");
   assert.equal(contactPath({ type: "", reach: "", status: "" }), "/api/contacts?except=festival%2Cconference");
-  assert.equal(contactPath({ type: "press", reach: "1000", status: "active" }, "storm-haven"), "/api/contacts?fits=storm-haven&type=press&reach=1000&status=active&except=festival%2Cconference");
+  assert.equal(contactPath({ type: "press", reach: "1000", status: "active" }), "/api/contacts?type=press&reach=1000&status=active&except=festival%2Cconference");
   const html = filterPane({ type: "", reach: "1000", status: "" });
   assert.doesNotMatch(html, /mk-game|festival|conference/, "the game is picked in the top bar; events have their own tabs");
   assert.match(html, /<option value="1000" selected>1 000/);

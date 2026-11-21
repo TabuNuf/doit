@@ -68,3 +68,43 @@ test("the pane lists history in date order with a sent draft and shows Last cont
   assert.match(row, /class="pill mono" title="Last contact 2026-10-05: [^"]*">last 2026-10-05</);
   assert.doesNotMatch(listPane([{ ...c, last: "" }], null), /last 20/);
 });
+
+test("with a game picked the Contacts list still holds every contact and marks the ones that fit, with a title saying why", async () => {
+  const { listPane, contactPath } = await import("../web/marketingView.js");
+  const mk = (id, name, fit = []) => ({ id, name, types: ["influencer"], reach: null, status: "active", next: "", due: false, last: "", fit });
+  const list = [mk(1, "Ada", [{ game: "bunny-bunker", reason: "plays <co-op>" }]), mk(2, "Bit"), mk(3, "Cog", [{ game: "good-box", reason: "puzzles" }])];
+  assert.doesNotMatch(contactPath({ type: "", reach: "", status: "", genre: "" }), /fits/, "the pick is never sent as a filter");
+  const html = listPane(list, null, null, { id: "bunny-bunker", name: "Bunny Bunker" });
+  for (const n of ["Ada", "Bit", "Cog"]) assert.ok(html.includes(`>${n}<`), n);
+  assert.equal(html.match(/class="pill fit"/g).length, 1);
+  assert.match(html, /class="pill fit" title="Fits Bunny Bunker: plays &lt;co-op&gt;">fits</);
+  assert.doesNotMatch(listPane(list, null), /pill fit/, "no game, no mark");
+});
+
+test("arrow up and down move the selection through the list and the pane follows", async t => {
+  const { nextContact, marketingKey } = await import("../web/marketingView.js");
+  assert.equal(nextContact([5, 6, 7], 5, "ArrowDown"), 6);
+  assert.equal(nextContact([5, 6, 7], 6, "ArrowUp"), 5);
+  assert.equal(nextContact([5, 6, 7], 5, "ArrowUp"), 5);
+  assert.equal(nextContact([5, 6, 7], 7, "ArrowDown"), 7);
+  assert.equal(nextContact([5, 6, 7], null, "ArrowDown"), 5);
+  assert.equal(nextContact([], 1, "ArrowDown"), null);
+
+  const calls = [];
+  globalThis.document = { querySelector: () => ({ focus() {}, innerHTML: "", style: { setProperty() {} }, classList: { toggle() {} }, setAttribute() {}, querySelectorAll: () => [] }), getElementById: () => ({}), documentElement: {}, querySelectorAll: () => [] };
+  globalThis.fetch = async url => { calls.push(String(url)); return { ok: true, json: async () => (String(url).endsWith("/contacts/6") ? { id: 6, name: "Bit", types: [], fit: [], touches: [], channels: [], genres: [] } : []) }; };
+  t.after(() => { delete globalThis.document; delete globalThis.fetch; });
+  const { S } = await import("../web/state.js");
+  S.view = "marketing"; S.mk.pane = "contacts"; S.mk.sel = 5;
+  S.mk.contacts = [{ id: 5, due: false }, { id: 6, due: false }, { id: 7, due: true }];
+  let prevented = 0;
+  const key = (k, tag = "BUTTON") => marketingKey({ key: k, target: { tagName: tag }, preventDefault: () => prevented++ });
+  assert.equal(key("ArrowDown", "INPUT"), false, "typing in a field keeps its own arrows");
+  assert.equal(key("a"), false);
+  assert.equal(key("ArrowDown"), true);
+  assert.equal(String(S.mk.sel), "6", "the due contact 7 is first in the list, so below 5 comes 6");
+  assert.equal(prevented, 1);
+  await new Promise(r => setTimeout(r, 30));
+  assert.ok(calls.includes("/api/contacts/6") && calls.includes("/api/contacts/6/history"), "the pane loads the new contact");
+  assert.equal(S.mk.detail.name, "Bit");
+});

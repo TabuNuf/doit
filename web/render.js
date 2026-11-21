@@ -166,6 +166,7 @@ function detailPane() {
     <div class="mono muted">${t.id} · ${esc(t.epicName)}</div>
     <h2>${inline(head)}</h2>
     <div class="pills" style="justify-content:flex-start"><span class="pill"><span class="tdot ${t.type}"></span>${t.type === "bug" ? "Bug" : "Task"}</span><span class="pill">${t.owner === "ai" ? "🤖 Claude" : "🧑 You"}</span><span class="pill"><span class="dot" style="background:${color(t.project)}"></span>${esc(proj(t.project).name)}</span></div>
+    ${rest ? `<div class="sect" style="margin-top:8px">Spec</div><div class="doc spec">${renderMarkdown(rest)}</div>` : ""}
     <dl class="kv">
       <dt>State</dt><dd><select id="st" aria-label="State">${STATES.map(([v, l]) => `<option value="${v}" ${t.state === v ? "selected" : ""}>${l}</option>`).join("")}</select></dd>
       <dt>Owner</dt><dd><div class="seg">${[["human", "🧑 Me"], ["ai", "🤖 Claude"]].map(([v, l]) => `<button aria-pressed="${t.owner === v}" data-own="${v}">${l}</button>`).join("")}</div></dd>
@@ -180,7 +181,6 @@ function detailPane() {
       ${t.source ? `<dt>Source</dt><dd>${esc(t.source)}</dd>` : ""}
       ${t.state === "archived" && t.archived ? `<dt>Archived</dt><dd class="warnline">${esc(t.archived)}</dd>` : ""}
     </dl>
-    ${rest ? `<div class="sect">Spec</div><div class="doc spec">${renderMarkdown(rest)}</div>` : ""}
     ${descSection(t)}
     <div class="sect">Done when</div>
     <p>${esc(t.doneWhen || "Not written yet.")}</p>

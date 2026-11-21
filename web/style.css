@@ -124,6 +124,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .pill.ai { border-style: dashed; }
 .pill.bug { border-color: var(--warn); color: var(--warn); }
 .pill.due { font-family: var(--mono); }
+.pill.fit { border-color: var(--accent); color: var(--accent); }
 .pill.late { background: var(--warn); color: var(--on-warn); border-color: var(--warn); }
 .grip { width: 10px; height: 16px; cursor: grab; opacity: .55; background-image: radial-gradient(var(--ink) 1.1px, transparent 1.3px); background-size: 5px 5px; }
 .row:hover .grip { opacity: 1; }
