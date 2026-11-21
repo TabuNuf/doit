@@ -10,7 +10,7 @@ export async function refreshDocs() {
   const d = S.docs;
   const shown = S.project === "all" ? projects() : [proj(S.project)];
   try {
-    for (const p of shown) d.trees[p.id] = await api("GET", `/api/docs/tree?${q(p.id)}`);
+    if (S.show.docs) for (const p of shown) d.trees[p.id] = await api("GET", `/api/docs/tree?${q(p.id)}`);
     if (d.active && d.path && !d.editing) await readDoc(d.path);
     redraw();
   } catch (e) { toast(e.message); }
@@ -32,6 +32,12 @@ export function docsLeave(d) {
 /** Handles a click on a Docs control; true when the click was one. */
 export function docsClick(d) {
   const D = S.docs;
+  if (d.show) {
+    S.show[d.show] = !S.show[d.show];
+    try { localStorage.setItem("doit.show", JSON.stringify(S.show)); } catch { /* storage off */ }
+    if (d.show === "docs" && S.show.docs) refreshDocs(); else redraw();
+    return true;
+  }
   if (d.fold) { const k = `${d.docProject}/${d.fold}`; D.open[k] = !(k in D.open ? D.open[k] : d.folded !== "true"); redraw(); return true; }
   if (d.doc) {
     if (D.editing && D.draft !== D.doc.text && !confirm("Discard your changes to this document?")) return true;

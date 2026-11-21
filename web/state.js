@@ -8,12 +8,12 @@ export const FUNNEL = '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z
 export const S = {
   project: "all", epic: null, tab: "open", q: "", owner: "all",
   f: { task: true, bug: true, due: "any" }, fOpen: false, projOpen: false,
-  view: "board", claude: null, mk: { contacts: null, profiles: [], game: "", f: { type: "", reach: "", status: "", genre: "" }, genres: [], sel: null, detail: null, history: null, touchOpen: false, pane: "campaigns", newCampaign: false, events: [], fest: null, campaigns: null, drafts: null, status: null, sweep: "", week: null, sort: null }, docs: { project: null, trees: {}, show: {}, active: false, path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
+  view: "board", claude: null, mk: { contacts: null, profiles: [], game: "", f: { type: "", reach: "", status: "", genre: "" }, genres: [], sel: null, detail: null, history: null, touchOpen: false, pane: "campaigns", newCampaign: false, events: [], fest: null, campaigns: null, drafts: null, status: null, sweep: "", week: null, sort: null }, show: { epics: true, docs: true }, docs: { project: null, trees: {}, active: false, path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
   settings: { open: false, profiles: [], msg: "" },
   sel: null, descEdit: null, font: 15, newProj: false, newTask: false, newEpic: null, epicView: null, epicFold: {}, data: null, npErr: "",
 };
 try { S.mk.sort = JSON.parse(localStorage.getItem("doit.contacts.sort") || "null"); } catch { /* storage off or unreadable */ }
-try { S.font = Number(localStorage.getItem("doit.font")) || 15; S.project = localStorage.getItem("doit.project") || "all"; S.docs.linkedClosed = localStorage.getItem("doit.docs.linked") === "closed"; } catch { /* storage off */ }
+try { S.font = Number(localStorage.getItem("doit.font")) || 15; S.project = localStorage.getItem("doit.project") || "all"; S.docs.linkedClosed = localStorage.getItem("doit.docs.linked") === "closed"; Object.assign(S.show, JSON.parse(localStorage.getItem("doit.show") || "{}")); } catch { /* storage off */ }
 
 let renderer = () => {};
 /** The page registers its render function here, so loading does not import the views. */

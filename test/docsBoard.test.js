@@ -29,8 +29,9 @@ async function setup(t) {
   const { render } = await import("../web/render.js");
   const docs = await import("../web/docsView.js");
   state.S.data = { projects: [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }], epics: [EPIC], tasks: [TASK], parkedEpics: [], closedEpics: [] };
+  Object.assign(state.S.show, { epics: true, docs: true });
   Object.assign(state.S, { view: "board", project: "all", epic: null, sel: null });
-  Object.assign(state.S.docs, { show: {}, trees: {}, active: false, path: null, doc: null, open: {} });
+  Object.assign(state.S.docs, { trees: {}, active: false, path: null, doc: null, open: {} });
   state.setRenderer(render);
   return { S: state.S, els, render, docs, panes: () => els.get("#panes").innerHTML };
 }
@@ -47,6 +48,26 @@ test("the left pane shows an Epics headline over the epics and a Docs headline o
   assert.equal(both.split('data-doc="Design.md"').length - 1, 2, "each project shows its own tree");
   assert.doesNotMatch(els.get("#views").innerHTML, /Docs|data-view="docs"/);
   assert.match(els.get("#views").innerHTML, /data-view="board".*data-view="claude"/s);
+});
+
+test("the Epics and Docs buttons sit in the pane header for every project; Docs off hides all trees and stops loading them, both off says so, and the choice is kept", async t => {
+  const { S, els, render, docs, panes } = await setup(t);
+  await docs.refreshDocs();
+  render();
+  const head = panes().match(/<div class="pane-h">[\s\S]*?<\/div>/)[0];
+  assert.match(head, /data-show="epics" aria-pressed="true"[\s\S]*data-show="docs" aria-pressed="true"/);
+  assert.equal(panes().split("data-show=").length - 1, 2, "none inside a project's group");
+  docs.docsClick({ show: "docs" });
+  assert.doesNotMatch(panes(), /data-doc=|part-rule|Docs<\/div>/);
+  assert.equal(JSON.parse(localStorage.getItem("doit.show")).docs, false);
+  S.docs.trees = {};
+  await docs.refreshDocs();
+  assert.deepEqual(S.docs.trees, {}, "no trees load while Docs is off");
+  docs.docsClick({ show: "epics" });
+  assert.match(panes(), /Both off|both off/);
+  docs.docsClick({ show: "epics" }); docs.docsClick({ show: "docs" });
+  await flush();
+  assert.match(panes(), /data-doc="Design.md"/);
 });
 
 test("opening a doc gives the document the wide layout with Edit and Linked; choosing a task brings the task layout back", async t => {

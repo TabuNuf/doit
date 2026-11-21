@@ -17,10 +17,11 @@ const docs = p => `<div class="tree" aria-label="Documents of ${esc(p.name)}">${
 /** The epics and doc trees of the shown projects. */
 export function leftPane() {
   const ps = S.project === "all" ? projects() : [proj(S.project)];
-  const groups = ps.map(p => {
-    return `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}${gearButton(p.id, settingsShown() && S.project === p.id)}</div>
-      <div class="part-h">Epics</div>${epics(p)}<hr class="part-rule"><div class="part-h">Docs</div>${docs(p)}`;
-  }).join("");
-  return `<section class="pane"><div class="pane-h">Projects${S.epic ? `<button class="fsz" data-clear-epic style="text-transform:none">Show all</button>` : ""}</div>
-    <div class="pane-b">${groups || `<div class="empty">No projects yet. Add one under Projects ▾, + New project.</div>`}</div></section>`;
+  const { epics: ep, docs: dc } = S.show;
+  const groups = ps.map(p => `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}${gearButton(p.id, settingsShown() && S.project === p.id)}</div>`
+    + (ep ? `<div class="part-h">Epics</div>${epics(p)}` : "") + (ep && dc ? `<hr class="part-rule">` : "") + (dc ? `<div class="part-h">Docs</div>${docs(p)}` : "")).join("");
+  const toggle = (k, label) => `<button class="fsz" data-show="${k}" aria-pressed="${!!S.show[k]}" style="margin-left:0">${label}</button>`;
+  const none = groups && !ep && !dc ? `<div class="empty">Epics and Docs are both off. Turn one on in the header.</div>` : "";
+  return `<section class="pane"><div class="pane-h">Projects${toggle("epics", "Epics")}${toggle("docs", "Docs")}${S.epic ? `<button class="fsz" data-clear-epic style="text-transform:none">Show all</button>` : ""}</div>
+    <div class="pane-b">${groups}${none}${groups ? "" : `<div class="empty">No projects yet. Add one under Projects ▾, + New project.</div>`}</div></section>`;
 }
