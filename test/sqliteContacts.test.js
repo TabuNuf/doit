@@ -16,6 +16,7 @@ const ADA = {
   name: "Ada Plays", types: ["influencer", "blogger"], topic: "", email: "ada@example.test", reach: 12400, notes: "Likes co-op.\nSecond line.",
   status: "active", next: "2026-12-01",
   channels: [{ kind: "youtube", url: "https://youtube.example.test/ada" }, { kind: "bluesky", url: "https://bsky.example.test/ada" }],
+  event: null,
 };
 
 test("a contact with channels, fit and touches is read back after reopening", () => {
@@ -48,16 +49,16 @@ test("the file and its schema version are made on first open and kept on the nex
   s.close();
   assert.ok(fs.existsSync(path.join(dir, "marketing.db")));
   const b = open(dir);
-  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 2);
+  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 3);
   b.close();
 });
 
 test("a file from a newer schema is refused", () => {
   const dir = home();
   const a = open(dir);
-  a.db.exec("PRAGMA user_version = 3");
+  a.db.exec("PRAGMA user_version = 4");
   a.close();
-  assert.throws(() => open(dir).all(), /version 3/);
+  assert.throws(() => open(dir).all(), /version 4/);
 });
 
 test("update replaces fields and channels and keeps fit and touches; a second fit replaces the reason", () => {
@@ -127,9 +128,51 @@ test("a version 1 file is migrated in place and keeps its contacts and touches",
   const m = new MarketingDb(dir);
   const store = new SqliteContacts(m);
   assert.deepEqual(store.get(1).touches, [{ date: "2026-10-01", kind: "mail", game: "good-box", note: "" }]);
-  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 2);
+  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 3);
   assert.equal(new SqliteDrafts(m).all().length, 0);
   store.addTouch(1, { date: "2026-11-01", kind: "mail", note: "S", ref: "<x@example.com>" });
   assert.equal(store.get(1).touches.length, 2);
   m.close();
+});
+
+test("a version 2 file is migrated, keeps its contacts and drafts, and reads an event back", () => {
+  const dir = home();
+  fs.mkdirSync(dir, { recursive: true });
+  // The schema as EPIC-013 left it: version 1 plus the drafts table and the touch note and ref.
+  const old = new DatabaseSync(path.join(dir, "marketing.db"));
+  old.exec(`
+    CREATE TABLE contacts (id INTEGER PRIMARY KEY, name TEXT NOT NULL, types TEXT NOT NULL, topic TEXT NOT NULL DEFAULT '',
+      email TEXT NOT NULL DEFAULT '', reach INTEGER, notes TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'active', next TEXT NOT NULL DEFAULT '');
+    CREATE TABLE channels (contact_id INTEGER NOT NULL REFERENCES contacts(id) ON DELETE CASCADE, position INTEGER NOT NULL, kind TEXT NOT NULL, url TEXT NOT NULL);
+    CREATE TABLE fit (contact_id INTEGER NOT NULL REFERENCES contacts(id) ON DELETE CASCADE, game TEXT NOT NULL, reason TEXT NOT NULL, PRIMARY KEY (contact_id, game));
+    CREATE TABLE touches (id INTEGER PRIMARY KEY, contact_id INTEGER NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+      date TEXT NOT NULL, kind TEXT NOT NULL, game TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', ref TEXT NOT NULL DEFAULT '');
+    CREATE UNIQUE INDEX touches_ref ON touches(ref) WHERE ref <> '';
+    CREATE TABLE drafts (id INTEGER PRIMARY KEY, contact_id INTEGER NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+      game TEXT NOT NULL, template TEXT NOT NULL, personal TEXT NOT NULL DEFAULT '', subject TEXT NOT NULL, body TEXT NOT NULL,
+      state TEXT NOT NULL DEFAULT 'draft', created TEXT NOT NULL, sent_at TEXT NOT NULL DEFAULT '', message_id TEXT NOT NULL DEFAULT '',
+      error TEXT NOT NULL DEFAULT '', labeled INTEGER NOT NULL DEFAULT 0);
+    INSERT INTO contacts (name, types) VALUES ('Old Contact', 'press');
+    INSERT INTO drafts (contact_id, game, template, subject, body, created) VALUES (1, 'good-box', 'pitch', 'S', 'B', '2026-11-01');
+    PRAGMA user_version = 2;
+  `);
+  old.close();
+  const m = new MarketingDb(dir);
+  const store = new SqliteContacts(m);
+  assert.equal(store.get(1).event, null);
+  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 3);
+  assert.equal(new SqliteDrafts(m).all().length, 1);
+  const event = {
+    year: 2027, starts: "2027-02-23", ends: "2027-03-02", deadline: "2027-01-15", cost: "free", where: "steam",
+    criteria: { genres: ["puzzle", "co-op"], stages: ["demo"], platforms: [] }, state: "watching",
+  };
+  const fest = { ...ADA, name: "Next Fest", types: ["festival"] };
+  const id = store.insert({ ...fest, event });
+  assert.deepEqual(store.get(id).event, event);
+  store.update(id, { ...fest, event: { ...event, state: "applied" } });
+  assert.equal(store.get(id).event.state, "applied");
+  store.update(id, { ...fest, event: null });
+  assert.equal(store.get(id).event, null);
+  m.close();
+  assert.equal(open(dir).get(1).name, "Old Contact");
 });
