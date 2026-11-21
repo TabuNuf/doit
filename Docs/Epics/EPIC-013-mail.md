@@ -23,6 +23,7 @@ Design: Design.md, section Marketing (step 3)
 - [x] T-013.5 `Mailroom` facade: send an approved draft (log the touch, copy to Marketing), and a reply sweep (contacts' mail in Inbox moved to Marketing and logged as reply touches); the sweep runs on page load and with `doit mail sweep` (done when: domain tests over fake ports send, log and sweep, and a draft over the daily cap waits)
 - [x] T-013.6 CLI: `doit templates`, `doit draft add <contact> --template <name> --game <game> --personal <text>`, `doit drafts [--state]`, `doit mail sweep` (done when: CLI tests cover each command and `draft add` refuses an unknown template)
 - [x] T-013.7 Server and web: a Drafts pane in the Marketing view: each draft rendered as the mail will look, editable, with Approve and send and Discard; the contact's touches show sent mail and replies (done when: server and web tests cover approve, discard and edit; in the app a test mail to Tabu's own address arrives and is labeled Marketing)
+- [x] T-013.8 Close audit: the API refuses writes from another site or a foreign host name, so no other page can send a draft (done when: server test refuses a cross-site POST and a foreign Host; the page still edits)
 
 ## Test plan
 

@@ -76,6 +76,7 @@ export class HttpServer {
   }
 
   async #api(req, res, url) {
+    if (!sameSite(req)) return json(res, 403, { error: "Refused: request from another site" });
     const path_ = decodeURIComponent(url.pathname);
     if (req.method === "GET" && path_ === "/api/events") return this.#events(req, res);
     for (const [method, re, fn] of this.routes) {
@@ -100,6 +101,18 @@ export class HttpServer {
       send(res, 200, TYPES[path.extname(file)] || "application/octet-stream", data);
     });
   }
+}
+
+const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
+
+/** A write must come from the page itself: another site's page in the same browser could otherwise send mail or edit tasks.
+ *  The Host check stops DNS rebinding; the Origin check stops a cross-site form or fetch. */
+export function sameSite(req) {
+  const host = req.headers.host ?? "";
+  if (!LOCAL.test(host)) return false;
+  if (req.method === "GET" || req.method === "HEAD") return true;
+  const origin = req.headers.origin;
+  return !origin || origin === `http://${host}`;
 }
 
 function readJson(req) {
