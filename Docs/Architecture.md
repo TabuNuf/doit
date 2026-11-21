@@ -8,7 +8,7 @@ Doit is built from modules wired in one composition root. The general rules are 
 |---|---|---|---|
 | Domain | `src/domain/` | itself only | `node:fs`, `node:http`, the store, the CLI, the server |
 | Adapters | `src/store/` | the domain, `node:fs`, `node:path`, `node:os`, `node:child_process` (git, for who last changed a document; `security`, to read the mail password from the Keychain), `node:tls` (only here: SMTP and IMAP), `node:sqlite` (only here: `marketing.db`) | the CLI, the server |
-| Interface | `src/cli/`, `src/server/`, `web/` | the domain (the `Board`, `DocsLibrary`, `ClaudeView`, `ContactBook` and `Mailroom` facades and their value types) | the store, each other; `web/` only talks HTTP |
+| Interface | `src/cli/`, `src/server/`, `web/` | the domain (the `Board`, `DocsLibrary`, `ClaudeView`, `ContactBook`, `Mailroom` and `Outreach` facades and their value types) | the store, each other; `web/` only talks HTTP |
 | Composition root | `src/root.js`, `bin/` | everything | |
 
 Module order, low to high: domain → store → cli, server → root.
@@ -19,13 +19,13 @@ Module order, low to high: domain → store → cli, server → root.
 
 ## Modules
 
-- `domain/task.js`: the task value, its states, sections and defaults for a task without a file. Pure.
+- `domain/task.js`: the task value, its states, sections and defaults for a task without a file; it carries `contact` (a contact id or null, kept in the task file like `blocks`) and `game` (the campaign epic's game or null). Pure.
 - `domain/rules.js`: the sweep (deadline and retention archiving), whether a closed epic is archived (`epicArchived`) and rank between neighbours (the only place ranks are computed; the page asks `Board.move`). Pure, takes today's date.
 - `domain/mover.js`: `TaskMover`, where a task goes in the Open tab: from the task and its project's tasks it returns the rank and state change. Pure; `Board.move` delegates to it.
 - `domain/activity.js`: `ActivityLog`, the activity log: one line per task change (`YYYY-MM-DD HH:MM  <project/T-id>  <what>`), newest first for reading, lines past 30 days dropped on write; `describeChanges` puts a task update in words. Over an activity-file port. Pure.
 - `domain/epicMoves.js`: `EpicMoves`, closes an epic and moves it between open, parked, completed and archived; `planEpicMove` is pure (epic and tasks in, plan out, or a refusal). `Board.closeEpic` and `Board.moveEpic` delegate to it. A reopen restores the tasks archived with reason `Epic <id> closed`.
-- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves (via `TaskMover`), comments, sweeps, closes an epic (archives its tasks, then the source sets it Done, writes `Closed: <date>` and files it in `Completed/`), returns the closed epics in `view` as `closedEpics` (each with `closed` and `archived`, an `Archived:` line counting) and parked ones as `parkedEpics`, next to the open `epics` (the CLI's `epics` lists open then parked) and serves an epic's document. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) a clock and a `record(ref, what)` function from the root that it tells every change it writes (the root points it at the `ActivityLog`, so the CLI and the page are logged alike).
-- `store/markdown.js`: parses and writes epic files and task files. Pure text in and out.
+- `domain/board.js`: `Board`, the facade both interfaces use. Lists, filters, creates, updates, moves (via `TaskMover`), comments, sweeps, closes an epic (archives its tasks, then the source sets it Done, writes `Closed: <date>` and files it in `Completed/`), returns the closed epics in `view` as `closedEpics` (each with `closed` and `archived`, an `Archived:` line counting) and parked ones as `parkedEpics`, next to the open `epics` (the CLI's `epics` lists open then parked) and serves an epic's document. An epic carries `game` and `event` (the `Game:` and `Event:` lines of a campaign, null when absent); `addTask` and `update` accept `contact` (a whole-number id or empty), and `subscribe(listener)` hands each listener a plain fact `{ref, project, epic, title, contact, game, date}` when a task with a contact moves to done. Given a `ProjectSource` (the store's port: `projects()`, `load(project)`, `save...`) a clock and a `record(ref, what)` function from the root that it tells every change it writes (the root points it at the `ActivityLog`, so the CLI and the page are logged alike).
+- `store/markdown.js`: parses and writes epic files and task files, including the `Game:` and `Event:` lines under `Status:` and the task's `contact` field. Pure text in and out.
 - `store/projectFiles.js`: `ProjectFiles`, reads and writes one project's docs folder: epics, task files, archive moves, new epic, move to Completed, project scaffold.
 - `store/activityFile.js`: `ActivityFile`, `activity.log` in the app's data folder: read its lines, append, or replace them all.
 - `store/settings.js`: `SettingsFile`, the project list and settings in the app's data folder.
@@ -54,6 +54,11 @@ Module order, low to high: domain → store → cli, server → root.
 - `cli/mailCli.js`: `MailCli`, the mail commands (`templates`, `draft`, `drafts`, `mail sweep`), over the `Mailroom`. Nothing approves or sends. `Cli.run` returns a promise of the exit code when a command is async (`mail sweep`); `bin/doit.js` awaits it.
 - `server/mailRoutes.js`: `mailRoutes(mailroom)`, the `/api/drafts` (list, show, edit, discard, send) and `/api/mail` (sweep, status) routes; refusals are 400, a missing draft 404. `HttpServer` awaits async handlers and takes the `Mailroom` as its last argument.
 - `web/draftsPane.js`: the Drafts pane of the Marketing view (each draft as the mail will look, edit, approve and send, discard, status line); pure HTML and request builders like `contactDetail.js`. `marketingView.js` switches between the Contacts and Drafts panes and sweeps once when the view opens.
+- `domain/outreachPlan.js`: the weekly outreach list, pure. `planWeek({contacts, festivals, tasks, today, caps, window})` gives `{contacts, festivals, steps}` (contacts: open campaign tasks with a contact, then due contacts, cut to 5; festivals: watching ones with a deadline in the next 14 days and a game, not capped; steps: open campaign tasks with no contact, cut to 3), `pickContacts({contacts, game, until, taken, limit})` (active, fits the game, not due after the event, not already on the campaign, largest reach first) and `outreachLines(plan)` for the morning report.
+- `domain/outreach.js`: `Outreach`, the campaign facade: `week()`, `addCampaign(project, name, {game, event})`, `addContacts(project, epicId, limit)` and `taskDone(fact)`, which logs a touch (kind mail, with the task ref so a re-tick logs once). Over the `Board`, the `ContactBook` and a clock; the root subscribes it to the board's done facts, so the `Board` knows no contacts. `ClaudeView` takes it as an optional `week()` port for the morning report.
+- `cli/campaignCli.js`: `CampaignCli`, the commands `campaign add`, `campaign contacts` and `outreach`, over `Outreach`; `Cli` also checks `--contact` and `contact=` against the `ContactBook`.
+- `server/outreachRoutes.js`: `outreachRoutes(outreach)`, `GET /api/outreach` (the plan) and `POST /api/campaigns/:project/:epic/contacts` (Add contacts; a refusal is a 400). `HttpServer` takes `Outreach` as a new last argument.
+- `web/weekPane.js`: the This week pane at the top of the Marketing view (contacts, festival deadlines, campaign steps; a contact or festival row opens its detail); pure HTML like `festivalsPane.js`.
 - `server/festivalRoutes.js`: `festivalRoutes(book)`, `GET /api/festivals[?game=<game>]`: the festivals by deadline with `daysLeft`, `match` (so the criteria-unknown mark) and state, from `ContactBook.festivals({fits, open: true})`; events past their deadline are never in it. An unknown game is a 400.
 - `web/festivalsPane.js`: the Festivals tab of the Marketing view (game picker, list rows with days left, cost, state and the criteria-unknown mark; a row opens the festival in the contact detail pane); pure HTML like `draftsPane.js`.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board`, output streams, the `ClaudeView` (for `morning`), the `ContactBook` and `readText(path)` (a file reader the root supplies, since the CLI tier has no `node:fs`); the contact commands go to `ContactsCli`, the festival commands to `FestivalsCli`.
@@ -63,7 +68,7 @@ Module order, low to high: domain → store → cli, server → root.
 - `server/contactRoutes.js`: `contactRoutes(book)`, the rows for `GET /api/contacts` (filters `type`, `fits`, `status`, `reach`, `due`), `GET` and `PATCH /api/contacts/:id`, `POST /api/contacts/:id/fit` and `/touch`, and `GET /api/profiles`; a refused value is a 400 with the message, a missing contact a 404.
 - `launcher/`: `Doit.applescript` (the app), `start-server.sh`, `check-server.sh` (running server on the checked-out commit? exit 0, 1 none, 3 other), `stop-server.sh`, and `morning-run.md` (the desktop app scheduled task's prompt for `doit morning`; created by hand) and `festivals-run.md` (the weekly gathering run's prompt: sources, `festival upsert`, `doit log`; created by hand).
 - `web/`: the board page, plain HTML, CSS and JS as ES modules, none over 300 lines: `state.js` (page state, helpers, API calls), `render.js` (views), `epicView.js` (the epic document view and its Close epic button), `epicList.js` (the left pane's epic buttons and the Closed and Archived sections), `docsView.js` (the Docs view: tree, document, linked tasks), `claudeView.js` (the Claude view: its three panes; a card opens the task on the Board), `festivalsPane.js` (the Festivals tab), `marketingView.js` (the Marketing view: its tabs Contacts, Drafts and Festivals, which replace the project chips in the top bar while Marketing is shown; filters, contacts with due ones on top, and the send and reload of edits), `contactDetail.js` (the contact detail pane and the requests its edits send, pure), `markdown.js` (markdown to HTML, no packages), `ordering.js` (drag and keyboard moves), `resize.js` (column widths), `events.js` (listeners and live updates: an `EventSource` on `/api/events` reloads the page, held while the user types, drags or has a menu or form open), `app.js` (wires them).
-- `root.js`: `makeContacts` builds the contact book over `SqliteContacts` and `ProfileShelf` (handed to the CLI, with a file reader, and to the server); builds the change watcher (server only), the activity log and points the board's `record` at it, the Claude view over both, the settings file, the worktree finder, the source, the board, the docs files and library, and hands the board to the CLI or the server.
+- `root.js`: `makeContacts` builds the contact book over `SqliteContacts` and `ProfileShelf` (handed to the CLI, with a file reader, and to the server); builds `Outreach` over the board and the contact book, subscribes it to the board's done facts and hands it to the Claude view, the CLI and the server; builds the change watcher (server only), the activity log and points the board's `record` at it, the Claude view over both, the settings file, the worktree finder, the source, the board, the docs files and library, and hands the board to the CLI or the server.
 
 ## Class diagram
 
@@ -85,6 +90,10 @@ classDiagram
     +epicDocument(project, epic)
   }
   class ClaudeView { +panes(project) +morning() +note(topic, text) }
+  class Outreach { +week() +addCampaign() +addContacts() +taskDone(fact) }
+  class OutreachPlan { +planWeek() +pickContacts() +outreachLines() }
+  class CampaignCli { +campaign() +outreach() }
+  class OutreachRoutes { +outreachRoutes(outreach) }
   class ActivityLog { +record(entries) +recent(project, limit) }
   class ActivityFile { +lines() +append(lines) +replace(lines) }
   class DocsLibrary { +tree(project) +read(project, path) +save(project, path, text) +linked(project, path) }
@@ -142,6 +151,15 @@ classDiagram
   MailCli --> Mailroom
   HttpServer --> MailRoutes
   MailRoutes --> Mailroom
+  Outreach --> Board
+  Outreach --> ContactBook
+  Outreach --> OutreachPlan
+  Board ..> Outreach : taskDone facts via subscribe (from root)
+  ClaudeView ..> Outreach : week port
+  Cli --> CampaignCli
+  CampaignCli --> Outreach
+  HttpServer --> OutreachRoutes
+  OutreachRoutes --> Outreach
   Cli --> Board
   Cli --> ClaudeView
   Cli --> ContactsCli
