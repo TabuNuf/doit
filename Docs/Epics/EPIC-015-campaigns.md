@@ -1,6 +1,6 @@
 # EPIC-015: Campaigns
 
-Status: Planned
+Status: Active
 Goal: A campaign (a release, Next Fest, a festival) turns into a short list of contacts and steps, and each week Doit tells Tabu the few things to do for it.
 Design: Design.md, section Marketing (step 5)
 
