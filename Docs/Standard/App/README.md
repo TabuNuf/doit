@@ -75,7 +75,7 @@ Each item becomes a rule here, with its why, or a line in that project's `Deviat
 2. **The test categories as suites.** Which runner, and what Development, Audit and Performance are called and run (`Core/02-Working.md`, Tests).
 3. **The worktree tool.** `git worktree add` may be enough; an app with local servers or ports may need a script like `Unity/Starter/Tools/Worktree/worktree.py`.
 4. **The build agent's commands.** `Starter/.claude/agents/batch-builder.md` has placeholders for the build and the test of one file or suite; what the first project fills in, and any tool the agent turns out to need, comes back here.
-5. **Release and deploy.** How a version is built, checked and shipped (`Core/02-Working.md`, Versions and releases, holds the version rules).
+5. **Release and deploy.** How a version is built, checked and shipped (`Core/02-Working.md`, Versions and releases, holds the version rules and the marketing update every release makes, which holds here before this item is decided).
 6. **Where the gallery lives** (`Core/03-Design.md`, Interface): a page of the app that shows every component in each state, and the test that holds it to the component list.
 7. **The rest of a Starter.** It holds only the build agent today; code and config the next app should copy on day one go beside it.
 

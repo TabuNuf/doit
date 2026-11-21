@@ -20,7 +20,7 @@ Which layer a project uses is its profile (`profile: unity` or `profile: app` in
 | `Core/02-Working.md` | Repo and commits, versions, test categories and budgets, Claude setup and session cost |
 | `Core/03-Design.md` | How code is shaped: objects, modules, low coupling, the composition root, which patterns to use and when, the boundaries |
 | `Core/CLAUDE.core.md` | The first part of a project's `CLAUDE.md`; the stack's template is appended below it |
-| `Core/Templates/` | A project's `Deviations.md` |
+| `Core/Templates/` | A project's `Deviations.md`, and the `Marketing/` profile and pitch |
 | `Core/Starter/` | Files every project copies: the read guard, the open-work list, the `.claude/settings.json` that wires both, and the usage script |
 | `Unity/01-UI.md` | How UI Toolkit is set up: documents, components, styles, state, examples, guard tests |
 | `Unity/02-Project.md` | The rest of a Unity game: file structure, new project checklist, repo setup, releases, naming, asmdefs, config, Unity tests, saves, Unity MCP pitfalls |
