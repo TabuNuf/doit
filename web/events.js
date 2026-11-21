@@ -1,4 +1,4 @@
-// Every listener on the page, and the 10 s reload.
+// Every listener on the page, and the live reload from the server's change events.
 
 import { S, $, keyOf, tabOf, api, act, load, patch, task, reloadHeld } from "./state.js";
 import { render } from "./render.js";
