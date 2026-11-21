@@ -1,6 +1,7 @@
 # EPIC-018: Conformance
 
-Status: Active
+Status: Done
+Closed: 2026-11-21
 Goal: Drift found at epic closes is fixed before the next release.
 Design: Architecture.md
 
@@ -19,4 +20,8 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+2026-11-21. Audit tests: 259 pass. Diff 575b114^..5ea4776 read against Architecture.md and Core/03-Design.md: no findings. taskEdit.js and help.js are in the module list and class diagram; DoneNotifier's onError keeps the Board free of contacts; the structure test now holds board.js and cli.js under 220 lines.
+
 ## For the standard
+
+Nothing new: both fixes apply rules the standard already has (a split before the next feature, no swallowed errors).
