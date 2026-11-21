@@ -183,6 +183,7 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .claude-card:hover { background: var(--fill); border-color: var(--accent); }
 .claude-card .card-title { display: block; margin: 4px 0 2px; }
 .claude-card .card-note { font-size: 11px; }
+.claude-card .card-why, .claude-card .card-todo { font-size: 12px; margin-top: 3px; white-space: normal; }
 .pane-h .c { color: var(--muted); }
 .claude-sub { width: auto; margin-top: 14px; }
 .added { color: var(--ok); font-size: 12px; }

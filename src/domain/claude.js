@@ -18,6 +18,9 @@ export const dueSoon = (tasks, today) => tasks
   .filter(t => t.owner === "human" && ["todo", "progress", "backlog"].includes(t.state) && t.deadline && daysBetween(today, t.deadline) <= 7)
   .sort((a, b) => a.deadline.localeCompare(b.deadline));
 
+/** What to do about a task: its done-when, else the first line of its description. */
+export const actionOf = t => (t.doneWhen || "").trim() || (t.description || "").split("\n").map(l => l.trim()).find(Boolean) || "";
+
 /** The morning report's lines: a heading, then swept, In progress, top three Up next, Blocked on you, due within 7 days. */
 export function morningReport({ swept, tasks, today }) {
   const ref = t => `${t.project}/${t.id} ${t.title}`;
@@ -68,7 +71,7 @@ export class ClaudeView {
     for (const e of log) if (!last.has(e.ref)) last.set(e.ref, e);
     const card = t => {
       const e = last.get(`${t.project}/${t.id}`);
-      return { project: t.project, id: t.id, title: t.title, blocks: t.blocks, deadline: t.deadline,
+      return { project: t.project, id: t.id, title: t.title, blocks: t.blocks, deadline: t.deadline, action: actionOf(t),
         last: e ? { at: e.at, what: e.what } : { at: t.updated, what: t.updated ? "updated" : "" } };
     };
     return {
