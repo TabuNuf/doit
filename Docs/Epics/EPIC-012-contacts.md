@@ -42,6 +42,11 @@ Design: Design.md, section Marketing (steps 1 and 2)
 
 Decisions and deviations, newest first.
 
+- Batch A: development 115 of 115.
+- T-012.2: reach bands are A over 10 000, B over 5 000, C over 1 000, D over 200, E over 50 (B to D picked here; check against the sheet). A contact carries a `topic` for conferences. `list` puts due contacts first, then largest reach.
+- T-012.4: the marketing project is the `marketingProject` setting, default `polyspice-marketing`. A profile is `# Name` and lines `Genres:`, `Platforms:`, `Stage:`, `Release:`, `Needs:`.
+- T-012.1: `node:sqlite` prints no ExperimentalWarning on Node 24.19, so `bin/` is unchanged.
+
 - Supersedes the parked EPIC-002 (Marketing), whose plan (fit score in settings, contacts as Markdown, Reddit through Day Drop) predates the Marketing section of Design.md.
 
 ## Close audit
