@@ -2,7 +2,8 @@
 // Events, Drafts and Overview. The server filters and ranks; the page sends the pick and the filters.
 
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
-import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail.js";
+import { detailPane, editRequest, touchRequest } from "./contactDetail.js";
+import { EMPTY_FILTERS, FILTERS, contactPath, filterPane } from "./contactFilters.js";
 import { channelRemove, channelAdd } from "./contactChannels.js";
 import { clickSort, orderContacts, headerRow, rowCells, specialMark } from "./contactColumns.js";
 import { festivalPath, eventsInfoPane, festivalsPane } from "./festivalsPane.js";
@@ -13,38 +14,13 @@ import { openEpic } from "./epicView.js";
 import { openSettingsFor } from "./projectSettings.js";
 import { draftsPane, draftEditRequest, sendQuestion, sweepSummary } from "./draftsPane.js";
 
-/** The types a person or outlet has; festivals and conferences have their own tabs. */
-export const TYPES = ["influencer", "blogger", "press", "publisher", "tester"];
-const EVENT_TYPES = "festival,conference";
-export const REACH_OPTIONS = [["", "Any"], ["100", "100"], ["1000", "1 000"], ["10000", "10 000"], ["100000", "100 000"]];
+export { TYPES, REACH_OPTIONS, contactPath, filterPane, EMPTY_FILTERS, FILTERS } from "./contactFilters.js";
 
-/** The list request for the chosen filters; events are left out. The picked game does not filter: contacts are contacts, the game only marks the ones that fit. */
-export function contactPath(f) {
-  const q = new URLSearchParams();
-  for (const k of ["type", "reach", "status", "genre"]) if (f[k]) q.set(k, f[k]);
-  q.set("except", EVENT_TYPES);
-  const s = q.toString();
-  return "/api/contacts" + (s ? "?" + s : "");
-}
-
-/** The picked game as {id, name} for the fit mark, or null. */
-const pickedGame = m => (m.game ? { id: m.game, name: m.profiles.find(p => p.game === m.game)?.name || m.game } : null);
+/** The game the Fits filter names, as {id, name} for the fit mark, or null. */
+const fitGame = m => (m.f.fits ? { id: m.f.fits, name: m.profiles.find(p => p.game === m.f.fits)?.name || m.f.fits } : null);
 
 /** Due contacts first, each group in the order the server gave (the order with no sort chosen). */
 export const dueFirst = list => orderContacts(list, null);
-
-const select = (id, label, options, value) => `<label for="${id}">${label}<select id="${id}">${options.map(([v, l]) => `<option value="${esc(v)}" ${v === value ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`;
-
-/** The filter column; the game is picked in the top bar. */
-export function filterPane(f, genres = []) {
-  const any = l => ["", l];
-  return `<section class="pane" aria-label="Filters"><div class="pane-h">Filters</div><div class="pane-b form mk-filters">
-    ${select("mk-type", "Type", [any("Any type"), ...TYPES.map(t => [t, t])], f.type)}
-    ${select("mk-reach", "Reach at least", REACH_OPTIONS, f.reach)}
-    ${select("mk-genre", "Genre", [any("Any genre"), ...genres.map(g => [g, g])], f.genre)}
-    ${select("mk-fstatus", "Status", [any("Any status"), ...STATUSES.map(s => [s, s])], f.status)}
-    <button data-mk-clear>Clear filters</button></div></section>`;
-}
 
 /** The mark on a contact that fits the picked game, saying what it means and why. */
 export function fitMark(c, game) {
@@ -91,8 +67,8 @@ export function marketingPanes() {
   if (m.pane === "overview") return overviewPanes(m.week, m.sel, m.game);
   if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game), m.newCampaign ? campaignForm(m.profiles, m.game, m.events) : "") + detail();
   if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + eventPane(m.detail && m.detail.event ? m.detail : null, title === "Events" ? "Event" : "Festival"); }
-  const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length, pickedGame(m), Object.values(m.f).some(Boolean), m.sort);
-  return filterPane(m.f, m.genres) + middle + detail();
+  const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length, fitGame(m), Object.values(m.f).some(Boolean), m.sort);
+  return filterPane(m.f, m.genres, m.profiles) + middle + detail();
 }
 
 /** The contact id above or below `sel` in `ids` (`key` ArrowUp or ArrowDown); the first when none is selected, the same at either end. */
@@ -166,7 +142,7 @@ export function marketingClick(d) {
   if ("mkChAdd" in d && m.detail) { const req = channelAdd(m.detail, $("#mk-chk-new").value, $("#mk-chu-new").value); req ? send(req) : toast("Give the channel a URL first."); return true; }
   if ("mkTouch" in d) { m.touchOpen = true; redraw(); $("#mk-tk-kind")?.focus(); return true; }
   if ("mkTouchCancel" in d) { m.touchOpen = false; redraw(); return true; }
-  if ("mkClear" in d) { m.f = { type: "", reach: "", status: "", genre: "" }; refreshMarketing(); return true; }
+  if ("mkClear" in d) { m.f = { ...EMPTY_FILTERS }; refreshMarketing(); return true; }
   return false;
 }
 
@@ -187,8 +163,6 @@ async function discardDraft(id) {
   try { await api("DELETE", `/api/drafts/${encodeURIComponent(id)}`); } catch (e) { toast(e.message); }
   return refreshMarketing();
 }
-
-const FILTERS = { "mk-type": "type", "mk-reach": "reach", "mk-fstatus": "status", "mk-genre": "genre" };
 
 /** A changed filter or detail field; true when the change was one. */
 export function marketingChange(ev) {

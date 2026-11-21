@@ -38,6 +38,20 @@ test("filters become query parameters, with a reach count", async () => {
   assert.match(html, /<option value="1000" selected>1 000/);
 });
 
+test("Fits and Contacted filters send fits, contacted and notContacted and are offered per profile", async () => {
+  const { contactPath, filterPane } = await import("../web/marketingView.js");
+  const base = { type: "", reach: "", status: "", genre: "", fits: "", contacted: "" };
+  assert.match(contactPath({ ...base, fits: "good-box" }), /fits=good-box/);
+  assert.match(contactPath({ ...base, contacted: "c:good-box" }), /contacted=good-box/);
+  assert.match(contactPath({ ...base, contacted: "n:good-box" }), /notContacted=good-box/);
+  assert.doesNotMatch(contactPath({ ...base, contacted: "n:good-box" }), /[?&]contacted=/);
+  const profiles = [{ game: "good-box", name: "Good Box" }, { game: "bunny", name: "Bunny" }];
+  const html = filterPane({ ...base, fits: "bunny", contacted: "n:good-box" }, [], profiles);
+  assert.match(html, /<option value="bunny" selected>Bunny/);
+  assert.match(html, /<optgroup label="Contacted about"><option value="c:good-box" >Good Box/);
+  assert.match(html, /<optgroup label="Not yet contacted about">.*<option value="n:good-box" selected>Good Box/s);
+});
+
 test("the detail pane shows channels as safe links, fit with reason, and touches in the order given", async () => {
   const { detailPane } = await import("../web/contactDetail.js");
   const c = contact(5, {
