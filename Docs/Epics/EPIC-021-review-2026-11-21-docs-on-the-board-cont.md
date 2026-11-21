@@ -20,7 +20,7 @@ Source: review video Bandicam_20261121_111550.mp4, narrated by Tabu; times in ea
 - [ ] T-021.11 Campaigns: + Campaign in the page takes a project of any kind, a name and an optional event, as doit campaign add does; empty states are plain text in the pane's font with a button, never a CLI command (done when: a web test creates a campaign for an application from the page and sees it listed; no empty state in Marketing shows a code span)
 - [ ] T-021.12 Festivals and events: platform events (Steam, Epic, GOG, itch fests and sales) show under Events, festivals under Festivals; selecting one shows its event fields (dates, deadline, cost, where, criteria, state), editable, not reach and email (done when: a web test sees Steam Next Fest under Events and its deadline and state in the pane, and changes its state from the pane)
 - [ ] T-021.13 Festivals run reads howtomarketagame.com/festivals (Upcoming and New) and logs which festivals are new since the last run (done when: a hand run adds or updates festivals from that page and its activity-log line names the new ones; no source is skipped without a reason and a next step)
-- [ ] T-021.14 Decide where the marketing scan lives: Polyspice Marketing or Doit (done when: Tabu picks one and T-021.1 records it in Design.md)
+- [x] T-021.14 Decide where the marketing scan lives: Polyspice Marketing or Doit (done when: Tabu picks one and T-021.1 records it in Design.md)
 
 ## Test plan
 
@@ -33,8 +33,8 @@ Source: review video Bandicam_20261121_111550.mp4, narrated by Tabu; times in ea
 
 Decisions and deviations, newest first.
 
+- 2026-11-21, Tabu: the marketing scan lives in Polyspice Marketing (T-021.14); BB1 and BB2 are imported as dated Bunny Bunker mail touches (T-021.5); EPIC-018 runs and closes first.
 - Not taken from the video: 07:51 'split this into' trails off with no target.
-- Open: the sheet's BB1 and BB2 columns (old Bunny Bunker mailings) stay unimported, as Design.md says; importing them as mail touches would fill more of the history T-021.8 shows. Ask Tabu in T-021.1.
 - Board.js is at 245 of 250 lines (T-018.2): T-021.2 and .3 need its room first, so EPIC-018 goes before or with Batch A.
 
 ## Close audit

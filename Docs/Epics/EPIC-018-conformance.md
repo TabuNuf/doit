@@ -1,6 +1,6 @@
 # EPIC-018: Conformance
 
-Status: Planned
+Status: Active
 Goal: Drift found at epic closes is fixed before the next release.
 Design: Architecture.md
 
