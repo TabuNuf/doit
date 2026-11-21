@@ -1,4 +1,4 @@
-// The Claude view: Working on now, Blocked on you with Up next below it, and the activity log.
+// The Claude view: Working on now, Waiting on you (blocked, then due) with Up next below it, and the activity log.
 // Everything comes from GET /api/claude; a card opens its task on the Board.
 
 import { S, esc, api, redraw, toast, proj, color, today, openOnBoard } from "./state.js";
@@ -27,11 +27,12 @@ function when(at) {
 
 function card(c) {
   const key = `${c.project}/${c.id}`;
+  const due = c.deadline ? `<div class="mono muted card-note">due ${esc(c.deadline)}</div>` : "";
   const blocks = c.blocks ? `<div class="mono muted card-note">blocks ${esc(c.blocks)}</div>` : "";
   const last = c.last.at ? `<div class="mono muted card-note">${esc(when(c.last.at))}${c.last.what ? " · " + esc(c.last.what) : ""}</div>` : "";
   return `<button class="card claude-card" data-goto="${esc(key)}" title="Open on the Board">
     <span class="h"><span class="mono muted">${esc(c.id)}</span><span class="pill"><span class="dot" style="background:${color(c.project)}"></span>${esc(proj(c.project).name)}</span></span>
-    <span class="card-title">${esc(c.title)}</span>${blocks}${last}</button>`;
+    <span class="card-title">${esc(c.title)}</span>${blocks}${due}${last}</button>`;
 }
 
 const list = (cards, none) => cards.map(card).join("") || `<div class="empty">${none}</div>`;
@@ -45,8 +46,11 @@ function logHtml(log) {
 export function claudePanes() {
   const c = S.claude;
   if (!c) return `<section class="pane"><div class="pane-b"><div class="empty">Loading…</div></div></section>`;
+  const due = c.due || [];
   return `<section class="pane" aria-label="Working on now"><div class="pane-h">Working on now<span class="c">${c.working.length}</span></div><div class="pane-b">${list(c.working, "Idle: no AI task is In progress.")}</div></section>
-    <section class="pane" aria-label="Blocked on you"><div class="pane-h">Blocked on you<span class="c">${c.blocked.length}</span></div><div class="pane-b">${list(c.blocked, "Nothing waits on you.")}
+    <section class="pane" aria-label="Waiting on you"><div class="pane-h">Waiting on you<span class="c">${c.blocked.length + due.length}</span></div><div class="pane-b">
+      <div class="sub-h claude-sub">Blocked on you<span class="c">${c.blocked.length}</span></div>${list(c.blocked, "No task of yours holds Claude up.")}
+      <div class="sub-h claude-sub">Due within 7 days<span class="c">${due.length}</span></div>${list(due, "Nothing of yours is due within 7 days.")}
       <div class="sub-h claude-sub">Up next for Claude<span class="c">${c.upNext.length}</span></div>${list(c.upNext, "No AI task is To-do.")}</div></section>
     <section class="pane" aria-label="Activity log"><div class="pane-h">Activity log</div><div class="pane-b">${logHtml(c.log)}</div></section>`;
 }

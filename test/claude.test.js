@@ -25,6 +25,7 @@ test("each pane lists the right tasks, in rank order", t => {
   assert.deepEqual(view.working.map(c => c.id), ["T-014.2"]);
   assert.deepEqual(view.blocked.map(c => [c.id, c.blocks]), [["T-014.4", "T-014.3"]], "a backlog task or one without blocks does not wait on you");
   assert.deepEqual(view.upNext.map(c => c.id), ["T-009.1", "T-014.3"]);
+  assert.deepEqual(view.due, [], "no deadline, nothing due");
   assert.equal(view.log[0].ref, "game/T-014.6", "the log is newest first");
 });
 
@@ -43,12 +44,15 @@ test("GET /api/claude serves the panes for a project", async t => {
   const log = makeActivity({ home: s.home, now: () => s.clock.t });
   const board = makeBoard({ home: s.home, now: () => s.clock.t, log });
   const claude = fixtures({ ...s, board });
+  board.update("game/T-014.5", { deadline: "2026-11-25" });
+  board.update("game/T-014.6", { deadline: "2026-12-30" });
   const server = new HttpServer(board, path.join(import.meta.dirname, "..", "web"), null, null, claude);
   const port = await server.listen(0);
   t.after(() => server.close());
   const body = await fetch(`http://127.0.0.1:${port}/api/claude?project=game`).then(r => r.json());
   assert.deepEqual(body.working.map(c => c.id), ["T-014.2"]);
   assert.equal(body.blocked.length, 1);
+  assert.deepEqual(body.due.map(c => c.id), ["T-014.5"], "the badge's tasks: a human task due within 7 days");
   assert.ok(body.log.length >= 4);
 });
 

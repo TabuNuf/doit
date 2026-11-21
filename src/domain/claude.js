@@ -60,7 +60,7 @@ export class ClaudeView {
     this.activity.record({ ref: t, what });
   }
 
-  /** The three panes for one project or "all"; each card carries its last logged change. */
+  /** The panes for one project or "all"; each card carries its last logged change. `due` is what the badge counts. */
   panes(project = "all") {
     const { tasks } = this.board.view({ project });
     const log = this.activity.recent({ project });
@@ -74,6 +74,7 @@ export class ClaudeView {
     return {
       working: workingOn(tasks).map(card),
       blocked: blockedOnYou(tasks).map(card),
+      due: dueSoon(tasks, stamp(this.now()).slice(0, 10)).map(card),
       upNext: upNext(tasks).map(card),
       log,
     };

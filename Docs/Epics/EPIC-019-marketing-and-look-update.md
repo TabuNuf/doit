@@ -8,7 +8,7 @@ Source: Tabu's walkthrough recording of 2026-11-21 (Bandicam_20261121_101006)
 ## Tasks
 
 - [x] T-019.1 Launcher app icon: build.sh drops the applet's Assets.car and CFBundleIconName so the navy logo in applet.icns is the icon (done when: a rebuilt Doit.app has no CFBundleIconName and no Assets.car, and the launcher test checks build.sh does both)
-- [ ] T-019.2 Top bar and tab icon use the dark-background logo (the navy icon) instead of the transparent mark (done when: web/logo.svg is the navy rounded-square logo and the style test passes)
+- [x] T-019.2 Top bar and tab icon use the dark-background logo (the navy icon) instead of the transparent mark (done when: web/logo.svg is the navy rounded-square logo and the style test passes)
 - [ ] T-019.3 Claude badge says what waits: 'Waiting on you' pane with Blocked on you and Your tasks due within 7 days; the badge reads '<n> due' with a title (done when: the badge count equals the due group's count, and a domain test sees /api/claude return the due list)
 - [ ] T-019.4 Docs tree orders names numerically: 0.8, 0.9, 0.10, 0.11 (done when: a docs test lists folders 0.8 0.9 0.10 0.11 in that order)
 - [ ] T-019.5 Profiles also come from a project's Docs/Marketing/Profile.md (game = project id) with Kind: game|podcast; doit profile add <project> writes the template (done when: profile tests read a project profile and the legacy folder, and the CLI writes the template)

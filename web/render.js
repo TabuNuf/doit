@@ -29,9 +29,10 @@ export function render() {
 
 function renderTop() {
   const due = dueSoonCount();
-  const badge = due ? `<span class="badge" title="Your tasks due within 7 days">${due}</span>` : "";
+  const what = `${due} of your tasks ${due === 1 ? "is" : "are"} due within 7 days; the Claude view lists them under Waiting on you`;
+  const badge = due ? `<span class="badge" title="${what}">${due} due</span>` : "";
   $("#views").innerHTML = [["board", "Board", ""], ["docs", "Docs", ""], ["claude", "Claude", badge], ["marketing", "Marketing", ""]]
-    .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${due} of your tasks due within 7 days"` : ""}>${l}${b}</button>`).join("");
+    .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${what}"` : ""}>${l}${b}</button>`).join("");
   $("#projects").innerHTML = S.view === "marketing" ? marketingTabs(S.mk.pane) : projectBar();
   $("#modal").innerHTML = S.newProj ? `<form class="form" id="np" aria-label="New project">
     <label for="np-name">Project name<input id="np-name" required placeholder="Storm Haven"></label>
