@@ -1,6 +1,6 @@
 # EPIC-024: Review 2026-11-21 (2) corrections: Epics and Docs buttons, kind in settings only
 
-Status: Planned
+Status: Active
 Goal: the left pane and the Projects menu do what the 2026-11-21 15:15 review asked, where EPIC-023 misread it, and the three comments EPIC-023 left out get an answer.
 Design: Design.md, sections Projects, Epics, Docs (T-024.1 updates them first)
 Source: second pass over review video Bandicam_20261121_151540.mp4; times in each task's description
