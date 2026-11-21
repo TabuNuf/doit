@@ -1,6 +1,7 @@
 # EPIC-025: Campaign briefs and contact fit per game
 
-Status: Active
+Status: Done
+Closed: 2026-11-21
 Goal: a campaign says what it is for and what it must achieve, suggests who to contact, and Claude can create and fill one; each contact shows which games it fits and was contacted about.
 Design: Design.md, section Marketing (Contacts, Campaigns, The Marketing top bar)
 Source: Tabu's recording 2026-11-21 (Bandicam_20261121_183943), 4:38
