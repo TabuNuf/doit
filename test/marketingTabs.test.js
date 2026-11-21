@@ -39,3 +39,17 @@ test("the Marketing view shows its tabs where the other views show the projects"
     assert.doesNotMatch(html, /data-mk-pane/, view);
   }
 });
+
+test("the Projects menu has a kind select on each row with the project's kind chosen", async t => {
+  const els = fakePage();
+  t.after(() => { delete globalThis.document; });
+  const { S } = await import("../web/state.js");
+  const { render, kindSelect } = await import("../web/render.js");
+  S.data = { projects: [{ id: "doit", name: "Doit", kind: "application" }, { id: "bb", name: "Bunny Bunker" }], epics: [], tasks: [] };
+  S.view = "board"; S.projOpen = true;
+  try { render(); } catch { /* the board panes need more than the stand-in has */ }
+  const bar = els.get("#projects").innerHTML;
+  assert.match(bar, /data-kind-of="doit"[^>]*>.*<option value="application" selected>application/s);
+  assert.match(kindSelect({ id: "bb", name: "Bunny Bunker" }), /<option value="" selected>no kind/);
+  S.projOpen = false;
+});

@@ -50,6 +50,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .star[aria-pressed="true"] { color: var(--p3); }
 .projpick { flex: 1; display: flex; align-items: center; gap: 8px; text-align: left; }
 .projpick[aria-current="true"] { color: var(--accent); font-weight: 500; }
+.projrow .kind { font: inherit; font-size: 12px; padding: 1px 4px; border: 1px solid var(--line); border-radius: 2px; background: var(--panel); color: var(--muted); }
 .projnew { margin-top: 4px; border-top: 1px solid var(--line) !important; border-radius: 0; padding-top: 8px; color: var(--muted); }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
 .views { display: flex; gap: 0; margin-left: auto; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
