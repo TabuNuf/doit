@@ -2,6 +2,12 @@
 
 export const DEFAULT_KEEP_DAYS = 14;
 
+/** The projects a campaign's Game line names: a comma-separated line or a list, trimmed, each once. */
+export function splitGames(value) {
+  const list = Array.isArray(value) ? value : String(value ?? "").split(",");
+  return [...new Set(list.map(g => String(g).trim()).filter(Boolean))];
+}
+
 /** What a project is; Marketing offers each kind in its picker. */
 export const PROJECT_KINDS = ["game", "application", "podcast"];
 

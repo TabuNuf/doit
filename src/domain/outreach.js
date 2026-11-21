@@ -3,6 +3,7 @@
 
 import { planWeek, pickContacts } from "./outreachPlan.js";
 import { checkDate, ContactError } from "./contacts.js";
+import { splitGames } from "./rules.js";
 
 export class Outreach {
   /** `campaignHome()` names the marketing project, where campaigns started from the page live; the root reads it from the settings. */
@@ -27,14 +28,16 @@ export class Outreach {
     return planWeek({ contacts: this.book.list({}), festivals: [...festivals.values()], tasks, today: this.book.today() });
   }
 
-  /** A campaign epic in `project` for a game (a profile; by default the project itself, which needs a kind), optionally tied to a festival id or a date. Returns the epic id. */
+  /** A campaign epic in `project` for one or more games (profiles, a list or comma-separated; by default the project itself, which needs a kind), optionally tied to a festival id or a date. The Game line lists them. Returns the epic id. */
   addCampaign(project, name, { game = project, event } = {}) {
-    if (!this.book.profiles().some(p => p.game === game)) throw new Error(`No profile for game "${game}": a game, application or podcast is a project with a kind, or a profile file`);
+    const games = splitGames(game);
+    if (!games.length) throw new Error("A campaign needs a game, application or podcast");
+    for (const g of games) if (!this.book.profiles().some(p => p.game === g)) throw new Error(`No profile for game "${g}": a game, application or podcast is a project with a kind, or a profile file`);
     const when = event ? this.#checkEvent(String(event).trim()) : null;
-    return this.board.addEpic(project, name, { status: "Active", game, event: when });
+    return this.board.addEpic(project, name, { status: "Active", game: games.join(", "), event: when });
   }
 
-  /** A campaign for `game` (a project with a kind) in the marketing project, as + Campaign in the page starts it. */
+  /** A campaign for `game` (one project with a kind, or several) in the marketing project, as + Campaign in the page starts it. */
   startCampaign(game, name, { event } = {}) {
     return this.addCampaign(this.campaignHome(), name, { game, event });
   }
@@ -47,20 +50,24 @@ export class Outreach {
     const n = Number(limit);
     if (!Number.isInteger(n) || n < 1) throw new Error(`Limit must be a whole number, 1 or more: ${limit}`);
     const taken = this.board.view({ project, archived: true }).tasks.filter(t => t.epic === epicId && t.contact).map(t => t.contact);
-    const picked = pickContacts({ contacts: this.book.list({}), game: epic.game, until: this.#until(epic.event), taken, limit: n });
+    const picked = pickContacts({ contacts: this.book.list({}), games: splitGames(epic.game), until: this.#until(epic.event), taken, limit: n });
     return picked.map(c => {
       const t = this.board.addTask({ project, epic: epicId, title: `Reach out to ${c.name}`, owner: "human", state: "todo", doneWhen: "a mail or message sent", contact: c.id });
       return `${project}/${t.id}`;
     });
   }
 
-  /** A contact task was ticked: log a mail touch for the campaign's game; the ref makes a re-tick log once.
+  /** A contact task was ticked: log a mail touch per game of the campaign; the ref (with the game when there are several) makes a re-tick log once.
    *  A game without a profile logs it without the game, an unknown contact is skipped, any other failure is thrown to the notifier. */
   taskDone(fact) {
-    const touch = { kind: "mail", date: fact.date, note: `${fact.epic}: ${fact.title}`, ref: fact.ref };
-    const game = fact.game && this.book.profiles().some(p => p.game === fact.game) ? fact.game : "";
-    try { this.book.addTouch(fact.contact, { ...touch, game }); }
-    catch (e) { if (!(e instanceof ContactError && e.status === 404)) throw e; }
+    const known = (fact.games ?? splitGames(fact.game)).filter(g => this.book.profiles().some(p => p.game === g));
+    const games = known.length ? known : [""];
+    try {
+      for (const game of games) {
+        const ref = games.length > 1 ? `${fact.ref}#${game}` : fact.ref;
+        this.book.addTouch(fact.contact, { kind: "mail", date: fact.date, note: `${fact.epic}: ${fact.title}`, ref, game });
+      }
+    } catch (e) { if (!(e instanceof ContactError && e.status === 404)) throw e; }
   }
 
   #festival(id) {

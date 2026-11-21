@@ -81,7 +81,7 @@ test("a fact has plain values and an unsubscribed listener hears nothing", t => 
   const off = w.board.subscribe(f => heard.push(f));
   const { id } = w.board.addTask({ project: "game", epic: w.epic, title: "Mail Ada", contact: 1 });
   w.board.update(`game/${id}`, { state: "done" });
-  assert.deepEqual(heard[0], { ref: `game/${id}`, project: "game", epic: w.epic, title: "Mail Ada", contact: 1, game: "bunny-bunker", date: "2026-11-20" });
+  assert.deepEqual(heard[0], { ref: `game/${id}`, project: "game", epic: w.epic, title: "Mail Ada", contact: 1, game: "bunny-bunker", games: ["bunny-bunker"], date: "2026-11-20" });
   off();
   w.board.update(`game/${id}`, { state: "todo" });
   w.board.update(`game/${id}`, { state: "done" });

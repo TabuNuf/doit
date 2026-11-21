@@ -14,7 +14,7 @@
 
 import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask, matchesState, check, checkContact, oneLine } from "./task.js";
 import { applyChanges } from "./taskEdit.js";
-import { archiveReason, epicArchived, byRank, stamp, checkKind, checkMarketed, DEFAULT_KEEP_DAYS } from "./rules.js";
+import { archiveReason, epicArchived, byRank, stamp, checkKind, checkMarketed, splitGames, DEFAULT_KEEP_DAYS } from "./rules.js";
 import { TaskMover } from "./mover.js";
 import { EpicMoves } from "./epicMoves.js";
 import { describeChanges } from "./activity.js";
@@ -102,7 +102,7 @@ export class Board {
     for (const id of ids) {
       for (const e of this.source.closedEpics(id)) closedEpics.push({ project: id, ...e, archived: !!e.archivedOn || epicArchived(e.closed, today, keep) });
       const loaded = this.#load(id, archived);
-      for (const e of loaded.epics.filter(x => !x.completed)) (e.parked ? parkedEpics : epics).push({ project: id, id: e.id, name: e.name, status: e.status, game: e.game ?? null, event: e.event ?? null, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
+      for (const e of loaded.epics.filter(x => !x.completed)) (e.parked ? parkedEpics : epics).push({ project: id, id: e.id, name: e.name, status: e.status, game: e.game ?? null, games: splitGames(e.game), event: e.event ?? null, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
       tasks.push(...loaded.tasks.filter(t => archived || t.state !== "archived"));
     }
     tasks.sort(byRank);

@@ -219,8 +219,10 @@ async function openCampaignForm() {
 
 /** Starts the campaign: the request, then the list with the new one on it. */
 async function startCampaign() {
-  const req = campaignRequest({ project: $("#mk-cp-project").value, name: $("#mk-cp-name").value, event: $("#mk-cp-event").value });
-  try { await api(req.method, req.path, req.body); S.mk.newCampaign = false; S.mk.game = $("#mk-cp-project").value; } catch (e) { toast(e.message); }
+  const projects = [...document.querySelectorAll("#mk-cp-project input:checked")].map(i => i.value);
+  if (!projects.length) return toast("Pick at least one project for the campaign.");
+  const req = campaignRequest({ projects, name: $("#mk-cp-name").value, event: $("#mk-cp-event").value });
+  try { await api(req.method, req.path, req.body); S.mk.newCampaign = false; S.mk.game = projects[0]; } catch (e) { toast(e.message); }
   return refreshMarketing();
 }
 

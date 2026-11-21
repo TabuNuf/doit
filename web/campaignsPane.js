@@ -3,10 +3,13 @@
 
 import { esc } from "./state.js";
 
+/** The projects an epic's Game line names. */
+const gamesOf = e => e.games ?? [e.game];
+
 /** Campaign epics for one game ("" for all): Active first, then the rest, each by project and id. */
 export function campaignsFor(epics, game) {
   const later = e => (e.status === "Active" ? 0 : 1);
-  return epics.filter(e => e.game && (!game || e.game === game))
+  return epics.filter(e => e.game && (!game || gamesOf(e).includes(game)))
     .sort((a, b) => later(a) - later(b) || a.project.localeCompare(b.project) || a.id.localeCompare(b.id, "en", { numeric: true }));
 }
 
@@ -26,7 +29,7 @@ export function profilePane(game, profiles) {
 export function campaignRow(e) {
   return `<button class="mk-row" data-campaign="${esc(e.project)}/${esc(e.id)}" title="Open on the Board">
     <span class="title"><span class="mono muted">${esc(e.id)}</span> ${esc(e.name)}</span>
-    <span class="pills"><span class="pill">${esc(e.game)}</span><span class="pill mono">${e.done}/${e.total}</span><span class="pill${e.status === "Active" ? "" : " ai"}">${esc(e.status)}</span></span></button>`;
+    <span class="pills">${gamesOf(e).map(g => `<span class="pill">${esc(g)}</span>`).join("")}<span class="pill mono">${e.done}/${e.total}</span><span class="pill${e.status === "Active" ? "" : " ai"}">${esc(e.status)}</span></span></button>`;
 }
 
 /** The projects a campaign can be for: those with a kind (a game, application or podcast). */
@@ -38,14 +41,14 @@ export function campaignForm(profiles, game, events) {
   if (!ps.length) return `<div class="empty">No project has a kind yet, so no campaign can be started. Pick a project on the Board and set its kind in Settings.</div>`;
   const opt = (v, l, sel) => `<option value="${esc(v)}" ${sel ? "selected" : ""}>${esc(l)}</option>`;
   return `<form class="form" id="mk-campaign" aria-label="New campaign">
-    <label for="mk-cp-project">For<select id="mk-cp-project">${ps.map(p => opt(p.game, `${p.name || p.game} (${p.kind})`, p.game === game)).join("")}</select></label>
+    <fieldset id="mk-cp-project" class="mk-games"><legend>For (one or more)</legend>${ps.map(p => `<label><input type="checkbox" name="mk-cp-game" value="${esc(p.game)}" ${p.game === game ? "checked" : ""}> ${esc(p.name || p.game)} (${esc(p.kind)})</label>`).join("")}</fieldset>
     <label for="mk-cp-name">Name<input id="mk-cp-name" required placeholder="Next Fest push"></label>
     <label for="mk-cp-event">Event, if any<select id="mk-cp-event">${opt("", "No event", true)}${(events || []).map(e => opt(e.id, `${e.name} ${e.event.year}`, false)).join("")}</select></label>
     <button type="submit">Start campaign</button><button type="button" data-mk-newcamp>Cancel</button></form>`;
 }
 
-/** The request that starts a campaign in the picked project; `v` is {project, name, event}. */
-export const campaignRequest = v => ({ method: "POST", path: "/api/campaigns", body: { project: v.project, name: v.name.trim(), event: v.event || "" } });
+/** The request that starts a campaign for the picked projects; `v` is {projects (a list), name, event}. */
+export const campaignRequest = v => ({ method: "POST", path: "/api/campaigns", body: { projects: [].concat(v.projects ?? v.project), name: v.name.trim(), event: v.event || "" } });
 
 /** The list column; `list` is null while loading. `form` is the open + Campaign form's HTML, or "". */
 export function campaignsPane(list, form = "") {

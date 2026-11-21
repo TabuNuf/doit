@@ -60,7 +60,7 @@ test("outreachLines: three lines, none for an empty part", () => {
 test("pickContacts: active, fit, not past the event, not taken, largest reach first, limited", () => {
   const contacts = [contact(1, { reach: 10 }), contact(2, { reach: 500 }), contact(3, { reach: 900, status: "dormant" }), contact(4, { reach: 800, fit: [{ game: "gb" }] }),
     contact(5, { reach: 700, next: "2027-02-02" }), contact(6, { reach: 600, next: "2027-02-01" }), contact(7, { reach: 400 }), contact(8, { reach: null })];
-  const ids = o => pickContacts({ contacts, game: "bb", ...o }).map(c => c.id);
+  const ids = o => pickContacts({ contacts, games: ["bb"], ...o }).map(c => c.id);
   assert.deepEqual(ids({ until: "2027-02-01", taken: [7] }), [6, 2, 1, 8]);
   assert.deepEqual(ids({}), [5, 6, 2, 7, 1, 8], "no event, no date limit");
   assert.deepEqual(ids({ limit: 2 }), [5, 6]);

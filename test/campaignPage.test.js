@@ -26,7 +26,7 @@ test("a campaign for an application is created from the page and listed under it
   const profiles = (await api("/api/profiles")).body;
   const events = (await api("/api/festivals")).body;
   const form = campaignForm(profiles, "doit", events);
-  assert.match(form, /<option value="doit" selected>Doit \(application\)/);
+  assert.match(form, /<input type="checkbox" name="mk-cp-game" value="doit" checked> Doit \(application\)/);
   assert.ok(!form.includes("bunny-bunker"), "a profile file with no project of its own is not a project to start a campaign in");
   assert.match(form, /Steam Next Fest 2027/);
 

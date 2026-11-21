@@ -1,7 +1,7 @@
 // The campaign and outreach commands of the doit CLI, over Outreach.
 
 const USAGE = {
-  add: "doit campaign add <project> <name> [--game <game>] [--event <festival id|YYYY-MM-DD>]",
+  add: "doit campaign add <project> <name> [--game <game[,game...]>] [--event <festival id|YYYY-MM-DD>]",
   contacts: "doit campaign contacts <project> <EPIC-nnn> [--limit n]",
 };
 

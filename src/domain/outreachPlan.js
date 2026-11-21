@@ -31,11 +31,11 @@ export function planWeek({ contacts = [], festivals = [], tasks = [], today, cap
   };
 }
 
-/** Contacts for a campaign: active, fit the game, not due after `until` (empty: no limit), not in `taken` (ids); largest reach first. */
-export function pickContacts({ contacts, game, until = "", taken = [], limit = 10 }) {
+/** Contacts for a campaign: active, fit any of its games (`games`), not due after `until` (empty: no limit), not in `taken` (ids); largest reach first. */
+export function pickContacts({ contacts, games, until = "", taken = [], limit = 10 }) {
   const skip = new Set(taken);
   return contacts
-    .filter(c => c.status === "active" && c.fit?.some(f => f.game === game) && !skip.has(c.id) && (!until || !c.next || c.next <= until))
+    .filter(c => c.status === "active" && c.fit?.some(f => games.includes(f.game)) && !skip.has(c.id) && (!until || !c.next || c.next <= until))
     .sort((a, b) => reachOf(b) - reachOf(a) || a.id - b.id)
     .slice(0, limit);
 }

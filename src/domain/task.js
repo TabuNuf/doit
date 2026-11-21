@@ -1,5 +1,7 @@
 // The task value and the rules for a task that has no task file yet.
 
+import { splitGames } from "./rules.js";
+
 export const STATES = ["todo", "progress", "backlog", "done", "archived"];
 export const OWNERS = ["ai", "human"];
 export const TYPES = ["task", "bug"];
@@ -78,6 +80,7 @@ export function makeTask(projectId, epic, line, file) {
     ticked: line.ticked,
     hasFile: Boolean(file),
     game: epic.game ?? null,
+    games: splitGames(epic.game),
     ...fields,
   };
 }
