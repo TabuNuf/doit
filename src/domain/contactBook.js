@@ -74,6 +74,9 @@ export class ContactBook {
 
   profiles() { return this.shelf.list(); }
 
+  /** A profile template in a project's own Marketing folder; `kind` is game or podcast. */
+  addProfile(project, kind = "game") { return this.shelf.createFor(project, kind); }
+
   /** Festivals and conferences by deadline (those with none last), each with `daysLeft`.
    *  `state` keeps one watching state; by default the past ones are left out.
    *  `fits` (a game) keeps the events whose criteria match that game's profile, each with `match`, and drops those past their deadline.

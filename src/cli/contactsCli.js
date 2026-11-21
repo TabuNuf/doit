@@ -8,6 +8,7 @@ const USAGE = {
   set: "doit contact set <id> key=value ...   keys: name types topic email reach notes status next channels",
   fit: "doit fit <id> <game> <reason>",
   touch: "doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]",
+  profile: "doit profile add <project> [--kind game|podcast]",
 };
 
 const need = (v, usage) => { if (v === undefined || v === "") throw new Error(`Usage: ${usage}`); return v; };
@@ -83,7 +84,13 @@ export class ContactsCli {
   profiles() {
     const list = this.book.profiles();
     if (!list.length) return this.print("No profiles.");
-    for (const p of list) this.print(`${p.game}  ${p.name}  ${p.stage || "-"}${p.release ? "  " + p.release : ""}  ${p.genres.join(", ")}`);
+    for (const p of list) this.print(`${p.game}  ${p.name}  ${p.kind}  ${p.stage || "-"}${p.release ? "  " + p.release : ""}  ${p.genres.join(", ")}`);
+  }
+
+  profile(pos, flags) {
+    if (pos[0] !== "add") throw new Error(USAGE.profile);
+    const p = this.book.addProfile(need(pos[1], USAGE.profile), flags.kind || "game");
+    this.print(`Wrote ${p.file}`);
   }
 
   #show(id, flags) {

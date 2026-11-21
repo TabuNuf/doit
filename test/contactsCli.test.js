@@ -58,7 +58,7 @@ test("contact add, set, show, fit, touch and the contacts list", t => {
   assert.equal(run("contacts", "--type", "press", "--status", "dormant").out.trim().split("\n").length, 1);
   assert.equal(run("contacts", "--reach", "1000").out.trim().split("\n").length, 1);
   assert.deepEqual(JSON.parse(run("contacts", "--json").out).map(c => c.name), ["Ada Plays", "Bit Blog"]);
-  assert.match(run("profiles").out, /^bunny-bunker  Bunny Bunker  demo  2027-03-01  co-op, cozy\ngood-box  Good Box  released  puzzle\n$/);
+  assert.match(run("profiles").out, /^bunny-bunker  Bunny Bunker  game  demo  2027-03-01  co-op, cozy\ngood-box  Good Box  game  released  puzzle\n$/);
 });
 
 test("refused values and missing arguments exit 1 with a message", t => {

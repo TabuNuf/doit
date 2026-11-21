@@ -24,7 +24,7 @@ test("reads two profiles", () => {
   const { home } = marketing();
   const shelf = new ProfileShelf(new SettingsFile(home));
   const [bunny, box] = shelf.list();
-  assert.deepEqual(bunny, { game: "bunny-bunker", name: "Bunny Bunker", genres: ["co-op", "cozy"], platforms: ["Steam", "Switch"], stage: "demo", release: "2027-03-01", needs: ["wishlists", "demo players"] });
+  assert.deepEqual(bunny, { game: "bunny-bunker", name: "Bunny Bunker", kind: "game", genres: ["co-op", "cozy"], platforms: ["Steam", "Switch"], stage: "demo", release: "2027-03-01", needs: ["wishlists", "demo players"] });
   assert.equal(box.game, "good-box");
   assert.equal(box.stage, "released");
   assert.deepEqual(box.needs, []);
@@ -59,4 +59,42 @@ test("the marketing project is a setting; without it no profiles exist", () => {
   assert.deepEqual(shelf.list(), []);
   assert.ok(!shelf.has("good-box"));
   assert.throws(() => shelf.create("x"), /No project other/);
+});
+
+/** The marketing setup plus a game project with its own Marketing/Profile.md. */
+function withProject(profileText) {
+  const m = marketing();
+  const root = path.dirname(m.home);
+  const game = path.join(root, "box");
+  fs.mkdirSync(path.join(game, "Docs"), { recursive: true });
+  if (profileText) { fs.mkdirSync(path.join(game, "Docs", "Marketing"), { recursive: true }); fs.writeFileSync(path.join(game, "Docs", "Marketing", "Profile.md"), profileText); }
+  const settings = new SettingsFile(m.home);
+  const s = settings.read();
+  settings.write({ ...s, projects: [...s.projects, { id: "box-trainer", name: "Box Trainer", path: game, docs: "Docs" }] });
+  return { ...m, game, settings };
+}
+
+test("a project's own Marketing/Profile.md is a profile named by the project id, beside the marketing project's", () => {
+  const { settings } = withProject("# Box Trainer\n\nKind: game\nGenres: puzzle\nStage: demo\n");
+  const shelf = new ProfileShelf(settings);
+  assert.deepEqual(shelf.list().map(p => [p.game, p.kind]), [["box-trainer", "game"], ["bunny-bunker", "game"], ["good-box", "game"]]);
+  assert.equal(shelf.list()[0].project, "box-trainer");
+  assert.ok(shelf.has("box-trainer"));
+});
+
+test("Kind reads podcast, and anything else is a game", () => {
+  const { settings } = withProject("# Hidden by Design\n\nKind: Podcast\n");
+  assert.equal(new ProfileShelf(settings).list()[0].kind, "podcast");
+});
+
+test("doit profile add writes the template into the project's Marketing folder, once", async () => {
+  const { home, game } = withProject(null);
+  const { makeCli } = await import("../src/root.js");
+  const out = []; const io = { write: x => out.push(x) };
+  const cli = makeCli({ home, out: io, err: io });
+  await cli.run(["profile", "add", "box-trainer", "--kind", "podcast"]);
+  const text = fs.readFileSync(path.join(game, "Docs", "Marketing", "Profile.md"), "utf8");
+  assert.match(text, /^# Box Trainer\n\nKind: podcast\n/);
+  await cli.run(["profile", "add", "box-trainer"]);
+  assert.match(out.join(""), /already has a profile/);
 });
