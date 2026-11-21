@@ -71,7 +71,7 @@ classDiagram
   class DocsFiles { +tree(id) +read(id, path) +write(id, path, text) +lastChange(id, path) }
   class ContactBook { +list(filter) +get(id) +add(input) +update(id, changes) +setFit(id, game, reason) +addTouch(id, touch) +profiles() }
   class SqliteContacts { +all() +get(id) +insert(c) +update(id, c) +setFit() +addTouch() }
-  class ProfileShelf { +list() +has(game) +create(game) }
+  class ProfileShelf { +list() +has(game) +create(game, name) }
   class TaskMover { +plan(task, tasks, placement) changes }
   class EpicMoves { +close() +move(project, epic, to) }
   class FileSource { +projects() +addProject() +settings() +load(id) +writeTask() +addLine() +createEpic() +completeEpic() +parkEpic() +reopenEpic() +setEpicArchived() +closedEpics() +epicDocument() }

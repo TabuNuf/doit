@@ -3,6 +3,7 @@
 import os from "node:os";
 import path from "node:path";
 import { Board } from "./domain/board.js";
+import { ContactBook } from "./domain/contactBook.js";
 import { ActivityLog } from "./domain/activity.js";
 import { DocsLibrary } from "./domain/docs.js";
 import { ClaudeView } from "./domain/claude.js";
@@ -10,6 +11,8 @@ import { DocsFiles } from "./store/docsFolder.js";
 import { FileSource } from "./store/source.js";
 import { ActivityFile } from "./store/activityFile.js";
 import { SettingsFile } from "./store/settings.js";
+import { SqliteContacts } from "./store/sqliteContacts.js";
+import { ProfileShelf } from "./store/profileShelf.js";
 import { EpicWorktrees } from "./store/worktrees.js";
 import { ChangeWatcher } from "./store/changeWatcher.js";
 import { Cli } from "./cli/cli.js";
@@ -30,6 +33,11 @@ export function makeBoard({ home = dataDir(), now, log = makeActivity({ home, no
 
 export function makeDocs({ home = dataDir(), board }) {
   return new DocsLibrary(new DocsFiles(new SettingsFile(home)), board);
+}
+
+/** The contact book over `marketing.db` in `home` and the profiles of the marketing project. */
+export function makeContacts({ home = dataDir(), now } = {}) {
+  return new ContactBook(new SqliteContacts(home), new ProfileShelf(new SettingsFile(home)), now);
 }
 
 export function makeCli(options = {}) {
