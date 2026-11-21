@@ -70,3 +70,46 @@ test("the Epics and Docs choice is kept per project and read back from storage",
   assert.deepEqual(docs.paneShow("b"), { epics: true, docs: false });
   render();
 });
+
+test("opening a doc gives the document the wide layout with Edit and Linked; choosing a task brings the task layout back", async t => {
+  const { S, render, docs, panes } = await setup(t);
+  docs.docsClick({ pane: "docs", paneP: "a" });
+  await flush();
+  render();
+  assert.match(panes(), /id="list"/, "the task list before a doc is opened");
+
+  docs.docsClick({ doc: "Design.md", docProject: "a" });
+  await flush();
+  const wide = panes();
+  assert.match(wide, /aria-label="Document"/);
+  assert.match(wide, /data-doc-edit/);
+  assert.match(wide, /aria-label="Linked"/);
+  assert.match(wide, /data-linked="a\/T-001.1"/);
+  assert.match(wide, /data-doc="Design.md"[^>]*>|aria-pressed="true" data-doc="Design.md"/, "the tree stays in the left pane");
+  assert.doesNotMatch(wide, /id="list"|aria-label="Detail"|>Detail</, "no task list or Detail pane");
+
+  docs.docsClick({ pane: "docs", paneP: "b" }); // a toggle keeps the document layout
+  assert.equal(S.docs.active, true);
+
+  docs.docsLeave({ openEpic: "a/EPIC-001" });
+  render();
+  assert.match(panes(), /id="list"/);
+  assert.match(panes(), />Detail</);
+  assert.doesNotMatch(panes(), /data-doc-edit/);
+
+  docs.docsClick({ doc: "Design.md", docProject: "a" });
+  await flush();
+  docs.docsClick({ linked: "a/T-001.1" }); // a task in Linked
+  await flush();
+  assert.equal(S.docs.active, false);
+  assert.equal(S.sel, "a/T-001.1");
+  assert.match(panes(), /id="list"/);
+});
+
+test("the document layout keeps its column widths apart from the task layout", async () => {
+  const { loadWidths, VIEW_DEFAULTS } = await import("../web/resize.js");
+  const storage = { getItem: k => k === "doit.columns.docs" ? JSON.stringify({ left: 200, right: 500 }) : JSON.stringify({ left: 300, right: 400 }) };
+  assert.deepEqual(loadWidths("docs", storage), { left: 200, right: 500 });
+  assert.deepEqual(loadWidths("board", storage), { left: 300, right: 400 });
+  assert.notDeepEqual(VIEW_DEFAULTS.docs, VIEW_DEFAULTS.board);
+});
