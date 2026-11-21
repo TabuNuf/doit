@@ -30,15 +30,16 @@ Module order, low to high: domain → store → cli, server → root.
 - `store/activityFile.js`: `ActivityFile`, `activity.log` in the app's data folder: read its lines, append, or replace them all.
 - `store/settings.js`: `SettingsFile`, the project list and settings in the app's data folder.
 - `store/worktrees.js`: `EpicWorktrees`, finds the worktrees on `epic/<nnn>-…` branches by reading `.git/worktrees`, no git process.
+- `store/changeWatcher.js`: `ChangeWatcher`, watches the data folder, each project's docs folder and each epic worktree's docs folder with `fs.watch`, debounces bursts (300 ms) into one call to its subscribers and rebuilds its folder list when the settings file changes or a worktree appears. Over `SettingsFile` and `EpicWorktrees`; only the root builds it.
 - `store/source.js`: `FileSource`, the port implementation the board is given; joins the settings file and each project's files, and reads and writes an epic's file and task files in its worktree when `EpicWorktrees` finds one.
 - `domain/claude.js`: `ClaudeView`, the Claude view's facade: from the board's tasks and the activity log, the panes Working on now, Blocked on you (human To-do tasks with `blocks`) and Up next, each card with its last logged change; `morning()` sweeps and writes the morning report (`morningReport`, pure) to the log as one block. The pane filters (`workingOn`, `blockedOnYou`, `upNext`, `dueSoon`) are pure functions. Given the `Board` and the `ActivityLog`.
 - `domain/docs.js`: `DocsLibrary`, the docs facade: tree, read, save and the tasks linked to a document, over a `DocsSource` port and the `Board`; `checkDocPath` keeps paths inside the docs folder (`.md` only, no `..`, no hidden names). Pure.
 - `store/docsFolder.js`: `DocsFiles`, the `DocsSource` port on disk: the docs tree (leaving out `Archive/`, `Epics/Tasks/`, `Standard/`, folding `Epics/Completed/`), read, write, and the last change from `git log`.
 - `cli/cli.js`: `Cli`, parses arguments and prints. Given a `Board`, output streams and the `ClaudeView` (for `morning`).
-- `server/server.js`: `HttpServer`, the JSON API (including `GET /api/version`, the start commit) and the static page. Given a `Board`, the web folder, the commit, the `DocsLibrary` (the `/api/docs/` routes) and the `ClaudeView` (`GET /api/claude`); `bin/server.js` reads the commit with `git rev-parse HEAD`.
+- `server/server.js`: `HttpServer`, the JSON API (including `GET /api/version`, the start commit) and the static page. Given a `Board`, the web folder, the commit, the `DocsLibrary` (the `/api/docs/` routes) and the `ClaudeView` (`GET /api/claude`), and `GET /api/events`, a server-sent event stream that sends `changed` on connect and on every event of the optional `changes` port (`subscribe(listener)` returning an unsubscribe; the root passes the `ChangeWatcher`); `close()` ends the open streams first. `bin/server.js` reads the commit with `git rev-parse HEAD`.
 - `launcher/`: `Doit.applescript` (the app), `start-server.sh`, `check-server.sh` (running server on the checked-out commit? exit 0, 1 none, 3 other), `stop-server.sh`, and `morning-run.md` (the desktop app scheduled task's prompt for `doit morning`; created by hand).
-- `web/`: the board page, plain HTML, CSS and JS as ES modules, none over 300 lines: `state.js` (page state, helpers, API calls), `render.js` (views), `epicView.js` (the epic document view and its Close epic button), `epicList.js` (the left pane's epic buttons and the Closed and Archived sections), `docsView.js` (the Docs view: tree, document, linked tasks), `claudeView.js` (the Claude view: its three panes; a card opens the task on the Board), `markdown.js` (markdown to HTML, no packages), `ordering.js` (drag and keyboard moves), `resize.js` (column widths), `events.js` (listeners and the reload), `app.js` (wires them).
-- `root.js`: builds the activity log and points the board's `record` at it, the Claude view over both, the settings file, the worktree finder, the source, the board, the docs files and library, and hands the board to the CLI or the server.
+- `web/`: the board page, plain HTML, CSS and JS as ES modules, none over 300 lines: `state.js` (page state, helpers, API calls), `render.js` (views), `epicView.js` (the epic document view and its Close epic button), `epicList.js` (the left pane's epic buttons and the Closed and Archived sections), `docsView.js` (the Docs view: tree, document, linked tasks), `claudeView.js` (the Claude view: its three panes; a card opens the task on the Board), `markdown.js` (markdown to HTML, no packages), `ordering.js` (drag and keyboard moves), `resize.js` (column widths), `events.js` (listeners and live updates: an `EventSource` on `/api/events` reloads the page, held while the user types, drags or has a menu or form open), `app.js` (wires them).
+- `root.js`: builds the change watcher (server only), the activity log and points the board's `record` at it, the Claude view over both, the settings file, the worktree finder, the source, the board, the docs files and library, and hands the board to the CLI or the server.
 
 ## Class diagram
 
@@ -70,6 +71,7 @@ classDiagram
   class ProjectFiles
   class SettingsFile
   class EpicWorktrees { +find(folder) }
+  class ChangeWatcher { +subscribe(listener) +close() }
   class Cli
   class HttpServer { +commit }
   Board --> TaskMover
@@ -86,6 +88,9 @@ classDiagram
   HttpServer --> Board
   HttpServer --> DocsLibrary
   HttpServer --> ClaudeView
+  HttpServer ..> ChangeWatcher : changes port
+  ChangeWatcher --> SettingsFile
+  ChangeWatcher --> EpicWorktrees
   ClaudeView --> Board
   ClaudeView --> ActivityLog
   DocsLibrary --> Board
@@ -104,4 +109,4 @@ classDiagram
 | Hook | Why the later iteration needs it |
 |---|---|
 | Task `source` field (where a task came from) | The Marketing epic marks fetched events and Reddit threads |
-| Board API is read from disk on every request | The morning run writes through the CLI while the page is open |
+| Board API is read from disk on every request | The morning run writes through the CLI while the page is open; the page learns of it from `/api/events` and reloads |
