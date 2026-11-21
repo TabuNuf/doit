@@ -105,8 +105,8 @@ test("fit needs a profile and a reason; a second fit to a game replaces the reas
 
 test("touch defaults to today and may name a game with a profile", () => {
   const b = book();
-  const c = b.addTouch(1, { kind: "mail", game: "good-box" });
-  assert.deepEqual(c.touches[0], { date: "2026-11-21", kind: "mail", game: "good-box" });
+  const c = b.addTouch(1, { kind: "mail", game: "good-box", note: "" });
+  assert.deepEqual(c.touches[0], { date: "2026-11-21", kind: "mail", game: "good-box", note: "" });
   assert.throws(() => b.addTouch(1, { kind: "mail", game: "nope" }), /No profile/);
   assert.equal(b.addTouch(1, { kind: "reply", date: "2026-11-02" }).touches.length, 2);
 });

@@ -2,7 +2,8 @@
 //
 // The ContactSource it is given (the store's port):
 //   all() -> contacts, get(id) -> contact | null, insert(contact) -> id, update(id, contact) (fields and channels),
-//   setFit(id, game, reason), addTouch(id, {date, kind, game}); a contact carries id, fit [{game, reason}], touches [{date, kind, game}] newest first.
+//   setFit(id, game, reason), addTouch(id, {date, kind, game, note, ref}) (a touch whose non-empty ref is already logged is not added again);
+//   a contact carries id, fit [{game, reason}], touches [{date, kind, game, note}] newest first.
 // The ProfileShelf it is given: list() -> profiles, has(game) -> bool.
 
 import { makeContact, contactFilter, byReach, isDue, checkDate, checkTouchKind, ContactError } from "./contacts.js";
@@ -58,11 +59,13 @@ export class ContactBook {
     return this.get(c.id);
   }
 
-  addTouch(id, { kind, game = "", date } = {}) {
+  /** `note` is a short text (a mail's subject), `ref` an outside id (a Message-ID) that keeps a mail from being logged twice. */
+  addTouch(id, { kind, game = "", date, note = "", ref = "" } = {}) {
     const c = this.get(id);
     const g = String(game ?? "").trim();
     if (g && !this.shelf.has(g)) throw new ContactError(`No profile for game "${game}"`);
-    this.source.addTouch(c.id, { date: date ? checkDate(date) : this.today(), kind: checkTouchKind(kind), game: g });
+    this.source.addTouch(c.id, { date: date ? checkDate(date) : this.today(), kind: checkTouchKind(kind), game: g,
+      note: String(note ?? "").replace(/\s+/g, " ").trim(), ref: String(ref ?? "").trim() });
     return this.get(c.id);
   }
 

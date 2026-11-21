@@ -39,7 +39,7 @@ test("the contact routes list, show, update, fit and touch", async t => {
   assert.deepEqual(fit.body.fit, [{ game: "bunny-bunker", reason: "plays co-op" }]);
   assert.equal((await api("/api/contacts?fits=bunny-bunker")).body.length, 1);
   const touch = await api("/api/contacts/1/touch", "POST", { kind: "mail", game: "good-box", date: "2026-11-10" });
-  assert.deepEqual(touch.body.touches[0], { date: "2026-11-10", kind: "mail", game: "good-box" });
+  assert.deepEqual(touch.body.touches[0], { date: "2026-11-10", kind: "mail", game: "good-box", note: "" });
 
   const profiles = await api("/api/profiles");
   assert.deepEqual(profiles.body.map(p => p.game), ["bunny-bunker", "good-box"]);

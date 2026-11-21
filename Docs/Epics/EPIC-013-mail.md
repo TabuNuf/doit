@@ -38,6 +38,12 @@ Design: Design.md, section Marketing (step 3)
 
 Decisions and deviations, newest first.
 
+- T-013.2: `SqliteContacts.close()` stays and closes the shared `MarketingDb` (older tests and the profiles test call it); the root builds one `MarketingDb` per `makeContacts` call, and mail's `makeMailroom` must reuse the same one.
+- T-013.2: a draft's `contact` is the contact id and its `id` is the table's integer id; `created` and `sentAt` are local `YYYY-MM-DDTHH:MM:SS` strings so `sentOn(day)` counts by the local day. `SqliteDrafts.all()` is newest first.
+- T-013.2: `editDraft` also takes `personal` (stored as text only; the Mailroom decides whether to refill). Approving is from `draft` only.
+- T-013.2: `composeMail` returns `{from, to, messageId, text}`; `To` is the bare address; a subject past 45 bytes of non-ASCII is split into several encoded words.
+- T-013.1: `node:child_process` was already in the store's list; the Architecture row now says it is also used for `security`.
+
 ## Close audit
 
 ## For the standard
