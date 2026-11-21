@@ -1,4 +1,4 @@
-// The Festivals and Events tabs of the Marketing view: festivals, conferences and store events that fit the picked game, by deadline.
+// The Festivals and Events tabs of the Marketing view: festivals, conferences and store events that fit a game, by deadline.
 // The server does the matching; the page shows what it sends.
 
 import { esc, fmtDate } from "./state.js";
@@ -12,11 +12,13 @@ export function festivalPath(game, platform = "") {
   return "/api/festivals" + (s ? "?" + s : "");
 }
 
-/** The left column: what the list shows, for the game picked in the top bar. */
+/** The left column: what the list shows, and the Fits select that narrows it to one game ("" shows every game). */
 export function eventsInfoPane(title, game, profiles) {
   const p = profiles.find(x => x.game === game);
-  const what = p ? `that fit ${esc(p.name || p.game)}'s genres, stage and platforms` : "for every game; pick a game in the top bar to see the ones that fit it";
-  return `<section class="pane" aria-label="About"><div class="pane-h">${esc(title)}</div><div class="pane-b"><div class="muted">Shows ${esc(title.toLowerCase())} ${what}, by deadline. Past deadlines are left out.</div></div></section>`;
+  const what = p ? `that fit ${esc(p.name || p.game)}'s genres, stage and platforms` : "for every game; pick a game below to see the ones that fit it";
+  const opts = profiles.map(x => `<option value="${esc(x.game)}" ${x.game === game ? "selected" : ""}>${esc(x.name || x.game)}</option>`).join("");
+  return `<section class="pane" aria-label="About"><div class="pane-h">${esc(title)}</div><div class="pane-b"><div class="muted">Shows ${esc(title.toLowerCase())} ${what}, by deadline. Past deadlines are left out.</div>
+    <label class="mk-evgame" for="mk-ev-game">Fits<select id="mk-ev-game" aria-label="Game the list fits"><option value="">Any game</option>${opts}</select></label></div></section>`;
 }
 
 export function festivalRow(c, sel) {

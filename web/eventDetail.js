@@ -20,6 +20,7 @@ export function eventPane(c, title = "Event") {
   const e = c.event, k = e.criteria;
   return wrap(`<div class="mono muted">${esc(c.types.join(", "))}${c.topic ? " · " + esc(c.topic) : ""}</div>
     <h2>${esc(c.name)} ${esc(e.year)}</h2>
+    <div class="mk-acts"><button data-mk-camp-event="${esc(c.id)}" title="Start a campaign for this ${esc(title.toLowerCase())}">+ Campaign around this</button></div>
     <dl class="kv">
       ${text("ev-name", "Name", c.name)}
       ${row("Year", `<input type="number" id="ev-year" min="2000" max="2100" step="1" value="${esc(e.year)}" aria-label="Year">`)}

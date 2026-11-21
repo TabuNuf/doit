@@ -23,8 +23,6 @@ async function serve(t, { profile } = {}) {
 
 test("Box Trainer's settings set the kind, genres and stage; they land in Marketing/Profile.md and show in the Marketing view", async t => {
   const { settingsPanes, kindRequest, profileRequest } = await import("../web/projectSettings.js");
-  const { profilePane } = await import("../web/campaignsPane.js");
-  const { gamePicker } = await import("../web/marketingView.js");
   const { api, file } = await serve(t);
 
   const kind = kindRequest("box-trainer", "game");
@@ -45,8 +43,6 @@ test("Box Trainer's settings set the kind, genres and stage; they land in Market
   const profiles = (await api("/api/profiles")).body;
   const p = profiles.find(x => x.game === "box-trainer");
   assert.deepEqual([p.genres, p.stage, p.missing], [["puzzle", "co-op"], "demo", undefined]);
-  assert.match(profilePane("box-trainer", profiles), /puzzle, co-op/);
-  assert.doesNotMatch(gamePicker("box-trainer", profiles), /no profile/);
 
   const html = settingsPanes({ id: "box-trainer", name: "Box Trainer", kind: "game" }, p, "Saved to Marketing/Profile.md.");
   assert.match(html, /<option value="game" selected>game/);

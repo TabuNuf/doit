@@ -1,5 +1,5 @@
-// The Marketing view: a game or podcast picked in the top bar, then the tabs Campaigns, Contacts, Festivals,
-// Events, Drafts and Overview. The server filters and ranks; the page sends the pick and the filters.
+// The Marketing view: the tabs Campaigns, Contacts, Festivals, Events, Drafts and Overview in the top bar.
+// The server filters and ranks; the page sends the filters.
 
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest } from "./contactDetail.js";
@@ -10,7 +10,8 @@ import { clickSort, orderContacts, headerRow, rowCells, specialMark } from "./co
 import { festivalPath, eventsInfoPane, festivalsPane } from "./festivalsPane.js";
 import { eventPane, eventEditRequest } from "./eventDetail.js";
 import { overviewPanes } from "./weekPane.js";
-import { campaignsFor, profilePane, campaignsPane, campaignForm, campaignRequest } from "./campaignsPane.js";
+import { campaignsList, campaignsPane, campaignForm, campaignRequest } from "./campaignsPane.js";
+import { briefPane, briefRequest } from "./campaignBrief.js";
 import { openEpic } from "./epicView.js";
 import { openSettingsFor } from "./projectSettings.js";
 import { draftsPane, draftEditRequest, sendQuestion, sweepSummary } from "./draftsPane.js";
@@ -47,17 +48,13 @@ export const MK_TABS = [["campaigns", "Campaigns"], ["contacts", "Contacts"], ["
 /** The `platform` each event tab asks for: Events are the store events (Steam, Epic, GOG, itch), Festivals every other. */
 const EVENT_TAB = { festivals: "0", events: "1" };
 
-/** The picker: the profiles, grouped as games, applications and podcasts. */
-export function gamePicker(game, profiles) {
-  const opt = p => `<option value="${esc(p.game)}" ${p.game === game ? "selected" : ""}>${esc(p.name || p.game)}</option>`;
-  const group = (label, kind) => { const ps = profiles.filter(p => (p.kind || "game") === kind); return ps.length ? `<optgroup label="${label}">${ps.map(opt).join("")}</optgroup>` : ""; };
-  return `<select id="mk-pick" class="mk-pick" aria-label="Game or podcast" title="The game, application or podcast every tab shows"><option value="">Any game or podcast</option>${group("Games", "game")}${group("Applications", "application")}${group("Podcasts", "podcast")}</select>`;
+/** Marketing's own tabs, shown in the top bar where the project chips are on the other views. */
+export function marketingTabs(pane) {
+  return MK_TABS.map(([id, label]) => `<button class="chip" data-mk-pane="${id}" aria-pressed="${pane === id}">${label}</button>`).join("");
 }
 
-/** The picker, then Marketing's own tabs, shown in the top bar where the project chips are on the other views. */
-export function marketingTabs(pane, game = "", profiles = []) {
-  return gamePicker(game, profiles) + MK_TABS.map(([id, label]) => `<button class="chip" data-mk-pane="${id}" aria-pressed="${pane === id}">${label}</button>`).join("");
-}
+/** The selected campaign epic from the loaded list, or null. */
+const campaignOf = m => (m.campaigns && m.campaign && m.campaigns.find(e => `${e.project}/${e.id}` === m.campaign)) || null;
 
 export function marketingPanes() {
   const m = S.mk;
@@ -65,8 +62,9 @@ export function marketingPanes() {
   const detail = () => m.detail && m.detail.event
     ? eventPane(m.detail, ["steam", "epic", "gog", "itch"].includes(m.detail.event.where) ? "Event" : "Festival")
     : detailPane(m.detail, m.profiles, m.touchOpen, today(), m.history, m.fitOpen);
-  if (m.pane === "overview") return overviewPanes(m.week, m.sel, m.game);
-  if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game), m.newCampaign ? campaignForm(m.profiles, m.game, m.events) : "") + detail();
+  if (m.pane === "overview") return overviewPanes(m.week, m.sel);
+  if (m.pane === "campaigns") return campaignsPane(m.campaigns && campaignsList(m.campaigns), m.newCampaign ? campaignForm(m.profiles, m.game, m.events, m.newEvent) : "", m.campaign || "")
+    + briefPane(campaignOf(m), m.profiles, m.events, m.suggest, m.sel) + detail();
   if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + eventPane(m.detail && m.detail.event ? m.detail : null, title === "Events" ? "Event" : "Festival"); }
   const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length, fitGame(m), Object.values(m.f).some(Boolean), m.sort);
   return filterPane(m.f, m.genres, m.profiles) + middle + detail();
@@ -110,12 +108,21 @@ export async function refreshMarketing() {
     [m.profiles, m.contacts, m.drafts, m.status, m.genres] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f)), api("GET", "/api/drafts"), api("GET", "/api/mail/status"), api("GET", "/api/genres")]);
     if (m.pane === "overview") m.week = await api("GET", "/api/outreach").catch(() => null);
     if (EVENT_TAB[m.pane]) m.fest = await api("GET", festivalPath(m.game, EVENT_TAB[m.pane]));
-    if (m.pane === "campaigns") m.campaigns = (await api("GET", "/api/board?project=all")).epics;
+    if (m.pane === "campaigns") await loadCampaigns(m);
     m.detail = m.sel ? await api("GET", `/api/contacts/${encodeURIComponent(m.sel)}`).catch(() => null) : null;
     m.history = m.detail ? await api("GET", `/api/contacts/${encodeURIComponent(m.sel)}/history`).catch(() => null) : null;
     if (!m.detail) { m.sel = null; m.touchOpen = false; m.fitOpen = false; }
     redraw();
   } catch (e) { toast(e.message); }
+}
+
+/** The campaign list, the open events for its Event select and the selected campaign's suggestions. */
+async function loadCampaigns(m) {
+  m.campaigns = campaignsList((await api("GET", "/api/board?project=all")).epics);
+  m.events = await api("GET", "/api/festivals").catch(() => m.events);
+  const e = campaignOf(m);
+  if (!e) m.campaign = null;
+  m.suggest = e ? await api("GET", `/api/campaigns/${encodeURIComponent(e.project)}/${encodeURIComponent(e.id)}/suggest`).catch(() => ({ contacts: [], festivals: [] })) : null;
 }
 
 /** Sends an edit, shows the saved contact and reloads the list; a refused value goes to the toast. */
@@ -135,7 +142,11 @@ export function marketingClick(d) {
   if (d.contact) { if (d.mkTo) m.pane = d.mkTo; m.sel = d.contact; m.detail = null; m.touchOpen = false; m.fitOpen = false; redraw(); refreshMarketing(); return true; }
   if (d.mkSort) { m.sort = clickSort(m.sort, d.mkSort); try { localStorage.setItem("doit.contacts.sort", JSON.stringify(m.sort)); } catch { /* storage off */ } redraw(); return true; }
   if (d.mkSettings) { openSettingsFor(d.mkSettings); return true; }
-  if ("mkNewcamp" in d) { m.newCampaign = !m.newCampaign; if (m.newCampaign) openCampaignForm(); else redraw(); return true; }
+  if (d.mkCampaign) { m.campaign = d.mkCampaign; m.newCampaign = false; m.suggest = null; redraw(); refreshMarketing(); return true; }
+  if (d.mkCampEvent) { m.pane = "campaigns"; m.newCampaign = true; m.newEvent = d.mkCampEvent; m.detail = null; m.sel = null; openCampaignForm(); refreshMarketing(); return true; }
+  if (d.mkCadd) { campaignAdd(`/contact`, { contact: d.mkCadd }); return true; }
+  if (d.mkCaddall) { campaignAdd(`/contacts`, { limit: Number(d.mkCaddall) }); return true; }
+  if ("mkNewcamp" in d) { m.newCampaign = !m.newCampaign; if (m.newCampaign) { m.newEvent = ""; openCampaignForm(); } else redraw(); return true; }
   if (d.mkPane) { m.pane = d.mkPane; m.fest = null; redraw(); refreshMarketing(); return true; }
   if (d.campaign) { S.view = "board"; S.project = d.campaign.split("/")[0]; S.tab = "open"; openEpic(d.campaign); return true; }
   if (d.mkSend) { sendDraft(d.mkSend); return true; }
@@ -172,7 +183,8 @@ async function discardDraft(id) {
 /** A changed filter or detail field; true when the change was one. */
 export function marketingChange(ev) {
   const el = ev.target;
-  if (el.id === "mk-pick") { S.mk.game = el.value; S.mk.fest = null; refreshMarketing(); return true; }
+  if (el.id === "mk-ev-game") { S.mk.game = el.value; S.mk.fest = null; refreshMarketing(); return true; }
+  if (el.id.startsWith("cb-")) { const e = campaignOf(S.mk), req = e && briefRequest(el, e); if (req) saveBrief(req); return true; }
   if (FILTERS[el.id]) { S.mk.f[FILTERS[el.id]] = el.value; refreshMarketing(); return true; }
   const dr = draftEditRequest(el, S.mk.drafts);
   if (dr) { saveDraft(dr); return true; }
@@ -196,12 +208,37 @@ async function openCampaignForm() {
   redraw(); $("#mk-cp-name")?.focus();
 }
 
+/** Saves an edited brief field; a refused value goes to the toast and the saved brief comes back. */
+async function saveBrief(req) {
+  try { await api(req.method, req.path, req.body); } catch (e) { toast(e.message); }
+  return refreshMarketing();
+}
+
+/** Adds one contact (`/contact`) or the best few (`/contacts`) to the selected campaign as Reach out tasks. */
+async function campaignAdd(tail, body) {
+  const e = campaignOf(S.mk);
+  if (!e) return;
+  try {
+    const r = await api("POST", `/api/campaigns/${encodeURIComponent(e.project)}/${encodeURIComponent(e.id)}${tail}`, body);
+    const n = r.refs ? r.refs.length : 1;
+    toast(n ? `Added ${n} contact task${n === 1 ? "" : "s"}` : "No contacts to add");
+  } catch (err) { toast(err.message); }
+  return refreshMarketing();
+}
+
 /** Starts the campaign: the request, then the list with the new one on it. */
 async function startCampaign() {
   const projects = [...document.querySelectorAll("#mk-cp-project input:checked")].map(i => i.value);
   if (!projects.length) return toast("Pick at least one project for the campaign.");
-  const req = campaignRequest({ projects, name: $("#mk-cp-name").value, event: $("#mk-cp-event").value });
-  try { await api(req.method, req.path, req.body); S.mk.newCampaign = false; S.mk.game = projects[0]; } catch (e) { toast(e.message); }
+  const req = campaignRequest({ projects, name: $("#mk-cp-name").value, event: $("#mk-cp-event").value, occasion: $("#mk-cp-occasion").value });
+  try {
+    const made = await api(req.method, req.path, req.body);
+    S.mk.newCampaign = false; S.mk.newEvent = "";
+    // The new epic lives in a marketing project; its id and name find it in the reloaded list.
+    const epics = (await api("GET", "/api/board?project=all")).epics;
+    const found = epics.find(e => e.id === made.id && e.name === req.body.name) || epics.find(e => e.id === made.id);
+    if (found) { S.mk.campaign = `${found.project}/${found.id}`; S.mk.suggest = null; }
+  } catch (e) { toast(e.message); }
   return refreshMarketing();
 }
 

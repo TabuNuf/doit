@@ -52,16 +52,18 @@ test("the CLI starts a campaign for a project with a kind without --game", async
 });
 
 test("no empty state in Marketing shows a code span or a command, and each says what to do", async () => {
-  const { profilePane, campaignsPane, campaignForm } = await import("../web/campaignsPane.js");
+  const { campaignsPane, campaignForm } = await import("../web/campaignsPane.js");
   const { festivalsPane, eventsInfoPane } = await import("../web/festivalsPane.js");
   const { draftsPane } = await import("../web/draftsPane.js");
   const { listPane } = await import("../web/marketingView.js");
   const { overviewPanes } = await import("../web/weekPane.js");
   const { eventPane } = await import("../web/eventDetail.js");
   const { detailPane } = await import("../web/contactDetail.js");
+  const { briefPane } = await import("../web/campaignBrief.js");
+  const campaign = { project: "m", id: "EPIC-1", name: "X", status: "Active", games: ["doit"], brief: {}, done: 0, total: 0 };
   const missing = { game: "doit", name: "Doit", kind: "application", missing: true, project: "doit" };
   const empties = [
-    profilePane("", []), profilePane("", [missing]), profilePane("doit", [missing]),
+    briefPane(null, [], [], null, null), briefPane(campaign, [missing], [], { contacts: [], festivals: [] }, null),
     campaignsPane([]), campaignsPane([], campaignForm([], "", [])), campaignForm([], "", []),
     festivalsPane([], null), eventsInfoPane("Events", "", []), draftsPane([], null, ""),
     listPane([], null), listPane([], null, 0, null, true), eventPane(null), detailPane(null, [], false, "2026-11-21"),
@@ -69,5 +71,6 @@ test("no empty state in Marketing shows a code span or a command, and each says 
   ];
   for (const html of empties) assert.doesNotMatch(html, /<code|doit (profile|campaign|draft)|class="mono">doit/, html.slice(0, 120));
   assert.match(campaignsPane([]), /<button data-mk-newcamp>\+ Campaign<\/button>/);
-  assert.match(profilePane("doit", [missing]), /<button data-mk-settings="doit">/);
+  assert.match(briefPane(campaign, [missing], [], null, null), /<button data-mk-settings="doit"/);
+  assert.match(briefPane(null, [], [], null, null), /<button data-mk-newcamp>\+ Campaign<\/button>/);
 });

@@ -81,7 +81,7 @@ test("This week is only on the Overview tab, so the other tabs' lists get the fu
 });
 
 test("the Campaigns tab shows the picked game's profile and its campaign epics, Active first", async () => {
-  const { campaignsFor, campaignsPane, profilePane } = await import("../web/campaignsPane.js");
+  const { campaignsFor, campaignsPane } = await import("../web/campaignsPane.js");
   const epics = [
     { project: "m", id: "EPIC-010", name: "Old push", status: "Planned", game: "bunny-bunker", done: 0, total: 2 },
     { project: "m", id: "EPIC-002", name: "Inbox", status: "Active", game: null, done: 0, total: 0 },
@@ -91,14 +91,9 @@ test("the Campaigns tab shows the picked game's profile and its campaign epics, 
   assert.deepEqual(campaignsFor(epics, "").map(e => e.id), ["EPIC-009", "EPIC-011", "EPIC-010"]);
   assert.deepEqual(campaignsFor(epics, "bunny-bunker").map(e => e.id), ["EPIC-009", "EPIC-010"]);
   const html = campaignsPane(campaignsFor(epics, "bunny-bunker"));
-  assert.match(html, /data-campaign="m\/EPIC-009"/);
+  assert.match(html, /data-mk-campaign="m\/EPIC-009"/);
   assert.match(html, /1\/4/);
   assert.match(campaignsPane([]), /No campaign/);
-  const profiles = [{ game: "box-trainer", name: "Box Trainer", kind: "game", stage: "demo", release: "", genres: ["puzzle"], platforms: [], needs: ["wishlists"], project: "box-trainer" }];
-  assert.match(profilePane("box-trainer", profiles), /<h2>Box Trainer<\/h2>.*puzzle.*wishlists.*Marketing\/Profile\.md/s);
-  assert.match(profilePane("", profiles), /Pick a game, application or podcast/);
-  assert.match(profilePane("", []), /No project has a kind yet/);
-  assert.match(profilePane("doit", [{ game: "doit", name: "Doit", kind: "application", missing: true }]), /application.*no marketing profile yet.*data-mk-settings="doit"/s);
 });
 
 test("an open campaign epic shows Add contacts; a plain or closed one does not", async () => {

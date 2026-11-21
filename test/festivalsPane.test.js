@@ -25,7 +25,7 @@ test("the Festivals pane lists days left, cost, state and the criteria-unknown m
   assert.match(festivalsPane([], null, "Events"), /aria-label="Events"><div class="pane-h">Events/);
   assert.match(festivalsPane(null, null), /Loading/);
   assert.match(eventsInfoPane("Events", "good-box", [{ game: "good-box", name: "Good Box" }]), /Shows events that fit Good Box/);
-  assert.match(eventsInfoPane("Festivals", "", []), /pick a game in the top bar/);
+  assert.match(eventsInfoPane("Festivals", "", []), /pick a game below/);
   assert.equal(festivalPath(""), "/api/festivals");
   assert.equal(festivalPath("good-box"), "/api/festivals?game=good-box");
   assert.equal(festivalPath("good-box", "1"), "/api/festivals?game=good-box&platform=1");
