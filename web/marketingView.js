@@ -87,7 +87,10 @@ export function marketingTabs(pane, game = "", profiles = []) {
 
 export function marketingPanes() {
   const m = S.mk;
-  const detail = () => detailPane(m.detail, m.profiles, m.touchOpen, today(), m.history);
+  // A festival or event picked in another tab keeps its own fields here too, never a contact's.
+  const detail = () => m.detail && m.detail.event
+    ? eventPane(m.detail, ["steam", "epic", "gog", "itch"].includes(m.detail.event.where) ? "Event" : "Festival")
+    : detailPane(m.detail, m.profiles, m.touchOpen, today(), m.history);
   if (m.pane === "overview") return overviewPanes(m.week, m.sel, m.game);
   if (m.pane === "campaigns") return profilePane(m.game, m.profiles) + campaignsPane(m.campaigns && campaignsFor(m.campaigns, m.game), m.newCampaign ? campaignForm(m.profiles, m.game, m.events) : "") + detail();
   if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + eventPane(m.detail && m.detail.event ? m.detail : null, title === "Events" ? "Event" : "Festival"); }

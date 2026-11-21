@@ -70,3 +70,14 @@ test("the Overview opens a store event in the Events tab", async () => {
   assert.match(festivalLine({ id: 1, name: "N", year: 2027, deadline: "2026-12-01", daysLeft: 3, games: ["g"], platform: true }, null), /data-mk-to="events"/);
   assert.match(festivalLine({ id: 2, name: "G", year: 2027, deadline: "2026-12-01", daysLeft: 3, games: ["g"], platform: false }, null), /data-mk-to="festivals"/);
 });
+
+test("a festival picked in Events keeps its event fields when another tab shows the detail pane", async () => {
+  const { S } = await import("../web/state.js");
+  const { marketingPanes } = await import("../web/marketingView.js");
+  S.mk.pane = "campaigns"; S.mk.campaigns = []; S.mk.profiles = []; S.mk.game = "";
+  S.mk.detail = { id: 9, name: "Steam Next Fest", types: ["festival"], channels: [], touches: [], fits: [], event: { year: 2027, deadline: "2027-01-10", where: "steam", state: "watching", criteria: { genres: [], stages: [], platforms: [] } } };
+  const html = marketingPanes();
+  assert.match(html, /aria-label="Event"|>Event</);
+  assert.doesNotMatch(html, /Reach|Email|Last contact/);
+  S.mk.detail = null; S.mk.pane = "campaigns";
+});
