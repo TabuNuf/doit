@@ -233,7 +233,8 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .tnode { display: block; width: 100%; text-align: left; border: 0; background: transparent; padding-top: 4px; padding-bottom: 4px; padding-right: 8px; font-size: 13px; }
 .tnode:hover { background: var(--fill); }
 .tnode.file[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
-.pane-toggles { margin: 0 4px 6px; }
+.part-h { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 8px 4px 4px; }
+.part-rule { border: 0; border-top: 1px solid var(--line); margin: 18px 4px 10px; }
 .pane-b .tree { margin-bottom: 6px; }
 .doc-path { text-transform: none; letter-spacing: 0; color: var(--ink); }
 .doc-change { text-transform: none; letter-spacing: 0; font-size: 12px; }

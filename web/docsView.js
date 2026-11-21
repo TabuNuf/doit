@@ -5,30 +5,12 @@ import { renderMarkdown } from "./markdown.js";
 
 const q = (project, path) => `project=${encodeURIComponent(project)}${path ? `&path=${encodeURIComponent(path)}` : ""}`;
 
-/** What the left pane shows for a project: the Epics and Docs toggles, kept per project in this browser. */
-export function paneShow(project) {
-  const D = S.docs;
-  if (!(project in D.show)) {
-    let saved = {};
-    try { saved = JSON.parse(localStorage.getItem(`doit.show.${project}`) || "{}"); } catch { /* storage off or unreadable */ }
-    D.show[project] = { epics: saved.epics !== false, docs: saved.docs === true };
-  }
-  return D.show[project];
-}
-
-function togglePane(project, which) {
-  const sh = paneShow(project);
-  sh[which] = !sh[which];
-  try { localStorage.setItem(`doit.show.${project}`, JSON.stringify(sh)); } catch { /* storage off */ }
-  refreshDocs();
-}
-
-/** Loads the trees of the projects shown with Docs on, and the open document with what links to it; keeps an open edit box alone. */
+/** Loads the trees of the projects shown, and the open document with what links to it; keeps an open edit box alone. */
 export async function refreshDocs() {
   const d = S.docs;
   const shown = S.project === "all" ? projects() : [proj(S.project)];
   try {
-    for (const p of shown) if (paneShow(p.id).docs) d.trees[p.id] = await api("GET", `/api/docs/tree?${q(p.id)}`);
+    for (const p of shown) d.trees[p.id] = await api("GET", `/api/docs/tree?${q(p.id)}`);
     if (d.active && d.path && !d.editing) await readDoc(d.path);
     redraw();
   } catch (e) { toast(e.message); }
@@ -50,7 +32,6 @@ export function docsLeave(d) {
 /** Handles a click on a Docs control; true when the click was one. */
 export function docsClick(d) {
   const D = S.docs;
-  if (d.pane) { togglePane(d.paneP, d.pane); return true; }
   if (d.fold) { const k = `${d.docProject}/${d.fold}`; D.open[k] = !(k in D.open ? D.open[k] : d.folded !== "true"); redraw(); return true; }
   if (d.doc) {
     if (D.editing && D.draft !== D.doc.text && !confirm("Discard your changes to this document?")) return true;

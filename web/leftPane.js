@@ -1,11 +1,8 @@
-// The Board's left pane: per project, the Epics and Docs toggles, then the epics and the doc tree.
+// The Board's left pane: per project, an Epics headline over the epics and a Docs headline over the doc tree.
 
 import { S, esc, projects, proj, color } from "./state.js";
 import { epicBtn, epicSections } from "./epicList.js";
-import { paneShow, treeHtml } from "./docsView.js";
-
-const toggles = p => `<div class="seg pane-toggles" role="group" aria-label="Show for ${esc(p.name)}">${[["epics", "Epics"], ["docs", "Docs"]]
-  .map(([k, l]) => `<button aria-pressed="${paneShow(p.id)[k]}" data-pane="${k}" data-pane-p="${esc(p.id)}">${l}</button>`).join("")}</div>`;
+import { treeHtml } from "./docsView.js";
 
 function epics(p) {
   const adding = S.newEpic === p.id
@@ -20,9 +17,8 @@ const docs = p => `<div class="tree" aria-label="Documents of ${esc(p.name)}">${
 export function leftPane() {
   const ps = S.project === "all" ? projects() : [proj(S.project)];
   const groups = ps.map(p => {
-    const sh = paneShow(p.id);
-    const body = (sh.epics ? epics(p) : "") + (sh.docs ? docs(p) : "") || `<div class="empty">Turn on Epics or Docs.</div>`;
-    return `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}</div>${toggles(p)}${body}`;
+    return `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}</div>
+      <div class="part-h">Epics</div>${epics(p)}<hr class="part-rule"><div class="part-h">Docs</div>${docs(p)}`;
   }).join("");
   return `<section class="pane"><div class="pane-h">Projects${S.epic ? `<button class="fsz" data-clear-epic style="text-transform:none">Show all</button>` : ""}</div>
     <div class="pane-b">${groups || `<div class="empty">No projects yet. Add one under Projects ▾, + New project.</div>`}</div></section>`;

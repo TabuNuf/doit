@@ -1,4 +1,4 @@
-// Docs on the Board: the Epics and Docs toggles, the tree in the left pane and the document layout.
+// Docs on the Board: the Epics and Docs parts, the tree in the left pane and the document layout.
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -35,46 +35,23 @@ async function setup(t) {
   return { S: state.S, els, render, docs, panes: () => els.get("#panes").innerHTML };
 }
 
-test("Docs shows a project's tree under its epics, Epics off leaves the tree, and the top bar has no Docs button", async t => {
-  const { S, els, render, docs, panes } = await setup(t);
+test("the left pane shows an Epics headline over the epics and a Docs headline over the tree, divided by a rule, with no toggles", async t => {
+  const { els, render, docs, panes } = await setup(t);
   render();
-  assert.doesNotMatch(panes(), /data-doc=/);
-  assert.match(panes(), /data-pane="docs" data-pane-p="a"/);
+  assert.doesNotMatch(panes(), /data-pane=|pane-toggles/);
+  assert.match(panes(), /Epics<\/div>[\s\S]*First epic[\s\S]*<hr class="part-rule">\s*<div class="part-h">Docs<\/div>/);
+  assert.doesNotMatch(panes(), /data-doc=/, "trees load after the board");
+  await docs.refreshDocs();
+  const both = panes();
+  assert.ok(both.indexOf("Epics</div>") < both.indexOf("First epic") && both.indexOf("First epic") < both.indexOf("part-rule") && both.indexOf("part-rule") < both.indexOf("Design.md"), "the tree is under the epics");
+  assert.equal(both.split('data-doc="Design.md"').length - 1, 2, "each project shows its own tree");
   assert.doesNotMatch(els.get("#views").innerHTML, /Docs|data-view="docs"/);
   assert.match(els.get("#views").innerHTML, /data-view="board".*data-view="claude"/s);
-
-  docs.docsClick({ pane: "docs", paneP: "a" });
-  await flush();
-  const both = panes();
-  assert.ok(both.indexOf("First epic") > 0 && both.indexOf("First epic") < both.indexOf("Design.md"), "the tree is under the epics");
-  assert.equal(both.split('data-doc="Design.md"').length - 1, 1, "only project a has Docs on");
-
-  docs.docsClick({ pane: "epics", paneP: "a" });
-  await flush();
-  assert.doesNotMatch(panes(), /First epic/);
-  assert.match(panes(), /data-doc="Specs\/Net.md"/);
-  assert.match(panes(), /data-pane-p="b"/, "project b keeps its own toggles");
-  assert.ok(S.docs.show.a.docs && !S.docs.show.a.epics);
-});
-
-test("the Epics and Docs choice is kept per project and read back from storage", async t => {
-  const { S, docs, render } = await setup(t);
-  docs.docsClick({ pane: "docs", paneP: "a" });
-  docs.docsClick({ pane: "epics", paneP: "a" });
-  await flush();
-  S.docs.show = {}; // a new page load
-  assert.deepEqual(docs.paneShow("a"), { epics: false, docs: true });
-  assert.deepEqual(docs.paneShow("b"), { epics: true, docs: false });
-  localStorage.setItem("doit.show.b", "not json");
-  S.docs.show = {};
-  assert.deepEqual(docs.paneShow("b"), { epics: true, docs: false });
-  render();
 });
 
 test("opening a doc gives the document the wide layout with Edit and Linked; choosing a task brings the task layout back", async t => {
   const { S, render, docs, panes } = await setup(t);
-  docs.docsClick({ pane: "docs", paneP: "a" });
-  await flush();
+  await docs.refreshDocs();
   render();
   assert.match(panes(), /id="list"/, "the task list before a doc is opened");
 
@@ -88,7 +65,6 @@ test("opening a doc gives the document the wide layout with Edit and Linked; cho
   assert.match(wide, /data-doc="Design.md"[^>]*>|aria-pressed="true" data-doc="Design.md"/, "the tree stays in the left pane");
   assert.doesNotMatch(wide, /id="list"|aria-label="Detail"|>Detail</, "no task list or Detail pane");
 
-  docs.docsClick({ pane: "docs", paneP: "b" }); // a toggle keeps the document layout
   assert.equal(S.docs.active, true);
 
   docs.docsLeave({ openEpic: "a/EPIC-001" });
