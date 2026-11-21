@@ -38,6 +38,8 @@ Design: Design.md, section Marketing (step 3)
 
 Decisions and deviations, newest first.
 
+- T-013.7: the Drafts pane replaces the Contacts column in the Marketing view when chosen (a Drafts button in the Contacts header, a Contacts button in the Drafts header), since the view has three columns; the detail pane stays. The sweep runs from the Marketing button click (`openMarketing`), not from live reloads. There is no `POST /api/drafts`: drafts are made by the CLI. A waiting (`approved`) draft shows a `Send now` button that calls the same send route. Editing a text field saves on change (blur); the page's `reloadHeld` already holds reloads while typing.
+
 - T-013.6: `Cli.run` returns a promise of the exit code for an async command (`mail sweep`) and a number otherwise; `bin/doit.js` awaits it. `draft add` prints `Draft <id>` and the mail; `mail sweep` prints one `Reply from <name>: <subject>` line per reply and a summary line, exits 1 on a mailbox error, and prints `Mail is not set up` (exit 0) with no account.
 
 - T-013.5: the root has `makeMarketing(options)` (one `MarketingDb`, the `ContactBook` and the `Mailroom` over it) beside `makeContacts` (which now takes an optional `db`) and `makeMailroom`; `makeMailroom` takes `ports` to swap account, sender, mailbox or random in tests.

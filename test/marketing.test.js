@@ -85,3 +85,46 @@ test("a reload is held while the touch form is open in the Marketing view", asyn
   assert.equal(reloadHeld({ ...S, view: "marketing", mk: { touchOpen: false } }, null), false);
   assert.equal(reloadHeld({ ...S, view: "marketing", mk: { touchOpen: false } }, { tagName: "TEXTAREA" }), true);
 });
+
+const draft = (id, over = {}) => ({ id, contact: 1, contactName: "Ada", to: "ada@example.com", game: "good-box", subject: "Hello", body: "Hi <Ada>", state: "draft", error: "", sentAt: "", labeled: false, ...over });
+
+test("a draft shows as the mail will look, editable while draft or failed", async () => {
+  const { draftCard } = await import("../web/draftsPane.js");
+  const html = draftCard(draft(4));
+  assert.match(html, /Ada &lt;ada@example\.com&gt;/);
+  assert.match(html, /<input id="mk-dr-subject-4" value="Hello"/);
+  assert.match(html, /<textarea id="mk-dr-body-4"[^>]*>Hi &lt;Ada&gt;<\/textarea>/);
+  assert.match(html, /data-mk-send="4">Approve and send/);
+  assert.match(html, /data-mk-discard="4"/);
+  assert.match(draftCard(draft(5, { state: "failed", error: "Login refused" })), /Not sent: Login refused/);
+  const waiting = draftCard(draft(6, { state: "approved" }));
+  assert.match(waiting, /waits for the daily cap/);
+  assert.doesNotMatch(waiting, /<textarea/);
+  const sent = draftCard(draft(7, { state: "sent", sentAt: "2026-11-21T10:05:00", labeled: true }));
+  assert.match(sent, /Sent 21 Nov 10:05 · labeled Marketing/);
+  assert.doesNotMatch(sent, /data-mk-send|data-mk-discard|<textarea/);
+  assert.match(draftCard(draft(8, { state: "sent", sentAt: "2026-11-21T10:05:00" })), /not yet labeled/);
+});
+
+test("the drafts pane shows the status line, the sweep result and an empty state", async () => {
+  const { draftsPane, statusLine, sweepSummary, sendQuestion, draftEditRequest } = await import("../web/draftsPane.js");
+  assert.equal(statusLine({ ready: false }), "Mail is not set up");
+  assert.equal(statusLine({ ready: true, address: "me@example.com", sentToday: 3, cap: 20 }), "me@example.com · 3 of 20 sent today");
+  assert.match(draftsPane([], { ready: false }, "Sweep: 1 reply filed, 0 sent mails labeled"), /Sweep: 1 reply filed[\s\S]*No drafts/);
+  assert.match(draftsPane([], { ready: false }, ""), /Mail is not set up/);
+  assert.equal(sweepSummary({ ok: true, replies: [{}, {}], labeled: 1 }), "Sweep: 2 replies filed, 1 sent mail labeled");
+  assert.equal(sweepSummary({ ok: false, skipped: "Mail is not set up" }), "Mail is not set up");
+  assert.equal(sweepSummary({ ok: false, error: "Login refused" }), "Sweep failed: Login refused");
+  assert.equal(sendQuestion(draft(1)), 'Send "Hello" to Ada <ada@example.com>?');
+  assert.deepEqual(draftEditRequest({ id: "mk-dr-body-1", value: "New" }, [draft(1)]), { method: "PATCH", path: "/api/drafts/1", body: { body: "New" } });
+  assert.equal(draftEditRequest({ id: "mk-dr-body-1", value: "Hi <Ada>" }, [draft(1)]), null);
+  assert.equal(draftEditRequest({ id: "mk-status", value: "x" }, [draft(1)]), null);
+});
+
+test("a touch shows its note, and the contacts pane offers the drafts", async () => {
+  const { detailPane } = await import("../web/contactDetail.js");
+  const { listPane } = await import("../web/marketingView.js");
+  const html = detailPane(contact(1, { touches: [{ date: "2026-11-21", kind: "mail", game: "good-box", note: "Good Box for Ada" }] }), [], false, "2026-11-21");
+  assert.match(html, /2026-11-21<\/span> · mail · good-box · Good Box for Ada/);
+  assert.match(listPane([contact(1)], null, 2), /data-mk-pane="drafts"[^>]*>Drafts \(2\)/);
+});

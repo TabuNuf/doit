@@ -3,6 +3,7 @@
 
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest, STATUSES } from "./contactDetail.js";
+import { draftsPane, draftEditRequest, sendQuestion, sweepSummary } from "./draftsPane.js";
 
 export const TYPES = ["influencer", "blogger", "press", "publisher", "tester", "festival", "conference"];
 export const REACH_OPTIONS = [["", "Any"], ["100", "100"], ["1000", "1 000"], ["10000", "10 000"], ["100000", "100 000"]];
@@ -40,25 +41,34 @@ export function contactRow(c, sel) {
 }
 
 /** The list column: a Due group when any contact is due, then the rest. */
-export function listPane(contacts, sel) {
+export function listPane(contacts, sel, draftCount = null) {
   if (!contacts) return `<section class="pane"><div class="pane-h">Contacts</div><div class="pane-b"><div class="empty">Loading…</div></div></section>`;
   const sorted = dueFirst(contacts);
   const due = sorted.filter(c => c.due), rest = sorted.filter(c => !c.due);
   const group = (name, list) => list.length ? `<div class="sec-h">${name}<span class="c">${list.length}</span></div>${list.map(c => contactRow(c, sel)).join("")}` : "";
   const body = contacts.length ? group("Due", due) + group(due.length ? "Others" : "All", rest) : `<div class="empty">No contact matches.</div>`;
-  return `<section class="pane" aria-label="Contacts"><div class="pane-h">Contacts<span class="c">${contacts.length}</span></div><div class="pane-b">${body}</div></section>`;
+  return `<section class="pane" aria-label="Contacts"><div class="pane-h">Contacts<span class="c">${contacts.length}</span><button data-mk-pane="drafts" class="pane-close">Drafts${draftCount === null ? "" : ` (${draftCount})`}</button></div><div class="pane-b">${body}</div></section>`;
 }
 
 export function marketingPanes() {
   const m = S.mk;
-  return filterPane(m.f, m.profiles) + listPane(m.contacts, m.sel) + detailPane(m.detail, m.profiles, m.touchOpen, today());
+  const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length);
+  return filterPane(m.f, m.profiles) + middle + detailPane(m.detail, m.profiles, m.touchOpen, today());
 }
 
-/** Loads profiles, the filtered list and the selected contact. */
+/** Opening the view: loads it, then sweeps the mailbox once, quietly (its result is a line in the Drafts pane). */
+export async function openMarketing() {
+  S.mk.sweep = "";
+  await refreshMarketing();
+  try { S.mk.sweep = sweepSummary(await api("POST", "/api/mail/sweep")); } catch (e) { S.mk.sweep = `Sweep failed: ${e.message}`; }
+  return refreshMarketing();
+}
+
+/** Loads profiles, the filtered list, the drafts, the mail status and the selected contact. */
 export async function refreshMarketing() {
   const m = S.mk;
   try {
-    [m.profiles, m.contacts] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f))]);
+    [m.profiles, m.contacts, m.drafts, m.status] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f)), api("GET", "/api/drafts"), api("GET", "/api/mail/status")]);
     m.detail = m.sel ? await api("GET", `/api/contacts/${encodeURIComponent(m.sel)}`).catch(() => null) : null;
     if (!m.detail) { m.sel = null; m.touchOpen = false; }
     redraw();
@@ -78,10 +88,31 @@ async function send(req) {
 export function marketingClick(d) {
   const m = S.mk;
   if (d.contact) { m.sel = d.contact; m.detail = null; m.touchOpen = false; redraw(); refreshMarketing(); return true; }
+  if (d.mkPane) { m.pane = d.mkPane; redraw(); return true; }
+  if (d.mkSend) { sendDraft(d.mkSend); return true; }
+  if (d.mkDiscard) { discardDraft(d.mkDiscard); return true; }
   if ("mkTouch" in d) { m.touchOpen = true; redraw(); $("#mk-tk-kind")?.focus(); return true; }
   if ("mkTouchCancel" in d) { m.touchOpen = false; redraw(); return true; }
   if ("mkClear" in d) { m.f = { game: "", type: "", reach: "", status: "" }; refreshMarketing(); return true; }
   return false;
+}
+
+/** Saves an edited subject or body; a refused one goes to the toast and the saved text comes back. */
+async function saveDraft(req) {
+  try { await api(req.method, req.path, req.body); } catch (e) { toast(e.message); }
+  return refreshMarketing();
+}
+
+async function sendDraft(id) {
+  const draft = S.mk.drafts.find(x => String(x.id) === String(id));
+  if (!draft || !confirm(sendQuestion(draft))) return;
+  try { await api("POST", `/api/drafts/${encodeURIComponent(id)}/send`); } catch (e) { toast(e.message); }
+  return refreshMarketing();
+}
+
+async function discardDraft(id) {
+  try { await api("DELETE", `/api/drafts/${encodeURIComponent(id)}`); } catch (e) { toast(e.message); }
+  return refreshMarketing();
 }
 
 const FILTERS = { "mk-game": "game", "mk-type": "type", "mk-reach": "reach", "mk-fstatus": "status" };
@@ -90,6 +121,8 @@ const FILTERS = { "mk-game": "game", "mk-type": "type", "mk-reach": "reach", "mk
 export function marketingChange(ev) {
   const el = ev.target;
   if (FILTERS[el.id]) { S.mk.f[FILTERS[el.id]] = el.value; refreshMarketing(); return true; }
+  const dr = draftEditRequest(el, S.mk.drafts);
+  if (dr) { saveDraft(dr); return true; }
   const req = S.view === "marketing" && S.mk.detail && el.id !== "mk-notes" && editRequest(el, S.mk.detail);
   if (req) send(req);
   return Boolean(req) || el.id.startsWith("mk-");

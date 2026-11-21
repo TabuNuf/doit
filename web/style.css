@@ -249,3 +249,8 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mk-links li { margin-bottom: 4px; overflow-wrap: anywhere; }
 .mk-links a { color: var(--accent); }
 .mk-touch { margin-top: 8px; }
+.mk-draft { border: 1px solid var(--line); border-radius: 2px; padding: 8px; margin-bottom: 10px; }
+.mk-draft input { width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 5px 8px; background: var(--bg); color: var(--ink); }
+.mk-mail { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+.mk-actions { display: flex; gap: 8px; margin-top: 8px; }
+.mk-status { font-size: 12px; margin-bottom: 8px; }
