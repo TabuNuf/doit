@@ -148,7 +148,8 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - The project list and settings: `~/Library/Application Support/Doit/settings.json` (`DOIT_HOME` overrides it). Kept until deleted.
 - The activity log: `activity.log` beside the settings, 30 days.
 - Tasks and epics: Markdown in each project's docs folder, tracked by that project's git. Nothing leaves the machine. No personal data beyond names Tabu types.
-- Contacts: `marketing.db` beside the settings (SQLite): names, emails, channel links and notes of marketing contacts. Personal data, kept only in the data folder and in no project's git.
+- Contacts: `marketing.db` beside the settings (SQLite): names, emails, channel links and notes of marketing contacts. Personal data, kept only in the data folder and in no project's git. Mail drafts are in the same file (table `drafts`: contact, game, template, personal lines, subject, body, state, sent time, Message-ID, error, whether the copy is labeled Marketing); a touch also carries a note (the mail subject) and a ref (the Message-ID, so a mail is never logged twice).
+- Mail account: settings key `mail` (`address`, `name`, `dailyCap`, default 20). The app password is in the macOS Keychain (generic password, service `doit-mail`, account the address), never in a file.
 
 ## Changelog
 
@@ -174,3 +175,4 @@ The comparison of the five candidate styles, with this one as "Blueprint", is th
 - 2026-11-21, EPIC-012: contacts are built in `marketing.db` (`node:sqlite`, Node 24), with game profiles read from the Polyspice Marketing project; Data names the file and its personal data.
 - 2026-11-21, EPIC-012: the CLI gets the contact commands (`contacts`, `contacts import`, `contact show|add|set`, `fit`, `touch`, `profiles`).
 - 2026-11-21, EPIC-012: reach is a follower count instead of the sheet's A to E band; Claude collects the counts while researching, which makes a band's manual estimate unnecessary.
+- 2026-11-21, EPIC-013: mail details decided: settings key `mail`, Keychain service `doit-mail`, a template is `Templates/<name>.md` in the marketing project (first line `Subject:`, placeholders `{{name}}`, `{{personal}}`, `{{game}}`), drafts live in `marketing.db` (schema version 2, touches gain note and ref).
