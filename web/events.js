@@ -101,7 +101,6 @@ document.addEventListener("input", ev => {
 
 document.addEventListener("change", ev => {
   if (marketingChange(ev) || settingsChange(ev)) return;
-  if (ev.target.dataset.kindOf) return act(() => api("PATCH", `/api/projects/${encodeURIComponent(ev.target.dataset.kindOf)}`, { kind: ev.target.value }));
   const id = ev.target.id;
   if (id === "keep") return act(() => api("PUT", "/api/settings", { keepCompletedDays: Number(ev.target.value) }));
   if (id === "f-task" || id === "f-bug") { S.f[id.slice(2)] = ev.target.checked; return render(); }

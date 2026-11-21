@@ -51,9 +51,6 @@ function renderTop() {
     ${S.npErr ? `<div class="err">${esc(S.npErr)}</div>` : ""}</form>` : "";
 }
 
-/** The kind picker on a project's row in the Projects menu. */
-export const kindSelect = p => `<select class="kind" data-kind-of="${esc(p.id)}" aria-label="Kind of ${esc(p.name)}" title="What this project is; Marketing offers games, applications and podcasts">${PROJECT_KINDS.map(([v, l]) => `<option value="${v}" ${(p.kind || "") === v ? "selected" : ""}>${l}</option>`).join("")}</select>`;
-
 /** All projects, the starred projects, then a menu of every project to pick, star or add one. */
 function projectBar() {
   const dot = p => `<span class="dot" style="background:${color(p.id)}"></span>`;
@@ -62,7 +59,7 @@ function projectBar() {
   const cur = S.project !== "all" && !proj(S.project).starred ? proj(S.project) : null;
   const rows = ps.map(p => `<div class="projrow">
       <button class="star" data-star="${esc(p.id)}" aria-pressed="${!!p.starred}" aria-label="${p.starred ? "Unstar" : "Star"} ${esc(p.name)}" title="${p.starred ? "Take off the top bar" : "Pin to the top bar"}">${p.starred ? "★" : "☆"}</button>
-      <button class="projpick" data-p="${esc(p.id)}" aria-current="${S.project === p.id}">${dot(p)}${esc(p.name)}</button>${kindSelect(p)}</div>`).join("");
+      <button class="projpick" data-p="${esc(p.id)}" aria-current="${S.project === p.id}">${dot(p)}${esc(p.name)}</button></div>`).join("");
   const menu = S.projOpen ? `<div class="pop projpop" role="dialog" aria-label="Projects">${rows}<button class="projpick projnew" data-newproj>+ New project</button></div>` : "";
   return chip({ id: "all", name: "All projects" }) + ps.filter(p => p.starred).map(chip).join("")
     + `<div class="projmenu"><button class="chip" data-projmenu aria-expanded="${S.projOpen}" aria-pressed="${!!cur}">${cur ? dot(cur) + esc(cur.name) : "Projects"}<span aria-hidden="true">▾</span></button>${menu}</div>`;
