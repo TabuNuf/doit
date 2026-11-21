@@ -1,10 +1,10 @@
 // The views: top bar, epic pane, task list and detail pane, as HTML strings.
 
-import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFilter, projects, proj, color, task, visible, sectionLists, dueSoonCount } from "./state.js";
+import { S, TABS, STATES, FUNNEL, $, esc, keyOf, daysLeft, fmtDate, tabOf, hasFilter, projects, proj, color, task, visible, sectionLists, dueSoonTasks } from "./state.js";
 import { bindDrag } from "./ordering.js";
 import { bindEpicDrag } from "./epicMove.js";
 import { epicViewPane } from "./epicView.js";
-import { epicBtn, epicSections } from "./epicList.js";
+import { leftPane } from "./leftPane.js";
 import { docsPanes } from "./docsView.js";
 import { claudePanes } from "./claudeView.js";
 import { marketingPanes, marketingTabs } from "./marketingView.js";
@@ -18,21 +18,23 @@ export function render() {
   if (S.data.tasks.some(t => t.contact)) ensureContactNames();
   document.documentElement.style.setProperty("--fs", S.font + "px");
   renderTop();
-  setLayout(S.view, S.view === "docs" && S.docs.linkedClosed);
-  if (S.view === "docs") { $("#panes").innerHTML = docsPanes(fontCtl()); return; }
+  const docLayout = S.view === "board" && S.docs.active;
+  setLayout(docLayout ? "docs" : S.view, docLayout && S.docs.linkedClosed);
+  if (docLayout) { $("#panes").innerHTML = leftPane() + docsPanes(fontCtl()); return; }
   if (S.view === "claude") { $("#panes").innerHTML = claudePanes(); return; }
   if (S.view === "marketing") { $("#panes").innerHTML = marketingPanes(); return; }
-  $("#panes").innerHTML = epicPane() + listPane() + detailPane();
+  $("#panes").innerHTML = leftPane() + listPane() + detailPane();
   bindDrag();
   bindEpicDrag();
 }
 
 function renderTop() {
-  const due = dueSoonCount();
-  const what = `${due} of your tasks ${due === 1 ? "is" : "are"} due within 7 days; the Claude view lists them under Waiting on you`;
+  const tasks = dueSoonTasks(), due = tasks.length;
+  const names = tasks.map(t => `${t.id} ${t.title} (due ${fmtDate(t.deadline)})`).join("\n");
+  const what = esc(`${due} of your tasks ${due === 1 ? "is" : "are"} due within 7 days. Finish or move the deadline of:\n${names}\nThe Claude view lists them under Waiting on you.`);
   const badge = due ? `<span class="badge" title="${what}">${due} due</span>` : "";
-  $("#views").innerHTML = [["board", "Board", ""], ["docs", "Docs", ""], ["claude", "Claude", badge], ["marketing", "Marketing", ""]]
-    .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${what}"` : ""}>${l}${b}</button>`).join("");
+  $("#views").innerHTML = [["board", "Board", ""], ["claude", "Claude", badge], ["marketing", "Marketing", ""]]
+    .map(([v, l, b]) => `<button aria-pressed="${S.view === v}" data-view="${v}"${v === "claude" && due ? ` aria-label="Claude, ${what.replace(/\n/g, " ")}"` : ""}>${l}${b}</button>`).join("");
   $("#projects").innerHTML = S.view === "marketing" ? marketingTabs(S.mk.pane, S.mk.game, S.mk.profiles) : projectBar();
   $("#modal").innerHTML = S.newProj ? `<form class="form" id="np" aria-label="New project">
     <label for="np-name">Project name<input id="np-name" required placeholder="Storm Haven"></label>
@@ -61,18 +63,6 @@ function projectBar() {
   const menu = S.projOpen ? `<div class="pop projpop" role="dialog" aria-label="Projects">${rows}<button class="projpick projnew" data-newproj>+ New project</button></div>` : "";
   return chip({ id: "all", name: "All projects" }) + ps.filter(p => p.starred).map(chip).join("")
     + `<div class="projmenu"><button class="chip" data-projmenu aria-expanded="${S.projOpen}" aria-pressed="${!!cur}">${cur ? dot(cur) + esc(cur.name) : "Projects"}<span aria-hidden="true">▾</span></button>${menu}</div>`;
-}
-
-function epicPane() {
-  const ps = S.project === "all" ? projects() : [proj(S.project)];
-  const groups = ps.map(p => {
-    const adding = S.newEpic === p.id
-      ? `<form class="inline-add" data-epicform="${esc(p.id)}"><input id="ne-name" placeholder="Epic name" aria-label="Epic name"><button type="submit">Add</button></form>`
-      : `<button class="addbtn" data-newepic="${esc(p.id)}">+ New epic</button>`;
-    return `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}</div><div class="open-zone" data-drop-epic="open" data-project="${esc(p.id)}">${S.data.epics.filter(e => e.project === p.id).map(epicBtn).join("")}</div>${adding}${epicSections(p.id)}`;
-  }).join("");
-  return `<section class="pane"><div class="pane-h">Epics${S.epic ? `<button class="fsz" data-clear-epic style="text-transform:none">Show all</button>` : ""}</div>
-    <div class="pane-b">${groups || `<div class="empty">No projects yet. Add one under Projects ▾, + New project.</div>`}</div></section>`;
 }
 
 export function rowHtml(t, i, sec) {

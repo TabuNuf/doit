@@ -6,12 +6,12 @@ import { nudge, dragKey } from "./ordering.js";
 import { epicDragging } from "./epicMove.js";
 import { openEpic, closeEpic, addContacts } from "./epicView.js";
 import { toggleFold } from "./epicList.js";
-import { docsClick, docsInput, refreshDocs } from "./docsView.js";
+import { docsClick, docsInput, docsLeave, refreshDocs } from "./docsView.js";
 import { claudeClick, refreshClaude } from "./claudeView.js";
 import { marketingClick, marketingChange, marketingFocusOut, marketingSubmit, refreshMarketing, openMarketing } from "./marketingView.js";
 
 /** Loads what the current view shows beyond the board data. */
-const refreshView = () => S.view === "docs" ? refreshDocs() : S.view === "claude" ? refreshClaude() : S.view === "marketing" ? refreshMarketing() : undefined;
+const refreshView = () => S.view === "board" ? refreshDocs() : S.view === "claude" ? refreshClaude() : S.view === "marketing" ? refreshMarketing() : undefined;
 
 /* ---------- Events ---------- */
 
@@ -21,6 +21,7 @@ document.addEventListener("click", ev => {
   if (!b) { if (S.fOpen && !ev.target.closest(".pop")) { S.fOpen = false; render(); } return; }
   const d = b.dataset;
   const sel = () => task(S.sel);
+  docsLeave(d);
   if (d.view) { S.view = d.view; render(); return d.view === "marketing" ? openMarketing() : refreshView(); }
   if (docsClick(d) || claudeClick(d) || marketingClick(d)) return;
   if ("projmenu" in d) { S.projOpen = !S.projOpen; return render(); }
@@ -80,7 +81,7 @@ document.addEventListener("submit", ev => {
 
 document.addEventListener("keydown", ev => {
   const r = ev.target.closest && ev.target.closest(".row");
-  if (r && (ev.key === "Enter" || ev.key === " ") && ev.target === r) { ev.preventDefault(); S.sel = r.dataset.id; render(); }
+  if (r && (ev.key === "Enter" || ev.key === " ") && ev.target === r) { ev.preventDefault(); S.sel = r.dataset.id; docsLeave({ id: 1 }); render(); }
   if (r && ev.altKey && (ev.key === "ArrowUp" || ev.key === "ArrowDown") && r.draggable) { ev.preventDefault(); nudge(r.dataset.id, ev.key === "ArrowUp" ? -1 : 1); }
   if (ev.key === "Escape") { S.fOpen = false; S.projOpen = false; S.newProj = false; S.newTask = false; S.newEpic = null; S.mk.touchOpen = false; render(); }
 });
@@ -139,4 +140,4 @@ if (typeof EventSource !== "undefined") new EventSource("/api/events").onmessage
 for (const ev of ["focusout", "pointerup", "dragend", "visibilitychange"]) document.addEventListener(ev, () => setTimeout(maybeReload, 0));
 setInterval(maybeReload, 500);
 
-load();
+load().then(refreshView);

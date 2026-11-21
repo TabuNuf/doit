@@ -8,7 +8,7 @@ export const FUNNEL = '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z
 export const S = {
   project: "all", epic: null, tab: "open", q: "", owner: "all",
   f: { task: true, bug: true, due: "any" }, fOpen: false, projOpen: false,
-  view: "board", claude: null, mk: { contacts: null, profiles: [], game: "", f: { type: "", reach: "", status: "" }, sel: null, detail: null, touchOpen: false, pane: "campaigns", fest: null, campaigns: null, drafts: null, status: null, sweep: "", week: null }, docs: { project: null, tree: [], path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
+  view: "board", claude: null, mk: { contacts: null, profiles: [], game: "", f: { type: "", reach: "", status: "" }, sel: null, detail: null, touchOpen: false, pane: "campaigns", fest: null, campaigns: null, drafts: null, status: null, sweep: "", week: null }, docs: { project: null, trees: {}, show: {}, active: false, path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
   sel: null, font: 15, newProj: false, newTask: false, newEpic: null, epicView: null, epicFold: {}, data: null, npErr: "",
 };
 try { S.font = Number(localStorage.getItem("doit.font")) || 15; S.project = localStorage.getItem("doit.project") || "all"; S.docs.linkedClosed = localStorage.getItem("doit.docs.linked") === "closed"; } catch { /* storage off */ }
@@ -50,7 +50,7 @@ export function reloadHeld(state, active, dragging = false) {
   const tag = active && active.tagName;
   const typing = tag === "TEXTAREA" || (tag === "INPUT" && !NON_TEXT.includes(active.type));
   return Boolean(typing || dragging || state.newProj || state.newTask || state.newEpic !== null || state.fOpen || state.projOpen
-    || (state.view === "docs" && state.docs.editing) || (state.view === "marketing" && state.mk.touchOpen));
+    || (state.view === "board" && state.docs.active && state.docs.editing) || (state.view === "marketing" && state.mk.touchOpen));
 }
 
 export async function load() {
@@ -67,7 +67,7 @@ export async function act(fn) {
 
 /** Back to the Board with the task selected, in its own project when one project is shown. */
 export function openOnBoard(key) {
-  S.view = "board"; S.epic = null; S.epicView = null; S.sel = key; S.tab = "open";
+  S.view = "board"; S.docs.active = false; S.epic = null; S.epicView = null; S.sel = key; S.tab = "open";
   if (S.project !== "all" && S.project !== key.split("/")[0]) S.project = key.split("/")[0];
   load();
 }
@@ -91,7 +91,8 @@ export const task = key => S.data && S.data.tasks.find(t => keyOf(t) === key);
 export const dueWithinWeek = t => Boolean(t.deadline) && daysLeft(t.deadline) <= 7;
 
 /** Tabu's open tasks due within 7 days in the loaded project(s): the count on the Claude view's badge. */
-export const dueSoonCount = () => S.data ? S.data.tasks.filter(t => t.owner === "human" && tabOf(t.state) === "open" && dueWithinWeek(t)).length : 0;
+export const dueSoonTasks = () => S.data ? S.data.tasks.filter(t => t.owner === "human" && tabOf(t.state) === "open" && dueWithinWeek(t)).sort((a, b) => a.deadline.localeCompare(b.deadline)) : [];
+export const dueSoonCount = () => dueSoonTasks().length;
 
 export function visible() {
   const q = S.q.trim().toLowerCase();

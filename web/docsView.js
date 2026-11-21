@@ -1,21 +1,35 @@
-// The Docs view: the folder tree, one document (rendered or in a text box) and the tasks linked to it.
+// Docs on the Board: each project's folder tree for the left pane, one document (rendered or in a text box) and the tasks linked to it.
 
 import { S, esc, api, redraw, toast, projects, proj, fmtDate, keyOf, openOnBoard } from "./state.js";
 import { renderMarkdown } from "./markdown.js";
 
 const q = (project, path) => `project=${encodeURIComponent(project)}${path ? `&path=${encodeURIComponent(path)}` : ""}`;
 
-/** The project the Docs view shows: the selected one, or the first in All projects. */
-export const docsProject = () => S.project === "all" ? (projects()[0] || {}).id : S.project;
+/** What the left pane shows for a project: the Epics and Docs toggles, kept per project in this browser. */
+export function paneShow(project) {
+  const D = S.docs;
+  if (!(project in D.show)) {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(`doit.show.${project}`) || "{}"); } catch { /* storage off or unreadable */ }
+    D.show[project] = { epics: saved.epics !== false, docs: saved.docs === true };
+  }
+  return D.show[project];
+}
 
-/** Loads the tree and the open document with what links to it; keeps an open edit box alone. */
+function togglePane(project, which) {
+  const sh = paneShow(project);
+  sh[which] = !sh[which];
+  try { localStorage.setItem(`doit.show.${project}`, JSON.stringify(sh)); } catch { /* storage off */ }
+  refreshDocs();
+}
+
+/** Loads the trees of the projects shown with Docs on, and the open document with what links to it; keeps an open edit box alone. */
 export async function refreshDocs() {
-  const d = S.docs, project = docsProject();
-  if (!project) return redraw();
+  const d = S.docs;
+  const shown = S.project === "all" ? projects() : [proj(S.project)];
   try {
-    if (d.project !== project) Object.assign(d, { project, path: null, doc: null, linked: [], editing: false, draft: "" });
-    d.tree = await api("GET", `/api/docs/tree?${q(project)}`);
-    if (d.path && !d.editing) await readDoc(d.path);
+    for (const p of shown) if (paneShow(p.id).docs) d.trees[p.id] = await api("GET", `/api/docs/tree?${q(p.id)}`);
+    if (d.active && d.path && !d.editing) await readDoc(d.path);
     redraw();
   } catch (e) { toast(e.message); }
 }
@@ -28,13 +42,19 @@ async function readDoc(path) {
   } catch (e) { d.path = null; d.doc = null; d.linked = []; toast(e.message); }
 }
 
+/** Choosing a task, an epic or another project brings the task layout back from the document layout. */
+export function docsLeave(d) {
+  if (d.id || d.cyc || d.reopen || d.openEpic || d.p || "clearEpic" in d) S.docs.active = false;
+}
+
 /** Handles a click on a Docs control; true when the click was one. */
 export function docsClick(d) {
   const D = S.docs;
-  if (d.fold) { D.open[d.fold] = !(d.fold in D.open ? D.open[d.fold] : d.folded !== "true"); redraw(); return true; }
+  if (d.pane) { togglePane(d.paneP, d.pane); return true; }
+  if (d.fold) { const k = `${d.docProject}/${d.fold}`; D.open[k] = !(k in D.open ? D.open[k] : d.folded !== "true"); redraw(); return true; }
   if (d.doc) {
     if (D.editing && D.draft !== D.doc.text && !confirm("Discard your changes to this document?")) return true;
-    D.editing = false;
+    D.editing = false; D.project = d.docProject; D.active = true;
     readDoc(d.doc).then(redraw);
     return true;
   }
@@ -67,19 +87,20 @@ async function saveDoc() {
   } catch (e) { toast(e.message); }
 }
 
-function treeHtml(nodes, depth = 0) {
-  const D = S.docs;
+/** One project's doc tree as buttons for the left pane. */
+export function treeHtml(project, nodes, depth = 0) {
+  const D = S.docs, pk = esc(project);
   return nodes.map(n => {
     const pad = `style="padding-left:${8 + depth * 14}px"`;
-    if (n.type === "file") return `<button class="tnode file" ${pad} aria-pressed="${D.path === n.path}" data-doc="${esc(n.path)}">${esc(n.name)}</button>`;
-    const open = n.path in D.open ? D.open[n.path] : !n.folded;
-    return `<button class="tnode folder" ${pad} aria-expanded="${open}" data-fold="${esc(n.path)}" data-folded="${!!n.folded}">${open ? "▾" : "▸"} ${esc(n.name)}</button>${open ? treeHtml(n.children, depth + 1) : ""}`;
+    if (n.type === "file") return `<button class="tnode file" ${pad} aria-pressed="${D.active && D.project === project && D.path === n.path}" data-doc="${esc(n.path)}" data-doc-project="${pk}">${esc(n.name)}</button>`;
+    const open = `${project}/${n.path}` in D.open ? D.open[`${project}/${n.path}`] : !n.folded;
+    return `<button class="tnode folder" ${pad} aria-expanded="${open}" data-fold="${esc(n.path)}" data-doc-project="${pk}" data-folded="${!!n.folded}">${open ? "▾" : "▸"} ${esc(n.name)}</button>${open ? treeHtml(project, n.children, depth + 1) : ""}`;
   }).join("");
 }
 
 function docBody() {
   const D = S.docs;
-  if (!D.doc) return `<div class="empty">Pick a document in the tree.</div>`;
+  if (!D.doc) return `<div class="empty">Pick a document in the left pane.</div>`;
   if (D.editing) return `<textarea id="doc-text" class="doc-edit" aria-label="Document text" spellcheck="false">${esc(D.draft)}</textarea>`;
   return `<div class="doc">${renderMarkdown(D.doc.text)}</div>`;
 }
@@ -89,15 +110,12 @@ function changeNote(doc) {
   return c ? `last changed by ${esc(c.author)}, ${esc(fmtDate(c.date))}` : "not committed";
 }
 
-/** The three panes; `tools` is the text size control from the page's header. */
+/** The document pane and the Linked pane; `tools` is the text size control from the page's header. */
 export function docsPanes(tools) {
-  const D = S.docs, project = docsProject();
-  if (!project) return `<section class="pane"><div class="pane-b"><div class="empty">No projects yet. Add one with + Project.</div></div></section>`;
-  const note = S.project === "all" ? `<div class="muted docs-note">Showing ${esc(proj(project).name)}, the first project. Pick a project above to change it.</div>` : "";
+  const D = S.docs;
   const head = D.doc ? `<span class="mono doc-path">${esc(D.path)}</span><span class="muted doc-change">${changeNote(D.doc)}</span>
       <button data-${D.editing ? "doc-done" : "doc-edit"}>${D.editing ? "Done" : "Edit"}</button>` : "Document";
-  return `<section class="pane" aria-label="Documents"><div class="pane-h">Documents</div><div class="pane-b tree">${note}${treeHtml(D.tree)}</div></section>
-    <section class="pane" aria-label="Document"><div class="pane-h">${head}${tools}</div><div class="pane-b">${docBody()}</div></section>
+  return `<section class="pane" aria-label="Document"><div class="pane-h">${head}${tools}</div><div class="pane-b">${docBody()}</div></section>
     ${linkedPane()}`;
 }
 

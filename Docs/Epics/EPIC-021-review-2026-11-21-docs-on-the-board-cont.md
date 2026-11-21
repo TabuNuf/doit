@@ -8,7 +8,7 @@ Source: review video Bandicam_20261121_111550.mp4, narrated by Tabu; times in ea
 ## Tasks
 
 - [x] T-021.1 Design.md: this epic's decisions in sections Docs, Claude view, Projects and Marketing, with a Changelog line (done when: Design.md says each rule below and the Changelog has a 2026-11-21 line; Tabu has read it)
-- [ ] T-021.2 Board: per project, toggles Epics and Docs at the top of the left pane; with Docs on, the doc tree shows under the epics; the Docs button leaves the top bar (done when: a web test turns Docs on and sees the tree under the epics, turns Epics off and sees only the tree, and finds no Docs button in the top bar; the choice is kept per project)
+- [x] T-021.2 Board: per project, toggles Epics and Docs at the top of the left pane; with Docs on, the doc tree shows under the epics; the Docs button leaves the top bar (done when: a web test turns Docs on and sees the tree under the epics, turns Epics off and sees only the tree, and finds no Docs button in the top bar; the choice is kept per project)
 - [ ] T-021.3 Board: opening a doc gives the document the wide middle and right columns, with Linked tasks beside it; selecting a task brings the task list and Detail back (done when: a web test opens a doc from the left pane and sees the document in the wide layout with Edit and Linked, then opens a task and sees the task layout)
 - [ ] T-021.4 Claude view: the due badge and each Waiting-on-you card say what is wrong, why, and what to do (done when: the badge tooltip names the due tasks; each card shows why it is listed (due in n days, or blocks T-x) and what to do (the task's done-when, else the first line of its description); a web test checks both)
 - [ ] T-021.5 Contact import reads every column of the New Streamers sheet (done when: a test with the sheet's real header row maps: Contact to email; Linktree, Youtube, Twitch, Steam, Discord, Bluesky (also a bare @handle), X, Instagram, Facebook and WWW to channels; Reach buckets (A - Tiny >50 ... E - Huge >10.000) to their lower bound; dates like 16-Sep-2025; Last Contact to a dated mail touch. Re-importing the CSV in Downloads updates the 224 contacts in place (2Dkiri: reach 5000, email and channels filled))
@@ -33,6 +33,7 @@ Source: review video Bandicam_20261121_111550.mp4, narrated by Tabu; times in ea
 
 Decisions and deviations, newest first.
 
+- T-021.2: the document layout (T-021.3) and the Claude badge tooltip (T-021.4) were built in the same code pass, so their code lands in T-021.2's commit; their tests and the cards follow in their own commits. The left pane header reads Projects, since it now holds epics and docs.
 - 2026-11-21, Tabu: the marketing scan lives in Polyspice Marketing (T-021.14); BB1 and BB2 are imported as dated Bunny Bunker mail touches (T-021.5); EPIC-018 runs and closes first.
 - Not taken from the video: 07:51 'split this into' trails off with no target.
 - Board.js is at 245 of 250 lines (T-018.2): T-021.2 and .3 need its room first, so EPIC-018 goes before or with Batch A.

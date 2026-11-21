@@ -29,7 +29,7 @@ test("the Marketing view shows its tabs where the other views show the projects"
   assert.match(els.get("#projects").innerHTML, /<optgroup label="Games"><option value="box-trainer" >Box Trainer<\/option><\/optgroup><optgroup label="Applications"><option value="doit" >Doit \(no profile\)<\/option><\/optgroup><optgroup label="Podcasts"><option value="hbd" selected>Hidden by Design/);
   S.mk.profiles = []; S.mk.game = "";
 
-  for (const view of ["board", "docs", "claude"]) {
+  for (const view of ["board", "claude"]) {
     S.view = view;
     try { render(); } catch { /* the view's own panes need data the stand-in lacks */ }
     const html = els.get("#projects").innerHTML;

@@ -29,7 +29,7 @@ test("column widths keep their minimums and leave the middle column room", async
   assert.ok(1400 - wide.left - wide.right - 20 >= 320, "middle column keeps 320 px");
 });
 
-test("the Board and the Docs view keep their column widths apart", async () => {
+test("the Board and the document layout keep their column widths apart", async () => {
   const { loadWidths, VIEW_DEFAULTS } = await import("../web/resize.js");
   const saved = new Map([["doit.columns", JSON.stringify({ left: 300, right: 420 })]]);
   const storage = { getItem: k => saved.get(k) ?? null };
@@ -164,7 +164,7 @@ test("switching to the Claude view loads the selected project", async () => {
 
 test("a reload is held for text entry, drags and open menus, not for selects or checkboxes", async () => {
   const { reloadHeld } = await import("../web/state.js");
-  const st = (o = {}) => ({ newProj: false, newTask: false, newEpic: null, fOpen: false, projOpen: false, view: "board", docs: { editing: false }, ...o });
+  const st = (o = {}) => ({ newProj: false, newTask: false, newEpic: null, fOpen: false, projOpen: false, view: "board", docs: { editing: false, active: false }, ...o });
   assert.equal(reloadHeld(st(), null), false);
   assert.equal(reloadHeld(st(), { tagName: "INPUT", type: "text" }), true);
   assert.equal(reloadHeld(st(), { tagName: "INPUT", type: "search" }), true);
@@ -176,6 +176,6 @@ test("a reload is held for text entry, drags and open menus, not for selects or 
   assert.equal(reloadHeld(st(), null, true), true);
   for (const k of ["newProj", "newTask", "fOpen", "projOpen"]) assert.equal(reloadHeld(st({ [k]: true }), null), true, k);
   assert.equal(reloadHeld(st({ newEpic: "" }), null), true);
-  assert.equal(reloadHeld(st({ view: "docs", docs: { editing: true } }), null), true);
-  assert.equal(reloadHeld(st({ view: "board", docs: { editing: true } }), null), false);
+  assert.equal(reloadHeld(st({ docs: { editing: true, active: true } }), null), true);
+  assert.equal(reloadHeld(st({ docs: { editing: true, active: false } }), null), false);
 });
