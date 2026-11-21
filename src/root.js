@@ -11,6 +11,7 @@ import { FileSource } from "./store/source.js";
 import { ActivityFile } from "./store/activityFile.js";
 import { SettingsFile } from "./store/settings.js";
 import { EpicWorktrees } from "./store/worktrees.js";
+import { ChangeWatcher } from "./store/changeWatcher.js";
 import { Cli } from "./cli/cli.js";
 import { HttpServer } from "./server/server.js";
 
@@ -41,5 +42,7 @@ export function makeServer(options = {}) {
   const webDir = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "web");
   const log = makeActivity(options);
   const board = makeBoard({ ...options, log });
-  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home: options.home, board }), new ClaudeView(board, log, options.now));
+  const home = options.home ?? dataDir();
+  const changes = new ChangeWatcher(new SettingsFile(home), new EpicWorktrees(), home);
+  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home, board }), new ClaudeView(board, log, options.now), changes);
 }

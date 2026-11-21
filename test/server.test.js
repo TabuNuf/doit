@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { HttpServer } from "../src/server/server.js";
+import { ChangeWatcher } from "../src/store/changeWatcher.js";
+import { SettingsFile } from "../src/store/settings.js";
+import { EpicWorktrees } from "../src/store/worktrees.js";
 import { setup } from "./helpers.js";
 
 test("the API reads and changes tasks, and serves the page", async t => {
@@ -85,4 +88,24 @@ test("POST /api/epics/<project>/<id>/move parks and reopens an epic; an unknown 
   const refused = await move("EPIC-014", "parked");
   assert.equal(refused.status, 400);
   assert.match(refused.body.error, /Planned/);
+});
+
+test("GET /api/events sends changed on connect and after a task is written", async t => {
+  const s = setup(); t.after(s.cleanup);
+  const watcher = new ChangeWatcher(new SettingsFile(s.home), new EpicWorktrees(), s.home, { debounce: 60, rescan: 100000 });
+  const server = new HttpServer(s.board, path.join(import.meta.dirname, "..", "web"), null, null, null, watcher);
+  const port = await server.listen(0);
+  t.after(() => server.close());
+  const res = await fetch(`http://127.0.0.1:${port}/api/events`);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get("content-type"), /^text\/event-stream/);
+  const reader = res.body.getReader();
+  const next = async () => {
+    const timeout = new Promise((_, no) => setTimeout(() => no(new Error("no event")), 3000).unref());
+    return new TextDecoder().decode((await Promise.race([reader.read(), timeout])).value);
+  };
+  assert.equal(await next(), "data: changed\n\n");
+  await new Promise(r => setTimeout(r, 200)); // let the watcher start and setup's writes settle
+  s.board.update("game/T-014.2", { state: "progress" });
+  assert.equal(await next(), "data: changed\n\n");
 });
