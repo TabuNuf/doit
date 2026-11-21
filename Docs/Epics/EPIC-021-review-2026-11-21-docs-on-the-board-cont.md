@@ -7,7 +7,7 @@ Source: review video Bandicam_20261121_111550.mp4, narrated by Tabu; times in ea
 
 ## Tasks
 
-- [ ] T-021.1 Design.md: this epic's decisions in sections Docs, Claude view, Projects and Marketing, with a Changelog line (done when: Design.md says each rule below and the Changelog has a 2026-11-21 line; Tabu has read it)
+- [x] T-021.1 Design.md: this epic's decisions in sections Docs, Claude view, Projects and Marketing, with a Changelog line (done when: Design.md says each rule below and the Changelog has a 2026-11-21 line; Tabu has read it)
 - [ ] T-021.2 Board: per project, toggles Epics and Docs at the top of the left pane; with Docs on, the doc tree shows under the epics; the Docs button leaves the top bar (done when: a web test turns Docs on and sees the tree under the epics, turns Epics off and sees only the tree, and finds no Docs button in the top bar; the choice is kept per project)
 - [ ] T-021.3 Board: opening a doc gives the document the wide middle and right columns, with Linked tasks beside it; selecting a task brings the task list and Detail back (done when: a web test opens a doc from the left pane and sees the document in the wide layout with Edit and Linked, then opens a task and sees the task layout)
 - [ ] T-021.4 Claude view: the due badge and each Waiting-on-you card say what is wrong, why, and what to do (done when: the badge tooltip names the due tasks; each card shows why it is listed (due in n days, or blocks T-x) and what to do (the task's done-when, else the first line of its description); a web test checks both)
