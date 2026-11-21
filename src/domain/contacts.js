@@ -1,5 +1,7 @@
 // The Contact value, its vocabulary, validation and filters. Pure.
 
+import { checkEvent } from "./events.js";
+
 export const TYPES = ["influencer", "blogger", "press", "publisher", "tester", "festival", "conference"];
 export const STATUSES = ["active", "dormant", "archived"];
 export const CHANNEL_KINDS = ["youtube", "twitch", "bluesky", "x", "instagram", "facebook", "discord", "steam", "website", "linktree"];
@@ -52,6 +54,8 @@ export function makeContact(input = {}) {
   if (!name) throw new ContactError("A contact needs a name");
   const types = (Array.isArray(input.types) ? input.types : []).map(t => oneOf(t, TYPES, "type"));
   if (!types.length) throw new ContactError("A contact needs at least one type");
+  const event = input.event ? checkEvent(input.event) : null;
+  if (event && !types.some(t => t === "festival" || t === "conference")) throw new ContactError("Only a festival or conference has an event");
   return {
     name,
     types: [...new Set(types)],
@@ -62,6 +66,7 @@ export function makeContact(input = {}) {
     status: input.status ? oneOf(input.status, STATUSES, "status") : "active",
     next: input.next ? checkDate(input.next, "Next contact") : "",
     channels: checkChannels(input.channels ?? []),
+    event,
   };
 }
 
