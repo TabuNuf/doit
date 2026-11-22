@@ -3,7 +3,7 @@
 In short: Open tasks of a parked, completed or archived epic leave every list and report, untouched, and come back in the state they had when the epic is open again.
 Why it exists: parking an epic left its tasks in the Backlog and in `doit list`, so work nobody wants now was still offered to Tabu and to Claude (on 2026-11-22 the two tasks of the parked EPIC-009 were in this project's Backlog).
 
-Status: Planned
+Status: Active
 Design: Design.md, section Epics, "Open tasks of an epic that is not open are hidden"
 Order: after EPIC-028
 
@@ -33,6 +33,10 @@ Order: after EPIC-028
 - [ ] T-026.6 The list says why when the selected epic is parked, completed or archived (done when: npm test passes with a page test: the list pane shows the line for a selected parked epic that has a hidden task, with the epic id and the word parked, and shows no line for an open epic or with no epic selected)
 - [ ] T-026.7 Check in play (done when: Every check in the description is confirmed in the running board, or its failure is a task in EPIC-026)
 
+## Touches
+
+Nothing that merges badly as text: source, tests and docs only. EPIC-028 changes `web/` and the store beside it, so main is merged into this branch at the start of Batch B.
+
 ## Test plan
 
 - Batch A: T-026.1 to .4 (domain: task, board, epicMoves; cli): development
@@ -43,6 +47,8 @@ Order: after EPIC-028
 ## Notes
 
 Decisions and deviations, newest first.
+
+- 2026-11-22: built in the worktree `../doit-wt/026-hide-open-tasks-of-inactive-epics` on `epic/026-hide-open-tasks-of-inactive-epics`, beside EPIC-028, which is Active on main and still gets tasks from its Check in play.
 
 ## Close audit
 
