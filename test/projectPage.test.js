@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { S } from "../web/state.js";
-import { projectPage, waiting, pageProject } from "../web/projectPage.js";
+import { projectPage, waiting, pageProject, buildOrder, parseShort } from "../web/projectPage.js";
 import { leftPane } from "../web/leftPane.js";
 
 const t = (id, o = {}) => ({ project: "g", id, epic: "EPIC-001", title: id, state: "todo", owner: "ai", blocks: null, ...o });
@@ -25,7 +25,7 @@ test("the cards and the waiting list hold the counts; a blocked designer task is
   assert.match(h, /<b>Build<\/b>[^]*EPIC-001 · 1 of 4 done/);
   assert.match(h, /<b>2<\/b><span>tasks in 2 epics/);
   assert.match(h, /<b>1<\/b><span>epic · 2 parked/);
-  assert.equal((h.match(/class="pp-row"/g) || []).length, 2);
+  assert.equal((h.match(/class="pp-row" data-id=/g) || []).length, 2);
   assert.doesNotMatch(h, /T-001\.3<\/span>/);
 });
 
@@ -46,4 +46,42 @@ test("one selected project with nothing chosen shows its page; all projects does
   assert.equal(pageProject(), null);
   S.projectPage = "h";
   assert.equal(pageProject().id, "h");
+});
+
+const e = (id, o = {}) => ({ project: "g", id, name: id, status: "Planned", done: 0, total: 2, after: null, ...o });
+const order = { epics: [e("EPIC-001", { status: "Active" }), e("EPIC-002"), e("EPIC-003", { after: "EPIC-001" }), e("EPIC-004", { after: "EPIC-001" }), e("EPIC-005", { total: 0 }), e("EPIC-006")], parkedEpics: [] };
+
+test("build order: Active first, Order lines place epics after theirs, epics without tasks last", () => {
+  assert.deepEqual(buildOrder("g", order).map(x => x.id), ["EPIC-001", "EPIC-003", "EPIC-004", "EPIC-002", "EPIC-006", "EPIC-005"]);
+  const h = projectPage(data.projects[0], { ...data, epics: order.epics });
+  assert.match(h, /EPIC-005<\/span><b>EPIC-005<\/b>[^]*no tasks/);
+  assert.match(h, /data-open-epic="g\/EPIC-003"/);
+});
+
+test("the parked row is folded to names, then one row each", () => {
+  S.ppParkedOpen = {};
+  S.docs.trees = {};
+  let h = projectPage(data.projects[0], data);
+  assert.match(h, /aria-expanded="false"[^]*Later, Later2/);
+  assert.doesNotMatch(h, /data-open-epic="g\/EPIC-003"/);
+  S.ppParkedOpen = { g: true };
+  h = projectPage(data.projects[0], data);
+  assert.match(h, /data-open-epic="g\/EPIC-003"[^]*data-open-epic="g\/EPIC-004"/);
+});
+
+test("one document link per document that exists", () => {
+  S.docs.trees = { g: [{ type: "folder", name: "Design", path: "Design", children: [{ type: "file", name: "Design.md", path: "Design/Design.md" }] },
+    { type: "file", name: "Architecture.md", path: "Architecture.md" }] };
+  const h = projectPage(data.projects[0], data);
+  assert.equal((h.match(/data-doc="/g) || []).length, 2);
+  assert.match(h, /data-doc="Design\/Design.md" data-doc-project="g"/);
+  assert.doesNotMatch(h, /Playtest/);
+});
+
+test("In short and Now testing are read from the design doc text", () => {
+  assert.deepEqual(parseShort("# X\n\nIn short: A game.\nNow testing: the farm\nIn short: second"), { inShort: "A game.", nowTesting: "the farm" });
+  S.pp = { g: { inShort: "A game.", nowTesting: "the farm" } };
+  assert.match(projectPage(data.projects[0], data), /A game\.[^]*Now testing<\/b> the farm/);
+  S.pp = { g: parseShort("") };
+  assert.match(projectPage(data.projects[0], data), /No In short line yet/);
 });

@@ -61,3 +61,6 @@
 button.pcard { cursor: pointer }
 .pp-row { display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px dashed var(--line); padding: 7px 4px; color: inherit; font: inherit; cursor: pointer }
 .pp-row .chip { margin-left: auto }
+.pp-row .bar { width: 80px; flex: none } .pp-row .bar + span { min-width: 3em }
+.pp-row.sub { padding-left: 24px }
+.pp-docs { display: flex; gap: 8px; flex-wrap: wrap }

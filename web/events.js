@@ -4,6 +4,7 @@ import { S, $, keyOf, api, act, load, patch, task, reloadHeld } from "./state.js
 import { render } from "./render.js";
 import { nudge, dragKey } from "./ordering.js";
 import { epicDragging } from "./epicMove.js";
+import { loadProjectPage, pageProject } from "./projectPage.js";
 import { openEpic, closeEpic, addContacts } from "./epicView.js";
 import { toggleFold } from "./epicList.js";
 import { docsClick, docsInput, docsLeave, refreshDocs } from "./docsView.js";
@@ -12,7 +13,7 @@ import { settingsClick, settingsChange, settingsSubmit } from "./projectSettings
 import { marketingKey, marketingClick, marketingChange, marketingFocusOut, marketingSubmit, refreshMarketing, openMarketing } from "./marketingView.js";
 
 /** Loads what the current view shows beyond the board data. */
-const refreshView = () => S.view === "board" ? refreshDocs() : S.view === "claude" ? refreshClaude() : S.view === "marketing" ? refreshMarketing() : undefined;
+const refreshView = () => S.view === "board" ? refreshDocs().then(() => { const pp = pageProject(); if (pp && !S.sel && !S.epic && !S.docs.active) return loadProjectPage(pp.id); }) : S.view === "claude" ? refreshClaude() : S.view === "marketing" ? refreshMarketing() : undefined;
 
 /* ---------- Events ---------- */
 
@@ -37,7 +38,8 @@ document.addEventListener("click", ev => {
   if (d.cyc) { const t = task(d.cyc); S.sel = d.cyc; return patch(t, { state: t.state === "todo" ? "progress" : "todo" }); }
   if (d.reopen) { S.sel = d.reopen; return patch(task(d.reopen), { state: "todo" }); }
   if (d.p) { S.projOpen = false; S.project = d.p; S.projectPage = null; S.epic = null; S.epicView = null; S.newTask = false; try { localStorage.setItem("doit.project", d.p); } catch { /* */ } return load().then(refreshView); }
-  if (d.projectPage) { S.projectPage = d.projectPage; S.sel = null; S.epic = null; S.epicView = null; S.docs.active = false; return render(); }
+  if (d.projectPage) { S.projectPage = d.projectPage; S.sel = null; S.epic = null; S.epicView = null; S.docs.active = false; render(); return loadProjectPage(d.projectPage); }
+  if (d.ppParked) { (S.ppParkedOpen ||= {})[d.ppParked] = !S.ppParkedOpen[d.ppParked]; return render(); }
   if (d.openEpic) {
     // A second click on the epic already shown clears it; with a task open, it brings the epic back.
     if (S.epic === d.openEpic && S.epicView && !S.sel) { S.epic = null; S.epicView = null; return render(); }
