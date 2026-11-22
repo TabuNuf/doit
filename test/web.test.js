@@ -189,3 +189,12 @@ test("a reload is held for text entry, drags and open menus, not for selects or 
   assert.equal(reloadHeld(st({ docs: { editing: true, active: true } }), null), true);
   assert.equal(reloadHeld(st({ docs: { editing: true, active: false } }), null), false);
 });
+
+test("the owner chip carries its class per owner and story openers render bold", async () => {
+  const { whoChip } = await import("../web/chips.js");
+  assert.match(whoChip("human"), /class="chip you"/);
+  assert.match(whoChip("ai"), /class="chip claude"/);
+  const { descSection } = await import("../web/render.js");
+  const html = descSection({ project: "game", id: "T-1.1", epic: "E", description: "As a player,\nI want a map,\nso that I find the way." });
+  for (const w of ["As", "I want", "so that"]) assert.match(html, new RegExp(`<strong>${w}</strong>`));
+});

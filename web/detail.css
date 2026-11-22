@@ -49,3 +49,4 @@
 .props select, .props input[type=date] { min-width: 150px }
 .kv dt.off, .kv dt.off + dd { opacity: .55 }
 .kv dt.off { color: var(--muted) }
+[data-addcmt] { background: var(--select); color: var(--on-select) }

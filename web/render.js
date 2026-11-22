@@ -9,6 +9,7 @@ import { docsPanes } from "./docsView.js";
 import { claudePanes } from "./claudeView.js";
 import { marketingPanes, marketingTabs } from "./marketingView.js";
 import { taskProps } from "./taskProps.js";
+import { whoChip } from "./chips.js";
 import { setLayout } from "./resize.js";
 import { contactButton, ensureContactNames } from "./contactNames.js";
 import { renderMarkdown, inline } from "./markdown.js";
@@ -145,10 +146,15 @@ function fontCtl() {
 }
 
 // The description reads as markdown; a click (or Edit) turns it into the text box, which saves on leaving.
-function descSection(t) {
+// Story openers (As, I want, so that) in the first three lines show bold; the stored text is untouched.
+export function boldStory(text) {
+  return text.split("\n").map((l, i) => i < 3 ? l.replace(/^(As|I want|So that)\b/i, "**$1**") : l).join("\n");
+}
+
+export function descSection(t) {
   if (S.descEdit !== keyOf(t) && t.description) {
     return `<div class="sect">Description<button class="lnk" data-editdesc aria-label="Edit the description">Edit</button></div>
-    <div class="doc desc-view" title="Click to edit">${renderMarkdown(t.description)}</div>`;
+    <div class="doc desc-view" title="Click to edit">${renderMarkdown(boldStory(t.description))}</div>`;
   }
   return `<div class="sect">Description<span id="saved"></span></div>
     <textarea id="desc" class="desc-in" aria-label="Description" placeholder="No description yet. Click to write one.">${esc(t.description)}</textarea>`;
@@ -163,7 +169,7 @@ function detailPane() {
   return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b detail">
     <div class="mono muted">${t.id} · ${esc(t.epicName)}</div>
     <h2>${inline(head)}</h2>
-    <div class="pills" style="justify-content:flex-start"><span class="pill"><span class="tdot ${t.type}"></span>${t.type === "bug" ? "Bug" : "Task"}</span><span class="pill">${t.owner === "ai" ? "🤖 Claude" : "🧑 You"}</span><span class="pill"><span class="dot" style="background:${color(t.project)}"></span>${esc(proj(t.project).name)}</span></div>
+    <div class="pills" style="justify-content:flex-start"><span class="pill"><span class="tdot ${t.type}"></span>${t.type === "bug" ? "Bug" : "Task"}</span>${whoChip(t.owner)}<span class="pill"><span class="dot" style="background:${color(t.project)}"></span>${esc(proj(t.project).name)}</span></div>
     ${rest ? `<div class="sect" style="margin-top:8px">Spec</div><div class="doc spec">${renderMarkdown(rest)}</div>` : ""}
     ${taskProps(t)}
     ${descSection(t)}

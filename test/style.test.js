@@ -57,3 +57,9 @@ test("project colours are tokens, each defined for light and dark", () => {
     for (const root of roots) assert.match(root, new RegExp(`${token[1]}:`), `${token[1]} missing in ${root.slice(0, 40)}`);
   }
 });
+
+test("no selected rule in style.css fills with ink", () => {
+  const css = fs.readFileSync(CSS, "utf8");
+  for (const m of css.matchAll(/[^{}]*(?:aria-pressed="true"|\.prog)[^{}]*\{[^{}]*\}/g))
+    if (/background:[^;}]*var\(--ink\)/.test(m[0]) && !/^\s*\.gear/.test(m[0])) assert.fail(m[0]);
+});
