@@ -17,7 +17,8 @@ export class EpicMoves {
     const epic = epics.find(e => e.id === epicId);
     const wait = epic.check && tasks.find(t => t.id === epic.check);
     if (wait && wait.state !== "done" && wait.state !== "archived") throw new Error(`${epicId} waits for ${wait.id}, Check in play. Finish it, then close.`);
-    const open = tasks.filter(t => t.epic === epicId && t.state !== "archived");
+    // Open tasks stay as they are and are hidden; only completed ones go to the archive.
+    const open = tasks.filter(t => t.epic === epicId && t.state === "done");
     for (const task of open) this.write({ ...task, state: "archived", archived: `Epic ${epicId} closed` }, `archived: Epic ${epicId} closed`);
     const today = this.#today();
     this.source.completeEpic(project, epicId, today, archived ? today : null);

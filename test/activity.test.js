@@ -88,11 +88,13 @@ test("a missing log reads as empty", t => {
 
 test("closing an epic and reopening it log each task it archives and brings back", t => {
   const s = setup(); t.after(s.cleanup);
+  s.board.update("game/T-014.2", { state: "done" });
+  const before = logLines(s.home).length;
   s.board.closeEpic("game", "EPIC-014");
-  const closed = logLines(s.home).map(l => l.split("  ").slice(1).join("  "));
+  const closed = logLines(s.home).slice(before).map(l => l.split("  ").slice(1).join("  "));
   assert.ok(closed.length > 0 && closed.every(l => l.endsWith("archived: Epic EPIC-014 closed")), closed.join("\n"));
   s.board.moveEpic("game", "EPIC-014", "open");
-  const reopened = logLines(s.home).slice(closed.length);
+  const reopened = logLines(s.home).slice(before + closed.length);
   assert.equal(reopened.length, closed.length);
-  assert.ok(reopened.every(l => /reopened with EPIC-014: state archived → (todo|done)$/.test(l)), reopened.join("\n"));
+  assert.ok(reopened.every(l => /reopened with EPIC-014: state archived → done$/.test(l)), reopened.join("\n"));
 });

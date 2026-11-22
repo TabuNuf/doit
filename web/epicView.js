@@ -13,7 +13,7 @@ export const openEpic = key => act(async () => {
 
 /** Closes the epic after a confirmation, reloads, and keeps its document shown. */
 export const closeEpic = key => {
-  if (!confirm(`Close ${key.split("/")[1]}? Its tasks move to the archive and it moves to Completed.`)) return;
+  if (!confirm(`Close ${key.split("/")[1]}? Its completed tasks move to the archive, its open tasks are hidden, and it moves to Completed.`)) return;
   return act(async () => {
     const [project, id] = key.split("/");
     await api("POST", `/api/epics/${encodeURIComponent(project)}/${encodeURIComponent(id)}/move`, { to: "completed" });

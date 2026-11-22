@@ -67,7 +67,7 @@ test("POST /api/epics/<project>/<id>/move to completed closes an open epic; a se
   const post = (p, body) => fetch(`http://127.0.0.1:${port}${p}`, { method: "POST", body: JSON.stringify(body) }).then(async r => ({ status: r.status, body: await r.json() }));
   const first = await post("/api/epics/game/EPIC-014/move", { to: "completed" });
   assert.equal(first.status, 200);
-  assert.equal(first.body.archivedTasks, 2);
+  assert.equal(first.body.archivedTasks, 0);
   assert.ok(s.exists("Epics/Completed/EPIC-014-online-lobby.md"));
   const second = await post("/api/epics/game/EPIC-014/move", { to: "completed" });
   assert.equal(second.status, 200);
