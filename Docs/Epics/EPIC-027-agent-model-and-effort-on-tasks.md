@@ -1,6 +1,6 @@
 # EPIC-027: Agent, model and effort on tasks
 
-Status: Planned
+Status: Active
 Goal: Every task for Claude says which agent builds it, on which model and at which effort, in fields of its own, and a task for a human shows none of it.
 Design: Design.md, sections Tasks (Who builds it) and The CLI
 
