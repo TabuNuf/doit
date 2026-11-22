@@ -18,6 +18,11 @@ function item(text) {
   return `<li class="check"><input type="checkbox" disabled ${on ? "checked" : ""} aria-label="${on ? "Done" : "Not done"}"> ${inline(box[2])}</li>`;
 }
 
+// A list row: its indent, its marker and its text. A row indented past the list's first row nests one level
+// under the item above; deeper rows join that same nested list.
+const LIST_ROW = /^(\s*)([-*]|\d+\.)\s+(.*)$/;
+const tagOf = marker => (/\d/.test(marker) ? "ol" : "ul");
+
 const SEPARATOR = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
 const isTableAt = (rows, i) => rows[i].includes("|") && i + 1 < rows.length && rows[i + 1].includes("|") && SEPARATOR.test(rows[i + 1]);
 
@@ -61,15 +66,20 @@ export function renderMarkdown(md) {
     }
     const h = /^(#{1,6})\s+(.*)$/.exec(row);
     if (h) { out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); i++; continue; }
-    const list = /^(\s*)([-*]|\d+\.)\s+/.exec(row);
+    const list = LIST_ROW.exec(row);
     if (list) {
-      const tag = /\d/.test(list[2]) ? "ol" : "ul";
       const items = [];
-      for (; i < rows.length && (/^\s*([-*]|\d+\.)\s+/.test(rows[i]) || (items.length && NOTE_ROW.test(rows[i]))); i++) {
-        if (NOTE_ROW.test(rows[i])) items.push(items.pop().replace(/<\/li>$/, `<br>${inline(rows[i].trim())}</li>`));
-        else items.push(item(rows[i].replace(/^\s*([-*]|\d+\.)\s+/, "")));
+      for (; i < rows.length && (LIST_ROW.test(rows[i]) || (items.length && NOTE_ROW.test(rows[i]))); i++) {
+        const last = items.at(-1), m = LIST_ROW.exec(rows[i]);
+        const nested = last && (m ? m[1].length > list[1].length : last.sub.length);
+        const note = li => li.replace(/<\/li>$/, `<br>${inline(rows[i].trim())}</li>`);
+        if (!m && nested) last.sub.push(note(last.sub.pop()));
+        else if (!m) last.li = note(last.li);
+        else if (nested) { last.subTag ??= tagOf(m[2]); last.sub.push(item(m[3])); }
+        else items.push({ li: item(m[3]), sub: [] });
       }
-      out.push(`<${tag}>${items.join("")}</${tag}>`);
+      const lis = items.map(it => it.sub.length ? it.li.replace(/<\/li>$/, `<${it.subTag}>${it.sub.join("")}</${it.subTag}></li>`) : it.li);
+      out.push(`<${tagOf(list[2])}>${lis.join("")}</${tagOf(list[2])}>`);
       continue;
     }
     if (isTableAt(rows, i)) { const t = table(rows, i); out.push(t.html); i = t.next; continue; }
