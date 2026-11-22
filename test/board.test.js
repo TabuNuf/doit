@@ -242,3 +242,9 @@ test("archiving an open epic closes it with both lines; an epic archived by date
   s.board.moveEpic("game", "EPIC-013", "open");
   assert.match(s.read("Epics/EPIC-013-netplay.md"), /^Status: Planned$/m);
 });
+test("the board view carries after on open and parked epics", t => {
+  const s = setup(); t.after(s.cleanup);
+  const v = s.board.view({ project: "game" });
+  assert.deepEqual(v.epics.map(e => `${e.id}>${e.after}`), ["EPIC-009>EPIC-014", "EPIC-014>null"]);
+  assert.deepEqual(v.parkedEpics.map(e => e.after), ["EPIC-009"]);
+});

@@ -23,6 +23,7 @@ Goal: Players meet online.
 export const BUGS = `# EPIC-009: Bugs (rolling)
 
 Status: Active
+Order: after EPIC-014
 
 ## Tasks
 
@@ -32,6 +33,7 @@ Status: Active
 export const STORE = `# EPIC-016: Steam store page
 
 Status: Planned
+Order: after EPIC-009
 
 ## Tasks
 

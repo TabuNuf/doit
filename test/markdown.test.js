@@ -45,3 +45,7 @@ test("Closed and Archived lines are written under Status, read back and removed"
   assert.equal(setArchived(setClosed(text, null), null), LOBBY);
   assert.equal(parseEpic(LOBBY).archivedOn, null);
 });
+test("parseEpic reads after from an Order line and gives null without one", () => {
+  assert.equal(parseEpic("# EPIC-030: X\n\nStatus: Planned\nOrder: after EPIC-028, then the rest\n\n## Why\n").after, "EPIC-028");
+  assert.equal(parseEpic(LOBBY).after, null);
+});

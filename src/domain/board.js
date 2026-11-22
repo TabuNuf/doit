@@ -98,7 +98,7 @@ export class Board {
     for (const id of ids) {
       for (const e of this.source.closedEpics(id)) closedEpics.push({ project: id, ...e, archived: !!e.archivedOn || epicArchived(e.closed, today, keep) });
       const loaded = this.#load(id, archived);
-      for (const e of loaded.epics.filter(x => !x.completed)) (e.parked ? parkedEpics : epics).push({ project: id, id: e.id, name: e.name, status: e.status, game: e.game ?? null, games: splitGames(e.game), event: e.event ?? null, brief: e.brief, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
+      for (const e of loaded.epics.filter(x => !x.completed)) (e.parked ? parkedEpics : epics).push({ project: id, id: e.id, name: e.name, status: e.status, game: e.game ?? null, games: splitGames(e.game), event: e.event ?? null, after: e.after ?? null, brief: e.brief, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
       tasks.push(...loaded.tasks.filter(t => archived || t.state !== "archived"));
     }
     tasks.sort(byRank);
