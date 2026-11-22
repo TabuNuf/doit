@@ -25,7 +25,8 @@ Why: one board shows what Claude is doing in each project and what is left for t
 - **Register** on adoption: `node <doit>/bin/doit.js project add <Name> <project folder> --docs <Docs>`. A project already on the standard that `doit projects` does not list is registered at its next standard pull.
 - **Claude reaches tasks through the CLI only**: list, add, change state, comment, close an epic (`node <doit>/bin/doit.js help`). It never reads task files or the epic checklist directly.
   Why: the CLI returns the slice asked for (one project, one epic, open tasks) and keeps the checklist, the task files and their timestamps in step; a hand edit to one leaves the others wrong.
-- **Epic text is written as a file**: the goal, Test plan, Notes, Close audit and For the standard sections are edited in the epic file like any doc. The tasks in its checklist are added with `doit add`.
+- **Epic text is written as a file**: the goal, Test plan, Notes, Close audit and For the standard sections are edited in the epic file like any doc. The tasks in its checklist are added with `doit add`, never written into the checklist by hand.
+  Why: the board makes a task of every checklist line it finds, so an epic file written with its task lines and then `doit add` held every task twice, and the board has no delete; the five duplicates had to be closed with a comment.
 - **The archive is never read** (`<Docs>/Archive/`, archived tasks, closed epics) unless `<Designer>` asks.
   Why: it is history, and reading it costs a session's context for nothing it will act on.
 - An epic in a worktree is read and written in that worktree by the board and the CLI alike, so ticks land on the epic's branch.
@@ -56,6 +57,38 @@ Why: one board shows what Claude is doing in each project and what is left for t
 - Every task has a "done when" that can be checked: a test that passes, or something visible in the running game or app, which goes on the epic's "Check in play" list for `<Designer>` (`02-Working.md`, Tests). "Works" is not a check.
 - A task's title is one short line, under about 90 characters, saying what changes. The spec (what was seen, the cause, the files, the source and its time in a recording) goes in its description: `doit add <project> <EPIC-nnn> "<title>" --description "<spec>" --done-when "<check>"`, or `doit set <project>/<T-id> description=...` later. The "done when" stays in its own field.
   Why: across twelve projects, the ones whose rules named no description packed the whole spec into the title (39 of 47 titles over 90 characters in one game, no descriptions at all), which makes the checklist line, the board's rows and the commit subjects unreadable.
+- A task for `<Designer>` (owner human) opens its description with a user story in one sentence ("As <who>, I want <what>, so that <why>"), then "What to do:" in two to four sentences: where to go, what to decide, what happens after. Then source links and the facts the task rests on (deadlines, ids, requirements). Short enough to read in half a minute, and doable without opening another file. A task for Claude gets no story: it follows the next three rules.
+  Why: a title and a check say when a task is done but not why it matters or where to start; a project whose board held only titles and checks left the designer unable to tell what a task asked of them. An agent needs the spec, and a story line only adds reading.
+- Documents, epics and tasks are written by Fable 5.2 at high effort, and it alone sets each task's agent, model and effort. Fable plans and describes; it never builds: no code, no assets, no commits of a task. That covers the design doc, `Architecture.md`, `Playtest.md`, a rule for the standard, an epic's text and every task description. A session on another model that needs a new task or a changed plan hands it to a Fable sub-agent or asks `<Designer>` for a Fable session. A diagram or a generated doc updated inside a build task stays with that task's agent.
+  Why: the plan is the one place where a wrong call costs every task after it, and the builders are only as good as the description they get. Anthropic's guide names Fable as the planner for other models, so the dearest model is spent on the text every builder reads.
+- A task for Claude (owner ai) opens its description with the line `For: <agent>, <model>, <effort>`, such as `For: batch-builder, Sonnet 5.5, medium`. The model is the lowest row that will finish the task:
+
+  | Model | Its tasks |
+  |---|---|
+  | Haiku 5.5 | Mechanical, and the exact change is known: a value, a text, a rename, listing the files that use something. |
+  | Sonnet 5.5 (the `batch-builder` agent) | Fully specified: the files, the cause or the design, and the check are known. The usual epic task. |
+  | Opus 5.5 | Needs judgement while building: a bug whose cause is unknown, a change across a module boundary, a refactor, a close audit, coordinating an epic's build. |
+  | Fable 5.2 | Writing: documents, epics and tasks (the rule above). A task a lower model failed comes back here to be rewritten or split, never to be built. |
+
+  Why: Anthropic's guides say a cheaper model does well on a well-specified task and badly on an open one, and per token Fable costs twice Opus, which costs twice Sonnet (2026-11 list prices). A named model lets a coordinator hand the task on unchanged and shows the designer what each task costs before it starts.
+- The effort is the lowest level whose description fits the task. It is set per task, never left to the model's default:
+
+  | Effort | The task | Typical |
+  |---|---|---|
+  | low | One known edit in one or two files, and the check is a command that says pass or fail. Nothing to decide. | Haiku tasks; a Sonnet task that changes text, a number or a name. |
+  | medium | The scope is clear and takes several steps: a few files in one module, tests to write, a check to run. The usual level. | Sonnet build tasks; an Opus task inside one module. |
+  | high | Something must be found out or weighed: an unknown cause, edge cases, a module boundary, a save format, an audit, an unattended run over several tasks. All writing by Fable. | Opus tasks; Fable. Sonnet only for a long, fully specified task. |
+  | xhigh | The same task already failed at high, or it is the hardest kind of long unattended work. Named in the task with the reason. | Rare. |
+  | max | Never set by the planner. Only when `<Designer>` asks for it. | |
+
+  Why: effort decides how much the model thinks and how many tool calls it makes, so it is most of a task's cost after the model. Anthropic's guides put most of the gain at or below high (Opus 5.5 at medium beats the model before it at high; Sonnet 5.5 is meant to run at medium for agentic coding) and call the gains above high uneven. The default differs per model (Opus and Haiku medium, Sonnet and Fable high), so an unset effort means a different thing on each. At low and medium the cheaper models skip checks more often, which is why their descriptions end with the check (below).
+- Every Claude task description holds, in this order: the goal in one sentence with its why; the files, classes or methods it touches; the facts the agent cannot find in the repo (the design section, a decision, the source and its time in a recording); what not to change; and the command whose output proves the "done when". Nothing the agent can find by reading the code goes in. Keep it under about 150 words.
+  Why: in a study of 3,180 agent pull requests, a stated expected behaviour, a suggested fix and a scope of one change each raised the merge rate, and long bodies and step-by-step reproduction notes written for people lowered it. High-quality issues merged 77% of the time, low-quality ones 46% (arXiv 2512.21426).
+- The description's shape follows the tier:
+  - **Haiku and Sonnet** get the fix direction and the steps, and end with "Run <check> and report its output. The task is done only when it passes."
+    Why: at low and medium effort both models sometimes report a change as done without running a check, or stop to check in before the work is finished (Anthropic's Sonnet 5.5 and Haiku 5.5 prompting guides).
+  - **Opus and Fable** get the goal, the limits and what is approved, but no steps. An approval names the action ("may move `ScoreRules` into the domain module"). A "never" carries its exception inside the same sentence. "You own this code and its design" goes in only when a restructure is wanted.
+    Why: these models follow written rules literally. A bare "never" stops them taking a step the designer approved elsewhere. The ownership line makes Fable merge repeated code in about three of four tries instead of under one in ten, but it also makes changes nobody asked for and uses about 1.7 times the output (Anthropic's Fable 5.2 prompting guide).
 - A task that turns out bigger than planned is split in the file before work continues.
 - An epic merged into another or dissolved goes to `Completed/` with a status saying where its scope went.
 - An epic is written as a specification: each item says what the game does when done, tagged `Decided` or `Proposed`. No quotes from sessions, no "X said".
@@ -83,7 +116,7 @@ Design: GameDesign.md, section <name>
 
 ## Tasks
 
-- [ ] T-<nnn>.1 <what, short> (done when: <check>)   (the spec goes in the task description, Epic rules)
+- [ ] T-<nnn>.1 <what, short> (done when: <check>)   (the spec goes in the task description, opening with its For: line, Epic rules)
 - [ ] T-<nnn>.2 ...
 
 ## Test plan

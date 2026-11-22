@@ -67,6 +67,13 @@ Why: three Core rules read literally would fight most app frameworks. Decided by
 - **A scripted check of a page sets a select by assigning its value and dispatching a bubbling `change` event.** A browser tool's form fill can set the value without the event, and the page then looks as if its filter does nothing.
   Why: an epic's reach filter looked broken in the in-app check; the same choice with a dispatched `change` filtered correctly.
 
+## Sign-in
+
+- A session records how it began (a password, a mailed code, a platform ticket). A page guarded by the stronger way refuses a session begun by a weaker one, as it refuses a user without the right mark.
+  Why: adding sign-in by a mailed code for players would otherwise open the admin page to anyone who reads an admin's mailbox.
+- A code a person types (a sign-in code, a claim code) is kept only as its hash, works once, expires, and its rate limit counts every try before the code is checked, the right one included.
+  Why: counting only wrong tries needs the check first, and a limit that runs after the check is one more guess for free.
+
 ## What the first app project decides
 
 Each item becomes a rule here, with its why, or a line in that project's `Deviations.md`:
@@ -93,5 +100,11 @@ From the first app project. Items 3 and 5 above are still open.
   Why: an app has no editor bridge, so the agent needs no MCP tools.
 - **Local apps the designer starts (item 6, Starter candidate):** no terminal. A stay-open AppleScript applet, built by a script that writes the project path into it, runs a start script: fast-forward pull when the tree is clean, start the server in the background, print its pid; the applet opens the page, stops the server on quit, and only opens the page when a server already answers.
   Why: the designer asked for a double-click start; the same applet worked unchanged across two local tools apart from names, port and paths.
+- **List calls in an API:** every list pages with the same parameters (an offset, a limit capped by one page-size setting, and the total in the answer), checked by one class every list handler uses.
+  Why: a client learns one scheme; a client's request for a second scheme (a cursor and a "more" flag) for a list of a few rows was answered with the existing one, and the check moved out of the first list's query class so both lists refuse a bad value the same way.
+- **Data that grows with every play:** a collection a client writes to on every play (replays, runs, attempts) declares a cap per group of field values, applied in the same write: the oldest visible rows past the cap are deleted outright, the row just written is never one of them, and hidden rows are left for a person to judge. A plan with such a cap has a task that fills the table to its expected size and records the timings and the query plan of a list and a write.
+  Why: a sort on read with a limit still reads and sorts every matching row when the index lacks the scope columns; a cap keeps each group to a few rows, one write removes one or two, no daily job has to catch up, and measured at 60 000 rows both calls stayed under 30 ms on the existing index.
+- **A new kind of entry in an API answer:** it goes in a new key beside the existing list, never into that list with a marker that tells the two apart.
+  Why: a released client that ignores the marker reads the new entries with the old meaning; a game asked for its player's replies inside the admin's `answers` with a `from` key, and old builds would have shown the player's words as the admin's, a change of meaning that needs a new API version.
 
 Split this layer (into `Web/`, `Mac/` and so on) only when two kinds of app need rules that contradict each other.
