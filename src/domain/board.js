@@ -12,7 +12,7 @@
 // `subscribe(listener)`: a listener gets a plain fact when a task with a contact is done (the root hands it to Outreach).
 // `record(ref, what)` is told every change to a task in words (the activity log); the root hands it in.
 
-import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask, matchesState, check, checkContact, oneLine } from "./task.js";
+import { STATES, OWNERS, TYPES, tabOf, sectionOf, parseRef, taskId, makeTask, matchesState, check, checkContact, checkAssignment, oneLine } from "./task.js";
 import { applyChanges } from "./taskEdit.js";
 import { archiveReason, epicArchived, byRank, stamp, checkKind, checkMarketed, splitGames, DEFAULT_KEEP_DAYS } from "./rules.js";
 import { TaskMover } from "./mover.js";
@@ -124,9 +124,9 @@ export class Board {
     return task;
   }
 
-  addTask({ project, epic, title, owner = "ai", type = "task", doneWhen = "", deadline = null, state = "todo", description = "", source = null, contact = null }) {
+  addTask({ project, epic, title, owner = "ai", type = "task", doneWhen = "", deadline = null, state = "todo", description = "", source = null, contact = null, agent = null, model = null, effort = null }) {
     this.#requireProject(project);
-    const contactId = checkContact(contact);
+    const contactId = checkContact(contact), assign = checkAssignment({ agent, model, effort });
     if (!title || !title.trim()) throw new Error("A task needs a title");
     check(OWNERS, owner, "owner"); check(TYPES, type, "type"); check(STATES, state, "state");
     const loaded = this.#load(project, true);
@@ -139,7 +139,7 @@ export class Board {
     const ranks = loaded.tasks.filter(t => tabOf(t.state) === "open" && sectionOf(t.state) === sectionOf(state)).map(t => t.rank);
     const now = stamp(this.now());
     const task = makeTask(project, e, line, {
-      state, owner, type, deadline: deadline || null, description, source, contact: contactId,
+      state, owner, type, deadline: deadline || null, description, source, contact: contactId, ...assign,
       rank: (ranks.length ? Math.max(...ranks) : 0) + 1000, created: now, updated: now,
     });
     this.#write(task, `added (${owner}, ${state})`);

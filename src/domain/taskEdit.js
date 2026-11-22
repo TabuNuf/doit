@@ -1,6 +1,6 @@
 // taskEdit: applies a change set (field to value) to a task, refusing a bad value. Pure; Board.update writes the result.
 
-import { STATES, OWNERS, TYPES, check, checkContact, oneLine } from "./task.js";
+import { STATES, OWNERS, TYPES, check, checkContact, checkAssignment, oneLine } from "./task.js";
 
 /** `now` is the stamp the state change records as completed. Throws on an unknown field or a refused value. */
 export function applyChanges(task, changes, now) {
@@ -22,6 +22,7 @@ export function applyChanges(task, changes, now) {
         task.blocks = value || null;
         break;
       case "contact": task.contact = checkContact(value); break;
+      case "agent": case "model": case "effort": task[key] = checkAssignment({ [key]: value })[key]; break;
       case "title": if (!String(value).trim()) throw new Error("A task needs a title"); task.title = oneLine(value); break;
       case "doneWhen": task.doneWhen = oneLine(value); break;
       case "description": task.description = String(value); break;

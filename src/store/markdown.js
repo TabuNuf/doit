@@ -3,7 +3,7 @@
 import { BRIEF_KEYS, emptyBrief, isPlaceholder } from "../domain/campaignBrief.js";
 
 const LINE = /^- \[( |x|X)\] (T-\d+\.\d+) (.*?)(?: \(done when: (.*)\))?\s*$/;
-const FIELDS = ["state", "owner", "type", "rank", "deadline", "created", "updated", "completed", "source", "archived", "blocks", "contact"];
+const FIELDS = ["state", "owner", "type", "rank", "deadline", "created", "updated", "completed", "source", "archived", "blocks", "contact", "agent", "model", "effort"];
 
 export function parseEpic(text) {
   const head = /^# (EPIC-\d+):\s*(.*)$/m.exec(text);

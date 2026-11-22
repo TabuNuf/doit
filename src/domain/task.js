@@ -5,6 +5,7 @@ import { splitGames } from "./rules.js";
 export const STATES = ["todo", "progress", "backlog", "done", "archived"];
 export const OWNERS = ["ai", "human"];
 export const TYPES = ["task", "bug"];
+export const EFFORTS = ["low", "medium", "high", "xhigh", "max"];
 
 /** Which tab a state belongs to: open, done or archived. */
 export function tabOf(state) {
@@ -60,6 +61,9 @@ export function defaultsFor(epic, line) {
     source: null,
     blocks: null,
     contact: null,
+    agent: null,
+    model: null,
+    effort: null,
     archived: line.ticked ? "Finished before Doit tracked it" : null,
     description: "",
     comments: [],
@@ -112,4 +116,16 @@ export function checkContact(value) {
   const n = Number(value);
   if (!Number.isInteger(n) || n < 1) throw new Error(`Contact must be a whole-number contact id: ${value}`);
   return n;
+}
+
+/** Agent, model and effort: each of those present in `input`, checked. Empty becomes null; effort must be one of EFFORTS. */
+export function checkAssignment(input) {
+  const out = {};
+  for (const k of ["agent", "model"]) if (k in input) out[k] = oneLine(input[k]) || null;
+  if ("effort" in input) {
+    const e = oneLine(input.effort);
+    if (e) check(EFFORTS, e, "effort");
+    out.effort = e || null;
+  }
+  return out;
 }
