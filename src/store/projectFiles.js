@@ -12,11 +12,11 @@ export class ProjectFiles {
     this.archive = path.join(this.dir, "Archive", "Tasks");
   }
 
-  /** Epic files in Epics/ and Parked/, plus Completed/ when archived is asked for. */
+  /** Epic files in Epics/ and Parked/, plus Completed/ when archived is asked for; a sibling .notes.md is a document, not an epic. */
   epicFiles({ archived = false } = {}) {
     const out = [];
     const scan = (dir, completed, parked) => {
-      for (const name of listDir(dir)) if (/^EPIC-\d+.*\.md$/.test(name)) out.push({ file: path.join(dir, name), completed, parked });
+      for (const name of listDir(dir)) if (/^EPIC-\d+.*\.md$/.test(name) && !name.endsWith(".notes.md")) out.push({ file: path.join(dir, name), completed, parked });
     };
     scan(this.epics, false, false);
     scan(path.join(this.epics, "Parked"), false, true);

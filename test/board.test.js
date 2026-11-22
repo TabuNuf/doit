@@ -269,3 +269,14 @@ test("an epic whose Check in play line says none closes as before", t => {
   fs.writeFileSync(file, fs.readFileSync(file, "utf8") + "- Check in play: none\n");
   assert.equal(s.board.closeEpic("game", "EPIC-014"), 2);
 });
+
+test("a sibling EPIC-nnn-name.notes.md file is in no epic list, whichever folder it is in", t => {
+  const s = setup(); t.after(s.cleanup);
+  const root = path.join(s.game, "GameDocs", "Epics");
+  const notes = (dir, n, name) => fs.writeFileSync(path.join(root, dir, `EPIC-${n}-${name}.notes.md`), `# EPIC-${n}: ${name}, notes\n\nStatus: Active\n`);
+  notes("", "014", "online-lobby"); notes("Parked", "016", "store"); notes("Completed", "013", "netplay");
+  const v = s.board.view({ project: "game", archived: true });
+  const ids = [...v.epics, ...v.parkedEpics, ...v.closedEpics].map(e => e.id);
+  assert.deepEqual(ids.sort(), ["EPIC-009", "EPIC-013", "EPIC-014", "EPIC-016"]);
+  assert.ok(![...v.epics, ...v.parkedEpics, ...v.closedEpics].some(e => /notes/.test(e.title)));
+});
