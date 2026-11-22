@@ -93,14 +93,14 @@ export const task = key => S.data && S.data.tasks.find(t => keyOf(t) === key);
 export const dueWithinWeek = t => Boolean(t.deadline) && daysLeft(t.deadline) <= 7;
 
 /** Tabu's open tasks due within 7 days in the loaded project(s): the count on the Claude view's badge. */
-export const dueSoonTasks = () => S.data ? S.data.tasks.filter(t => t.owner === "human" && tabOf(t.state) === "open" && dueWithinWeek(t)).sort((a, b) => a.deadline.localeCompare(b.deadline)) : [];
+export const dueSoonTasks = () => S.data ? S.data.tasks.filter(t => t.owner === "human" && tabOf(t.state) === "open" && !t.hidden && dueWithinWeek(t)).sort((a, b) => a.deadline.localeCompare(b.deadline)) : [];
 export const dueSoonCount = () => dueSoonTasks().length;
 
 export function visible() {
   const q = S.q.trim().toLowerCase();
   const dueOk = t => S.f.due === "any" || (S.f.due === "has" && t.deadline) || (S.f.due === "none" && !t.deadline) || (S.f.due === "week" && dueWithinWeek(t));
   return S.data.tasks.filter(t =>
-    (!S.epic || `${t.project}/${t.epic}` === S.epic) && (S.owner === "all" || t.owner === S.owner) && S.f[t.type] && dueOk(t) &&
+    (S.epic ? `${t.project}/${t.epic}` === S.epic : !t.hidden) && (S.owner === "all" || t.owner === S.owner) && S.f[t.type] && dueOk(t) &&
     (!q || t.id.toLowerCase().includes(q) || t.title.toLowerCase().includes(q) || (t.description || "").toLowerCase().includes(q)));
 }
 

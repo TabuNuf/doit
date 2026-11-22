@@ -198,3 +198,19 @@ test("the owner chip carries its class per owner and story openers render bold",
   const html = descSection({ project: "game", id: "T-1.1", epic: "E", description: "As a player,\nI want a map,\nso that I find the way." });
   for (const w of ["As", "I want", "so that"]) assert.match(html, new RegExp(`<strong>${w}</strong>`));
 });
+
+test("a hidden task shows only with its epic selected, and is not counted as due or waiting", async () => {
+  const { S, visible, dueSoonTasks } = await import("../web/state.js");
+  const { waiting } = await import("../web/projectPage.js");
+  const day = new Date().toISOString().slice(0, 10);
+  const t = (id, epic, hidden) => ({ project: "game", id, epic, owner: "human", state: "todo", deadline: day, type: "task", title: id, description: "", hidden, blocks: null });
+  S.data = { tasks: [t("T-1.1", "EPIC-1", false), t("T-9.1", "EPIC-9", true)] };
+  Object.assign(S, { epic: null, q: "", owner: "all", f: { task: true, bug: true, due: "any" } });
+  assert.deepEqual(visible().map(x => x.id), ["T-1.1"]);
+  S.epic = "game/EPIC-9";
+  assert.deepEqual(visible().map(x => x.id), ["T-9.1"]);
+  S.epic = null;
+  assert.deepEqual(dueSoonTasks().map(x => x.id), ["T-1.1"]);
+  assert.deepEqual(waiting("game", S.data).map(x => x.id), ["T-1.1"]);
+  S.data = null;
+});
