@@ -25,10 +25,10 @@ Order: after EPIC-028
 
 ## Tasks
 
-- [ ] T-026.1 A task knows it is hidden, and the board's view and list leave hidden tasks out (done when: npm test passes with a board test: a parked epic's open tasks are absent from view() and from list() for open, active and backlog, present with hidden true in view({hidden: true}) and list({epic}), found by get, and back in the state they had after the epic is moved to open)
-- [ ] T-026.2 Closing an epic archives its completed tasks and leaves the open ones hidden (done when: npm test passes with a board test: an epic closed with a todo, a progress and a backlog task keeps all three task files unarchived and hidden, archives its done task, and after a move back to open lists each in the state it had)
-- [ ] T-026.3 doit show says when a task is hidden, and list --json carries hidden (done when: npm test passes with a cli test: for a parked epic's task, list leaves it out, list --epic prints it, show prints the hidden line, and list --epic --json has hidden true)
-- [ ] T-026.4 Tests hold the hiding rule for the Claude view, the morning report and the weekly outreach (done when: npm test passes with new tests: no pane of ClaudeView.panes, no line of morning() and no campaign step of Outreach.week names an open task of a parked epic, and each names it again after the epic is moved to open)
+- [x] T-026.1 A task knows it is hidden, and the board's view and list leave hidden tasks out (done when: npm test passes with a board test: a parked epic's open tasks are absent from view() and from list() for open, active and backlog, present with hidden true in view({hidden: true}) and list({epic}), found by get, and back in the state they had after the epic is moved to open)
+- [x] T-026.2 Closing an epic archives its completed tasks and leaves the open ones hidden (done when: npm test passes with a board test: an epic closed with a todo, a progress and a backlog task keeps all three task files unarchived and hidden, archives its done task, and after a move back to open lists each in the state it had)
+- [x] T-026.3 doit show says when a task is hidden, and list --json carries hidden (done when: npm test passes with a cli test: for a parked epic's task, list leaves it out, list --epic prints it, show prints the hidden line, and list --epic --json has hidden true)
+- [x] T-026.4 Tests hold the hiding rule for the Claude view, the morning report and the weekly outreach (done when: npm test passes with new tests: no pane of ClaudeView.panes, no line of morning() and no campaign step of Outreach.week names an open task of a parked epic, and each names it again after the epic is moved to open)
 - [ ] T-026.5 The page keeps hidden tasks out of the Open tab, the due badge and the waiting list (done when: npm test passes with tests: GET /api/board returns a parked epic's open task with hidden true; visible() leaves it out with no epic selected and keeps it with its epic selected; dueSoonTasks() and waiting() leave it out)
 - [ ] T-026.6 The list says why when the selected epic is parked, completed or archived (done when: npm test passes with a page test: the list pane shows the line for a selected parked epic that has a hidden task, with the epic id and the word parked, and shows no line for an open epic or with no epic selected)
 - [ ] T-026.7 Check in play (done when: Every check in the description is confirmed in the running board, or its failure is a task in EPIC-026)
@@ -48,6 +48,11 @@ Nothing that merges badly as text: source, tests and docs only. EPIC-028 changes
 
 Decisions and deviations, newest first.
 
+- 2026-11-22, Batch A (T-026.1 to .4) built by one `batch-builder` agent, development 418 of 418. Deviations:
+  - A task without a task file, in an epic that is closed and reopened, comes back as Backlog and not as the state it showed before. It has no stored state: it takes the default for the epic's status, and a reopened epic is Planned.
+  - The morning test does not ask for the To-do task back in Up next, since the report holds only the top three.
+  - Tests that held the old rule were moved to the new one: `board.test.js` (T-016.1 of the parked fixture epic left two lists; close counts), `server.test.js`, `cli.test.js`, `morning.test.js`, `activity.test.js`, `worktree.test.js`.
+  - T-026.2's new confirm text on Close epic is unchecked in play.
 - 2026-11-22: built in the worktree `../doit-wt/026-hide-open-tasks-of-inactive-epics` on `epic/026-hide-open-tasks-of-inactive-epics`, beside EPIC-028, which is Active on main and still gets tasks from its Check in play.
 
 ## Close audit
