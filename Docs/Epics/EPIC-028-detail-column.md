@@ -19,6 +19,7 @@ Design: Design.md, sections Projects, Epics, Tasks and Look (T-028.1 brings them
 - [x] T-028.11 doit epic add writes the new epic header: In short and Why it exists above Status (done when: npm test passes: a new epic's file opens with In short and Why it exists placeholder lines, a blank line, then Status and Design, and a campaign epic is written as today)
 - [x] T-028.12 Closing an epic waits for its open Check in play task (done when: npm test passes with new tests: a close by CLI and by move is refused with the task named while the Check in play task is open, nothing is archived by the refused close, and it goes through once the task is done or the epic has no such line)
 - [ ] T-028.13 Check in play (done when: Every check in the description is confirmed in the running board, or its failure is a task in EPIC-028)
+- [x] T-028.14 A sibling notes file is not listed as an epic (done when: npm test passes with a new test: a file EPIC-<nnn>-<name>.notes.md whose heading reads '# EPIC-<nnn>: <name>, notes' is in no epic list (doit epics, the board's epic cards, the project page), in Epics/, Parked/ and Completed/, and the epic's own file still is)
 
 ## Specification
 
@@ -70,6 +71,7 @@ Design: Design.md, sections Projects, Epics, Tasks and Look (T-028.1 brings them
 - `Decided` Test plan: each batch line of the template's form (`Batch A: T-<nnn>.1 to .4 (<modules>)`) as a row of batch, task range and modules, with the Performance and Close lines under it.
 - `Decided` Notes, Close audit and For the standard are folded to one row each, with a note when empty ("none yet", "filled at close").
 - `Decided` The Notes row shows what the section holds. Notes kept in a sibling file (`EPIC-<nnn>-<name>.notes.md`, a practice of one project and not of the standard) are out of this epic.
+- `Decided` Such a notes file is never listed as an epic: not by `doit epics`, not as an epic card, not on the project page. It stays a document in the Docs tree (T-028.14).
 - `Decided` The page has no Check in play section. The checks are a task (companion document, section 3).
 
 ### Task page
@@ -136,6 +138,7 @@ Design: Design.md, sections Projects, Epics, Tasks and Look (T-028.1 brings them
 - Batch A: T-028.1 to .5 (Design.md; web: detail.css, epicDoc, markdown, chips, epicPage, epicView): development
 - Batch B: T-028.6 to .8 (web: taskProps, assignment, render, style.css, events, leftPane, projectPage): development
 - Batch C: T-028.9 to .12 (store markdown, domain board and epicMoves; web: projectPage, epicPage): development
+- Batch D: T-028.14 (store projectFiles): development
 - Performance: none. The project page is built from data the page already holds, plus one document read.
 - Check in play: T-028.13
 - Close: Audit (`npm run test:audit`)
@@ -148,6 +151,7 @@ Moved to the planned task T-028.13, as decision 3 of the companion document asks
 
 Decisions and deviations, newest first.
 
+- 2026-11-22: T-028.14 added on the designer's word ("this should not be an epic in the epic list"). Box Trainer's `EPIC-144-player-objectives.notes.md` showed as a second EPIC-144 card, "Player objectives, notes" 0/0, because its heading has the form of an epic title. It blocks T-028.13. Built the same day (7b4c09f): `epicFiles` passes over names ending in `.notes.md`. Development 412 of 412. The new test reads the board view only; the CLI and the project page read the same `epicFiles` and have no test of their own for this. `doit epics box-trainer` shows one EPIC-144 row.
 - 2026-11-22: Build of T-028.1 to .12 done. Batches A 392 of 392, B 401 of 401, C 411 of 411 (development); Audit 412 of 412. A smoke look at the running board (project page, epic page, a task page) showed no console errors. T-028.13 waits on the designer. A stray `doit epic close doit EPIC-028 --dry-run` by the coordinator was refused by T-028.12's rule ("EPIC-028 waits for T-028.13"), so nothing was archived.
 - 2026-11-22: Readings the builders took where the Specification was silent, for T-028.13 to judge:
   - T-028.12: a Check in play task the board cannot find (archived or gone) does not hold the close.
