@@ -1,6 +1,6 @@
 # EPIC-028: Detail column
 
-Status: Planned
+Status: Active
 Goal: A project, an epic or a task opened in the Detail column can be judged in a few seconds: what it is for, how far it is, and what waits on the designer.
 Design: Design.md, sections Projects, Epics, Tasks and Look (T-028.1 brings them up to date)
 
