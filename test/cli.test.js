@@ -68,3 +68,27 @@ test("set blocks= round-trips through the task file, and an empty value clears i
   assert.equal(s.board.get("game/T-014.4").blocks, null);
   assert.match(s.read("Epics/Tasks/T-014.4.md"), /^blocks: $/m);
 });
+
+test("agent, model and effort: flags, keys, check, owner hiding, help", t => {
+  const s = setup(); t.after(s.cleanup);
+  const b = s.board;
+  run(b, "add", "game", "EPIC-014", "Build", "it", "--agent", "batch-builder", "--model", "Sonnet 5.5", "--effort", "medium");
+  const ref = "game/T-014.4";
+  const j = JSON.parse(run(b, "show", ref, "--json").out);
+  assert.deepEqual([j.agent, j.model, j.effort], ["batch-builder", "Sonnet 5.5", "medium"]);
+  assert.match(run(b, "show", ref).out, /agent batch-builder · model Sonnet 5.5 · effort medium/);
+  const bad = run(b, "set", ref, "effort=bogus");
+  assert.equal(bad.code, 1);
+  assert.match(bad.err, /low, medium, high, xhigh, max/);
+  run(b, "set", ref, "owner=human");
+  assert.doesNotMatch(run(b, "show", ref).out, /agent /);
+  assert.equal(JSON.parse(run(b, "show", ref, "--json").out).effort, "medium");
+  const l = JSON.parse(run(b, "list", "--owner", "human", "--json").out).find(x => x.ref === ref);
+  assert.deepEqual([l.agent, l.model, l.effort], ["batch-builder", "Sonnet 5.5", "medium"]);
+  run(b, "set", ref, "owner=ai");
+  assert.match(run(b, "show", ref).out, /agent batch-builder · model Sonnet 5.5 · effort medium/);
+  run(b, "set", ref, "agent=");
+  assert.match(run(b, "show", ref).out, /^model Sonnet 5.5 · effort medium$/m);
+  assert.equal(JSON.parse(run(b, "list", "--json").out).find(x => x.ref === "game/T-014.2").agent, null);
+  assert.match(run(b, "help").out, /--agent a\] \[--model m\] \[--effort[\s\S]*keys:.* agent model effort/);
+});

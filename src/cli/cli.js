@@ -1,6 +1,7 @@
 // The doit command line. Claude's way into the board: short, filtered output only.
 
 import { HELP } from "./help.js";
+import { assignmentLine } from "./assignmentLine.js";
 import { ContactsCli } from "./contactsCli.js";
 import { MailCli } from "./mailCli.js";
 import { FestivalsCli } from "./festivalsCli.js";
@@ -114,6 +115,7 @@ const COMMANDS = {
     if (flags.json) return this.print(JSON.stringify(t, null, 1));
     this.print(`${t.project}/${t.id} ${t.title}`);
     this.print(`epic ${t.epic} (${t.epicName}) · ${t.state} · ${t.owner} · ${t.type} · rank ${t.rank}${t.deadline ? " · due " + t.deadline : ""}`);
+    if (assignmentLine(t)) this.print(assignmentLine(t));
     if (t.archived && t.state === "archived") this.print(`archived: ${t.archived}`);
     if (t.source) this.print(`source: ${t.source}`);
     if (t.blocks) this.print(`blocks: ${t.blocks}`);
@@ -129,7 +131,7 @@ const COMMANDS = {
     const t = this.board.addTask({
       project: need(pos[0], "project"), epic: need(pos[1], "epic"), title: pos.slice(2).join(" "),
       owner: flags.owner, type: flags.type, doneWhen: flags["done-when"], deadline: flags.deadline,
-      state: flags.state, description: flags.description, contact: flags.contact,
+      state: flags.state, description: flags.description, contact: flags.contact, agent: flags.agent, model: flags.model, effort: flags.effort,
     });
     this.print(`Added ${t.project}/${t.id}`);
   },
@@ -190,8 +192,8 @@ function row(t) {
 }
 
 function brief(t) {
-  const { project, id, epic, title, state, owner, type, rank, deadline, doneWhen } = t;
-  return { ref: `${project}/${id}`, epic, title, state, owner, type, rank, deadline, doneWhen };
+  const { project, id, epic, title, state, owner, type, rank, deadline, doneWhen, agent, model, effort } = t;
+  return { ref: `${project}/${id}`, epic, title, state, owner, type, rank, deadline, doneWhen, agent, model, effort };
 }
 
 function need(v, what) {

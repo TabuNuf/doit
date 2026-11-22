@@ -13,7 +13,8 @@ export const HELP = `doit: the task board, from the command line. Every command 
   doit show <project>/<T-id> [--json]
   doit add <project> <EPIC-nnn> <title> [--owner ai|human] [--type task|bug] [--done-when text]
            [--deadline YYYY-MM-DD] [--state todo|progress|backlog] [--description text] [--contact <id>]
-  doit set <project>/<T-id> key=value ...         keys: state owner type deadline rank title done-when description blocks contact
+           [--agent a] [--model m] [--effort low|medium|high|xhigh|max]
+  doit set <project>/<T-id> key=value ...         keys: state owner type deadline rank title done-when description blocks contact agent model effort (an empty value clears; agent, model and effort are left out of plain show for owner human but stay in the file and in --json)
   doit comment <project>/<T-id> <text> [--as ai|human]   (default author: ai)
   doit keep <days>                                days a completed task stays before it is archived
   doit sweep                                      archive what is past its deadline or retention
