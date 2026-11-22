@@ -21,3 +21,22 @@
 .ep-facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 12px 0 }
 .ep-facts dt { opacity: .7 } .ep-facts dd { margin: 0 }
 .ep-facts .link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit }
+
+/* Epic page lists: findings, tasks table, test plan, folded end sections */
+.ep-sec { margin: 18px 0 }
+.ep-sec h2 { margin: 0 0 6px }
+.ep-count-line { opacity: .7; margin: 0 0 6px }
+.ep-foldrow { display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px dashed var(--line); padding: 7px 4px; color: inherit; font: inherit; cursor: pointer }
+.ep-foldrow.static { cursor: default }
+.ep-n { opacity: .6; min-width: 2em } .ep-tag { opacity: .7; font-size: .85em } .ep-note { opacity: .6; margin-left: auto }
+.ep-foldrow .chip { margin-left: auto }
+.chip.decided { background: var(--select); color: var(--on-select) }
+.chip.proposed { background: transparent; border: 1px dashed currentColor }
+.ep-foldbody { padding: 6px 4px 10px 2.5em }
+.ep-detail { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0 }
+.ep-detail dt { opacity: .7 } .ep-detail dd { margin: 0 }
+.ep-tasks, .ep-plan { width: 100%; border-collapse: collapse }
+.ep-tasks th { text-align: left; font-weight: normal; opacity: .6; font-size: .85em }
+.ep-tasks td, .ep-plan td { padding: 6px 8px 6px 0; border-bottom: 1px dashed var(--line); vertical-align: top }
+.ep-trow { cursor: pointer } .ep-trow:hover { background: var(--fill) } .ep-trow.muted { opacity: .55 }
+.ep-tier { opacity: .65 }

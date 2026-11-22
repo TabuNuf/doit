@@ -1,9 +1,10 @@
 // The epic page: status, progress and counts, the In short block and the facts grid, from the epic's text and tasks.
 
-import { esc } from "./state.js";
+import { esc, S } from "./state.js";
 import { renderMarkdown } from "./markdown.js";
 import { parseEpicDoc } from "./epicDoc.js";
 import { whoChip } from "./chips.js";
+import { findingsBlock, tasksTable, testPlan, endSection, isEndSection, md } from "./epicParts.js";
 
 const isOpen = t => t.state !== "done" && t.state !== "archived";
 const num = t => t.id.split(".")[1];
@@ -41,9 +42,19 @@ function grid(e, d) {
   return `<dl class="ep-facts">${rows.map(f => `<dt>${esc(f.key)}</dt><dd>${factValue(e, f.value)}</dd>`).join("")}</dl>`;
 }
 
-/** The page for an open epic `e` (with its `text`), given the loaded tasks. Parts with no text are left out. */
-export function epicPage(e, allTasks) {
-  const d = parseEpicDoc(e.text);
-  const rest = [...d.loose, ...d.sections.map(s => `## ${s.heading}\n\n${s.body}`)].filter(Boolean).join("\n\n");
-  return `<div class="epic-page">${d.name ? `<h1>${esc(d.name)}</h1>` : ""}${header(e, d, mine(e, allTasks))}${inShort(d)}${grid(e, d)}${rest ? `<div class="doc">${renderMarkdown(rest)}</div>` : ""}</div>`;
+/** One `##` section as the page shows it; tasks and findings come from the parsed doc and the board. */
+function section(s, e, d, tasks, open, scope) {
+  const h = s.heading.toLowerCase();
+  if (h.startsWith("findings") && d.findings) return findingsBlock(scope, d.findings, open);
+  if (h === "tasks" && tasks.length) return tasksTable(tasks, t => afterOf(t, tasks.filter(isOpen)));
+  if (h === "test plan") return testPlan(s.body);
+  if (isEndSection(s.heading)) return endSection(scope, s.heading, s.body, open);
+  return md(`## ${s.heading}\n\n${s.body}`);
+}
+
+/** The page for an open epic `e` (with its `text`), given the loaded tasks and the map of opened rows. */
+export function epicPage(e, allTasks, open = S.epicOpen) {
+  const d = parseEpicDoc(e.text), tasks = mine(e, allTasks), scope = `${e.project}/${e.id}`;
+  const rest = d.sections.map(s => section(s, e, d, tasks, open, scope)).join("");
+  return `<div class="epic-page">${d.name ? `<h1>${esc(d.name)}</h1>` : ""}${header(e, d, tasks)}${inShort(d)}${grid(e, d)}${md(d.loose.filter(Boolean).join("\n\n"))}${rest}</div>`;
 }

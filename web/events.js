@@ -17,7 +17,7 @@ const refreshView = () => S.view === "board" ? refreshDocs() : S.view === "claud
 /* ---------- Events ---------- */
 
 document.addEventListener("click", ev => {
-  const b = ev.target.closest("button, .row");
+  const b = ev.target.closest("button, .row, tr[data-id]");
   if ("editdesc" in (b?.dataset || {}) || (ev.target.closest(".desc-view") && !ev.target.closest("a"))) return editDescription();
   if (S.projOpen && !ev.target.closest(".projmenu")) { S.projOpen = false; if (!b) return render(); }
   if (!b) { if (S.fOpen && !ev.target.closest(".pop")) { S.fOpen = false; render(); } return; }
@@ -44,6 +44,7 @@ document.addEventListener("click", ev => {
   }
   if (d.closeEpic) return closeEpic(d.closeEpic);
   if (d.addContacts) return addContacts(d.addContacts);
+  if (d.epicOpen) { S.epicOpen[d.epicOpen] = !S.epicOpen[d.epicOpen]; return render(); }
   if (d.epicFold) { toggleFold(d.epicFoldP, d.epicFold); return render(); }
   if ("clearEpic" in d) { S.epic = null; S.epicView = null; return render(); }
   if (d.t) { const reload = d.t === "archived" || S.tab === "archived"; S.tab = d.t; return reload ? load() : render(); }
