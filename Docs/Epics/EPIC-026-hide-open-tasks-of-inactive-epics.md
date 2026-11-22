@@ -29,8 +29,8 @@ Order: after EPIC-028
 - [x] T-026.2 Closing an epic archives its completed tasks and leaves the open ones hidden (done when: npm test passes with a board test: an epic closed with a todo, a progress and a backlog task keeps all three task files unarchived and hidden, archives its done task, and after a move back to open lists each in the state it had)
 - [x] T-026.3 doit show says when a task is hidden, and list --json carries hidden (done when: npm test passes with a cli test: for a parked epic's task, list leaves it out, list --epic prints it, show prints the hidden line, and list --epic --json has hidden true)
 - [x] T-026.4 Tests hold the hiding rule for the Claude view, the morning report and the weekly outreach (done when: npm test passes with new tests: no pane of ClaudeView.panes, no line of morning() and no campaign step of Outreach.week names an open task of a parked epic, and each names it again after the epic is moved to open)
-- [ ] T-026.5 The page keeps hidden tasks out of the Open tab, the due badge and the waiting list (done when: npm test passes with tests: GET /api/board returns a parked epic's open task with hidden true; visible() leaves it out with no epic selected and keeps it with its epic selected; dueSoonTasks() and waiting() leave it out)
-- [ ] T-026.6 The list says why when the selected epic is parked, completed or archived (done when: npm test passes with a page test: the list pane shows the line for a selected parked epic that has a hidden task, with the epic id and the word parked, and shows no line for an open epic or with no epic selected)
+- [x] T-026.5 The page keeps hidden tasks out of the Open tab, the due badge and the waiting list (done when: npm test passes with tests: GET /api/board returns a parked epic's open task with hidden true; visible() leaves it out with no epic selected and keeps it with its epic selected; dueSoonTasks() and waiting() leave it out)
+- [x] T-026.6 The list says why when the selected epic is parked, completed or archived (done when: npm test passes with a page test: the list pane shows the line for a selected parked epic that has a hidden task, with the epic id and the word parked, and shows no line for an open epic or with no epic selected)
 - [ ] T-026.7 Check in play (done when: Every check in the description is confirmed in the running board, or its failure is a task in EPIC-026)
 
 ## Touches
@@ -48,6 +48,15 @@ Nothing that merges badly as text: source, tests and docs only. EPIC-028 changes
 
 Decisions and deviations, newest first.
 
+- 2026-11-22, checked in the running app by the coordinator, on a scratch project in a scratch data folder (the worktree's server on port 4399), all as specified:
+  - Parking an epic with a To-do, an In progress, a Backlog and a designer's task with a deadline took all four out of the Open tab, the Claude view, the due badge (2 to 1) and the project page's waiting list.
+  - Selecting the parked epic listed them under the line "EPIC-004 is parked, so its open tasks show only here. Drag it onto the open epics to bring them back."; Show all hid them again.
+  - Moving it back to the open epics returned each in the state it had.
+  - Closing it with one done and three open tasks archived the one and left the three unarchived and hidden; reopening returned the three as they were and the done one as Completed.
+  - `doit list`, `list --epic`, `show` and `morning` from the worktree read the same.
+  - Not checked: dragging by hand (the moves went through the move API) and the changed confirm text on Close epic. Both are on T-026.7.
+- 2026-11-22, seen in that check and older than this epic: the epic page's header shows Close epic on a parked epic, where Design.md says only open epics have it (`web/epicView.js` tests `completed` only). For the close audit.
+- 2026-11-22, Batch B (T-026.5 and .6) built by one `batch-builder` agent, development 420 of 420. Deviations: the note is rendered in `listBody`, `listPane` is exported for its test, and the note uses the existing `.note` class, so no CSS was added.
 - 2026-11-22, Batch A (T-026.1 to .4) built by one `batch-builder` agent, development 418 of 418. Deviations:
   - A task without a task file, in an epic that is closed and reopened, comes back as Backlog and not as the state it showed before. It has no stored state: it takes the default for the epic's status, and a reopened epic is Planned.
   - The morning test does not ask for the To-do task back in Up next, since the report holds only the top three.
