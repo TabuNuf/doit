@@ -24,7 +24,7 @@ document.addEventListener("click", ev => {
   const d = b.dataset;
   const sel = () => task(S.sel);
   docsLeave(d);
-  if (d.id || d.cyc || d.reopen || d.openEpic || d.p || d.view || "clearEpic" in d) S.settings.open = false;
+  if (d.id || d.cyc || d.reopen || d.openEpic || d.p || d.view || "clearEpic" in d || d.projectPage) S.settings.open = false;
   if (d.view) { S.view = d.view; render(); return d.view === "marketing" ? openMarketing() : refreshView(); }
   if (docsClick(d) || claudeClick(d) || marketingClick(d) || settingsClick(d)) return;
   if ("projmenu" in d) { S.projOpen = !S.projOpen; return render(); }
@@ -36,7 +36,8 @@ document.addEventListener("click", ev => {
   if ("canceltask" in d) { S.newTask = false; return render(); }
   if (d.cyc) { const t = task(d.cyc); S.sel = d.cyc; return patch(t, { state: t.state === "todo" ? "progress" : "todo" }); }
   if (d.reopen) { S.sel = d.reopen; return patch(task(d.reopen), { state: "todo" }); }
-  if (d.p) { S.projOpen = false; S.project = d.p; S.epic = null; S.epicView = null; S.newTask = false; try { localStorage.setItem("doit.project", d.p); } catch { /* */ } return load().then(refreshView); }
+  if (d.p) { S.projOpen = false; S.project = d.p; S.projectPage = null; S.epic = null; S.epicView = null; S.newTask = false; try { localStorage.setItem("doit.project", d.p); } catch { /* */ } return load().then(refreshView); }
+  if (d.projectPage) { S.projectPage = d.projectPage; S.sel = null; S.epic = null; S.epicView = null; S.docs.active = false; return render(); }
   if (d.openEpic) {
     // A second click on the epic already shown clears it; with a task open, it brings the epic back.
     if (S.epic === d.openEpic && S.epicView && !S.sel) { S.epic = null; S.epicView = null; return render(); }

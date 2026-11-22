@@ -116,7 +116,7 @@ test("the gear beside a project opens its settings in place with Board selected;
   const { settingsClick } = await import("../web/projectSettings.js");
   S.project = "a";
   render();
-  assert.match(panes(), /Alpha<button class="gear" data-settings="a" aria-pressed="false"/);
+  assert.match(panes(), /Alpha<\/button><button class="gear" data-settings="a" aria-pressed="false"/);
   assert.doesNotMatch(els.get("#views").innerHTML, /Settings|data-settings/);
   settingsClick({ settings: "a" });
   await flush();

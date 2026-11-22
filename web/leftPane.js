@@ -18,7 +18,7 @@ const docs = p => `<div class="tree" aria-label="Documents of ${esc(p.name)}">${
 export function leftPane() {
   const ps = S.project === "all" ? projects() : [proj(S.project)];
   const { epics: ep, docs: dc } = S.show;
-  const groups = ps.map(p => `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span>${esc(p.name)}${gearButton(p.id, settingsShown() && S.project === p.id)}</div>`
+  const groups = ps.map(p => `<div class="group-h"><span class="dot" style="background:${color(p.id)}"></span><button class="pname" data-project-page="${esc(p.id)}" title="Open the page of ${esc(p.name)}">${esc(p.name)}</button>${gearButton(p.id, settingsShown() && S.project === p.id)}</div>`
     + (ep ? `<div class="part-h">Epics</div>${epics(p)}` : "") + (ep && dc ? `<hr class="part-rule">` : "") + (dc ? `<div class="part-h">Docs</div>${docs(p)}` : "")).join("");
   const toggle = (k, label) => `<button class="fsz" data-show="${k}" aria-pressed="${!!S.show[k]}" style="margin-left:0">${label}</button>`;
   const none = groups && !ep && !dc ? `<div class="empty">Epics and Docs are both off. Turn one on in the header.</div>` : "";

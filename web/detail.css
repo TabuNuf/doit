@@ -50,3 +50,14 @@
 .kv dt.off, .kv dt.off + dd { opacity: .55 }
 .kv dt.off { color: var(--muted) }
 [data-addcmt] { background: var(--select); color: var(--on-select) }
+
+/* Project page */
+.pp-head { display: flex; justify-content: space-between; align-items: center }
+.pname { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline dotted }
+.pcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0 }
+.pcard { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); text-align: left; font: inherit; color: inherit; background: none }
+.pcard b { font-size: 1.3em } .pc-l { opacity: .65; font-size: .85em }
+.pcard.you { background: var(--you); color: var(--on-you) }
+button.pcard { cursor: pointer }
+.pp-row { display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px dashed var(--line); padding: 7px 4px; color: inherit; font: inherit; cursor: pointer }
+.pp-row .chip { margin-left: auto }

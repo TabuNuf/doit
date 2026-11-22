@@ -9,6 +9,7 @@ import { docsPanes } from "./docsView.js";
 import { claudePanes } from "./claudeView.js";
 import { marketingPanes, marketingTabs } from "./marketingView.js";
 import { taskProps } from "./taskProps.js";
+import { projectPage, pageProject } from "./projectPage.js";
 import { whoChip } from "./chips.js";
 import { setLayout } from "./resize.js";
 import { contactButton, ensureContactNames } from "./contactNames.js";
@@ -163,6 +164,8 @@ export function descSection(t) {
 function detailPane() {
   const t = S.sel && task(S.sel);
   if (!t && S.epicView) return epicViewPane(fontCtl());
+  const pp = !t && pageProject();
+  if (pp) return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b detail">${projectPage(pp)}</div></section>`;
   if (!t) return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b"><div class="empty">Select a task.</div></div></section>`;
   const where = t.state === "archived" ? "Archive/Tasks" : "Epics/Tasks";
   const { head, rest } = headline(t.title);
