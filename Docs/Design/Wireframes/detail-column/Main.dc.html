@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Epic EPIC-135 Steady goals</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F4FB8}a:hover{color:#163A88}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.h2{margin:0;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#545C66;display:flex;align-items:center;gap:8px}
+.count{font-weight:500;color:#545C66;text-transform:none;letter-spacing:0}
+.chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:11px;font-size:12px;font-weight:500;white-space:nowrap}
+.dec{background:#3D5677;color:#FFFFFF}
+.prop{background:#FFFFFF;color:#1A1D21;border:1px dashed #545C66}
+.tag{background:#F0F1F3;color:#3B424B;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.you{background:#FCEFE3;color:#8F3F05}
+.cl{background:#E8EEFA;color:#1A449E}
+.row{display:grid;align-items:center;border-top:1px solid #E2E5E9}
+.btn{font:inherit;font-size:12px;height:28px;padding:0 12px;border:1px solid #9AA3AD;border-radius:6px;background:#FFFFFF;color:#1A1D21}
+</style>
+</helmet>
+<div style="width: 760px; min-height: 2280px; box-sizing: border-box; background: #FFFFFF; color: #1A1D21; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5; border: 1px solid #D5D9DE">
+
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 24px; border-bottom: 1px solid #E2E5E9; background: #F7F8FA">
+<span class="mono" style="font-size: 11px; letter-spacing: .08em; color: #545C66">EPIC · EPIC-135 · PLANNED</span>
+<span style="flex-grow: 1"></span>
+<button class="btn">Open file</button>
+<button class="btn">Close epic</button>
+</div>
+
+<div style="padding: 24px 24px 0; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; color: #545C66">Box Trainer › Epics</div>
+<div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap">
+<h1 style="margin: 0; font-size: 28px; line-height: 1.2; font-weight: 700">Steady goals</h1>
+<span class="mono" style="font-size: 13px; color: #545C66">EPIC-135</span>
+</div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap">
+<span class="chip" style="background: #F0F1F3; color: #1A1D21; border: 1px solid #C9CED4">Planned</span>
+<div style="display: flex; align-items: center; gap: 8px">
+<div style="width: 160px; height: 6px; border-radius: 3px; background: #E2E5E9; overflow: hidden"><div style="width: 7%; height: 6px; background: #3D5677"></div></div>
+<span style="font-size: 13px; color: #3B424B">1 of 16 tasks done</span>
+</div>
+<span class="chip cl">14 for Claude</span>
+<span class="chip you">1 for you, after .15</span>
+</div>
+
+<div style="background: #F4F5F7; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #545C66">In short</div>
+<p style="margin: 0; font-size: 17px; line-height: 1.45; font-weight: 500">A box keeps a goal until something clearly better comes along, says when and why it changes, and the player can see what it is after.</p>
+<p style="margin: 0; color: #3B424B"><b style="color: #1A1D21">Why it exists:</b> in the level 14 playtest (2026-11-22) boxes saw the key, turned away and stood still for no reason the player could see. A goal list replaces the single spot, and nothing throws the plan away.</p>
+</div>
+
+<dl style="margin: 0; display: grid; grid-template-columns: 120px minmax(0, 1fr); row-gap: 8px; column-gap: 16px; font-size: 13px">
+<dt style="color: #545C66">Design</dt><dd style="margin: 0"><a href="#">GameDesign.md › Goals, personalities and harm</a></dd>
+<dt style="color: #545C66">Order</dt><dd style="margin: 0">After <a href="#">EPIC-136</a>. <a href="#">EPIC-137</a> and <a href="#">EPIC-138</a> build on it.</dd>
+<dt style="color: #545C66">Source</dt><dd style="margin: 0">Playtest 2026-11-22, level 14 · <span class="mono" style="font-size: 12px">Playtests/2026-11-22-thorbjorn/</span></dd>
+<dt style="color: #545C66">Same playtest</dt><dd style="margin: 0"><a href="#">136 Walls, water and voice</a> · <a href="#">137 Team goals and keys</a> · <a href="#">138 Personalities</a> · <a href="#">139 Rivals</a> (parked)</dd>
+</dl>
+</div>
+
+<div style="padding: 32px 24px 0; display: flex; flex-direction: column; gap: 12px">
+<h2 class="h2">What changes <span class="count">16 findings · 14 decided · 2 proposed</span></h2>
+<div style="border-bottom: 1px solid #E2E5E9">
+<sc-for list="{{findings}}" as="f" hint-placeholder-count="16">
+<div class="row" style="grid-template-columns: 28px 20px 64px minmax(0, 1fr) 84px; column-gap: 8px; padding: 9px 0">
+<span class="mono" style="font-size: 12px; color: #545C66; text-align: right">{{f.n}}</span>
+<span style="color: #545C66; font-size: 12px">{{f.caret}}</span>
+<span class="chip tag" style="justify-self: start">{{f.tag}}</span>
+<span style="font-weight: 600">{{f.title}}</span>
+<span class="chip {{f.cls}}" style="justify-self: end">{{f.state}}</span>
+<sc-if value="{{f.open}}" hint-placeholder-val="{{false}}">
+<div style="grid-column: 4 / 6; padding: 6px 0 4px; color: #3B424B; display: flex; flex-direction: column; gap: 8px">
+<p style="margin: 0"><b style="color: #1A1D21">Seen:</b> a box saw the key, stopped, turned away. Boxes stood still, then left for no reason the player could see.</p>
+<p style="margin: 0"><b style="color: #1A1D21">Cause:</b> many events call <span class="mono" style="font-size: 12px">Rethink</span> and throw the spot away, and the network then samples again at temperature 0.25, so two near options are close to a coin toss each time.</p>
+<p style="margin: 0"><b style="color: #1A1D21">Decided:</b> a goal list replaces the single spot, and nothing throws the plan away (findings 2 to 4).</p>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="padding: 32px 24px 0; display: flex; flex-direction: column; gap: 12px">
+<h2 class="h2">Tasks <span class="count">1 of 16 done</span></h2>
+<div style="border-bottom: 1px solid #E2E5E9">
+<div class="row" style="grid-template-columns: 72px minmax(0, 1fr) 96px 150px; column-gap: 12px; padding: 6px 0; border-top: none; font-size: 12px; color: #545C66">
+<span>Task</span><span>What changes</span><span>Who</span><span>Model · effort</span>
+</div>
+<sc-for list="{{tasks}}" as="t" hint-placeholder-count="15">
+<div class="row" style="grid-template-columns: 72px minmax(0, 1fr) 96px 150px; column-gap: 12px; padding: 8px 0; font-size: 13px">
+<span class="mono" style="font-size: 12px; color: #545C66">{{t.id}}</span>
+<span style="color: {{t.color}}">{{t.title}}</span>
+<span class="chip {{t.cls}}" style="justify-self: start">{{t.who}}</span>
+<span style="color: #3B424B; font-size: 12px">{{t.model}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="padding: 32px 24px 0; display: flex; flex-direction: column; gap: 12px">
+<h2 class="h2">Test plan</h2>
+<div style="display: grid; grid-template-columns: 72px 110px minmax(0, 1fr); row-gap: 6px; column-gap: 12px; font-size: 13px">
+<b>Batch A</b><span class="mono" style="font-size: 12px">.1 to .4</span><span>Brain: the plan, the goal list, the current goal, the network's choice</span>
+<b>Batch B</b><span class="mono" style="font-size: 12px">.5 to .9</span><span>Brain: commitment, priority, fading, moving things, lessons</span>
+<b>Batch C</b><span class="mono" style="font-size: 12px">.10 to .13</span><span>Reflexes and voice, sheet, card, Balancer</span>
+<b>Batch D</b><span class="mono" style="font-size: 12px">.14 to .15</span><span>Your choice, then MazeView</span>
+</div>
+<p style="margin: 0; font-size: 13px; color: #3B424B"><b style="color: #1A1D21">Performance:</b> decide time per step before and after Batch A. <b style="color: #1A1D21">Close:</b> Audit (light and Deep).</p>
+</div>
+
+<div style="padding: 32px 24px 32px; display: flex; flex-direction: column; gap: 0">
+<div class="row" style="grid-template-columns: 20px minmax(0, 1fr) auto; column-gap: 8px; padding: 10px 0"><span style="color: #545C66">▸</span><b>Notes</b><span style="font-size: 12px; color: #545C66">in EPIC-135-steady-goals.notes.md, none yet</span></div>
+<div class="row" style="grid-template-columns: 20px minmax(0, 1fr) auto; column-gap: 8px; padding: 10px 0"><span style="color: #545C66">▸</span><b>Close audit</b><span style="font-size: 12px; color: #545C66">filled at close</span></div>
+<div class="row" style="grid-template-columns: 20px minmax(0, 1fr) auto; column-gap: 8px; padding: 10px 0; border-bottom: 1px solid #E2E5E9"><span style="color: #545C66">▸</span><b>For the standard</b><span style="font-size: 12px; color: #545C66">filled at close</span></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":2280}}'>
+class Component extends DCLogic {
+renderVals() {
+var F = [
+['design','Boxes change their minds with nothing better to do','Decided'],
+['design','A goal list','Decided'],
+['design','The network’s score is a goal’s priority','Decided'],
+['design','Commitment grows with progress','Decided'],
+['design','Distance counts lightly','Decided'],
+['design','Goals end by fact','Decided'],
+['design','Out of sight, a goal fades','Decided'],
+['design','Moving things are kept where last seen','Decided'],
+['design','“I remember”','Decided'],
+['design','The hand teaches actions, not goals','Decided'],
+['design','No box stands idle without a reason','Decided'],
+['design','The box says when it changes goal','Decided'],
+['bug','The card names a thought the box has left','Decided'],
+['design','The goal numbers are tunable','Decided'],
+['design','The route lines read as sight','Proposed'],
+['design','What a box remembers is invisible','Proposed']
+];
+var findings = F.map(function (f, i) {
+return { n: i + 1, tag: f[0], title: f[1], state: f[2], cls: f[2] === 'Decided' ? 'dec' : 'prop', open: i === 0, caret: i === 0 ? '▾' : '▸' };
+});
+var O = 'Opus 5.5 · high', S = 'Sonnet 5.5 · medium';
+var T = [
+['.1','Plan the goal list classes and how they replace the spot track',O],
+['.2','Goal and GoalList: add, update, end by fact, size limit',S],
+['.3','The current goal replaces the spot; Rethink events update the list',O],
+['.4','Network scores become priorities; trial pick only for the next goal',O],
+['.5','Commitment bonus that grows with progress',S],
+['.6','A goal’s priority weighs the way’s difficulty, distance lightly',S],
+['.7','Goals fade out of sight; the exit never fades',S],
+['.8','Moving things stay on the list where last seen, fading',S],
+['.9','Lessons teach the current action, not the goal',O],
+['.10','No idle box; think pause only on a real change of goal',S],
+['.11','The box says when it changes goal, and “I remember”',S],
+['.12','The card shows the current and the next goal',S],
+['.13','Balancer Goals tab',S],
+['.14','Decide the route lines and remembered-goal markers','human'],
+['.15','Route lines and remembered goals as decided',S],
+['.16','Check in play','check']
+];
+var tasks = T.map(function (t) {
+var human = t[2] === 'human', check = t[2] === 'check';
+return { id: 'T-135' + t[0], title: t[1], who: human || check ? 'You' : 'Claude', cls: human || check ? 'you' : 'cl', model: human ? 'Done 2026-11-22' : check ? 'After .15' : t[2], color: human ? '#545C66' : '#1A1D21' };
+});
+return { findings: findings, tasks: tasks };
+}
+}
+</script>
+</body>
+</html>

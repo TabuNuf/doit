@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Project Box Trainer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F4FB8}a:hover{color:#163A88}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.h2{margin:0;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#545C66;display:flex;align-items:center;gap:8px}
+.count{font-weight:500;text-transform:none;letter-spacing:0}
+.chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:11px;font-size:12px;font-weight:500;white-space:nowrap}
+.you{background:#FCEFE3;color:#8F3F05}
+.row{display:grid;align-items:center;border-top:1px solid #E2E5E9}
+.btn{font:inherit;font-size:12px;height:28px;padding:0 12px;border:1px solid #9AA3AD;border-radius:6px;background:#FFFFFF;color:#1A1D21}
+</style>
+</helmet>
+<div style="width: 760px; min-height: 1240px; box-sizing: border-box; background: #FFFFFF; color: #1A1D21; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5; border: 1px solid #D5D9DE">
+
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 24px; border-bottom: 1px solid #E2E5E9; background: #F7F8FA">
+<span class="mono" style="font-size: 11px; letter-spacing: .08em; color: #545C66">PROJECT · BOX-TRAINER · GAME</span>
+<span style="flex-grow: 1"></span>
+<button class="btn">Settings</button>
+</div>
+
+<div style="padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="border: 1px dashed #2B5FCC; background: #F3F6FD; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #1A449E"><b>New page.</b> Doit has no place to see a project today. This opens when you click the project's name in the left pane, before any epic is chosen.</div>
+<h1 style="margin: 0; font-size: 28px; line-height: 1.2">Box Trainer</h1>
+
+<div style="background: #F4F5F7; border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #545C66">In short</div>
+<p style="margin: 0; font-size: 17px; line-height: 1.45; font-weight: 500">Train a box. Reward what it does right, punish what it does wrong, and watch it learn. Then let it go where your hand cannot follow.</p>
+<p style="margin: 0; color: #3B424B"><b style="color: #1A1D21">Now testing:</b> is it satisfying to train a box in a maze you built, then watch it solve one it has never seen?</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+<div style="border: 1px solid #E2E5E9; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #545C66">Active epic</span><b style="font-size: 15px">Walls, water and voice</b><span style="font-size: 12px; color: #3B424B">EPIC-136 · 4 of 7 done</span></div>
+<div style="border: 1px solid #F0C9A8; background: #FFF8F2; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #8F3F05">Waiting on you</span><b style="font-size: 15px">2 tasks</b><span style="font-size: 12px; color: #3B424B">both in EPIC-138</span></div>
+<div style="border: 1px solid #E2E5E9; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #545C66">Planned next</span><b style="font-size: 15px">6 epics</b><span style="font-size: 12px; color: #3B424B">3 parked</span></div>
+</div>
+</div>
+
+<div style="padding: 8px 24px 0; display: flex; flex-direction: column; gap: 10px">
+<h2 class="h2">Waiting on you <span class="count">2</span></h2>
+<div style="border-bottom: 1px solid #E2E5E9">
+<div class="row" style="grid-template-columns: 84px minmax(0, 1fr) 72px; column-gap: 12px; padding: 10px 0"><span class="mono" style="font-size: 12px; color: #545C66">T-138.2</span><span><b>Approve the personalities, bought traits and the change price</b></span><span class="chip you" style="justify-self: end">You</span></div>
+<div class="row" style="grid-template-columns: 84px minmax(0, 1fr) 72px; column-gap: 12px; padding: 10px 0"><span class="mono" style="font-size: 12px; color: #545C66">T-138.9</span><span><b>Confirm in play that boxes are better without moods</b></span><span class="chip you" style="justify-self: end">You</span></div>
+</div>
+</div>
+
+<div style="padding: 32px 24px 0; display: flex; flex-direction: column; gap: 10px">
+<h2 class="h2">Epics <span class="count">in build order</span></h2>
+<div style="border-bottom: 1px solid #E2E5E9">
+<sc-for list="{{epics}}" as="e" hint-placeholder-count="7">
+<div class="row" style="grid-template-columns: 84px minmax(0, 1fr) 72px 120px; column-gap: 12px; padding: 10px 0">
+<span class="mono" style="font-size: 12px; color: #545C66">{{e.id}}</span>
+<span style="font-weight: 600">{{e.name}}</span>
+<span style="font-size: 12px; color: #3B424B">{{e.status}}</span>
+<div style="display: flex; align-items: center; gap: 8px; justify-self: end">
+<div style="width: 64px; height: 6px; border-radius: 3px; background: #E2E5E9; overflow: hidden"><div style="width: {{e.pct}}; height: 6px; background: #1A1D21"></div></div>
+<span style="font-size: 12px; color: #3B424B; width: 36px; text-align: right">{{e.done}}</span>
+</div>
+</div>
+</sc-for>
+</div>
+<div class="row" style="grid-template-columns: 20px minmax(0, 1fr); column-gap: 8px; padding: 10px 0; border-top: none"><span style="color: #545C66">▸</span><span><b>Parked</b> <span style="color: #545C66; font-size: 13px">Bodies and attachments, Lineage and hall of fame, Multiplayer</span></span></div>
+</div>
+
+<div style="padding: 24px 24px 32px; display: flex; flex-direction: column; gap: 10px">
+<h2 class="h2">Documents <span class="count">open in Doit's Docs view, as today</span></h2>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a class="chip" href="#" style="background: #F0F1F3; text-decoration: none">GameDesign.md</a>
+<a class="chip" href="#" style="background: #F0F1F3; text-decoration: none">Architecture.md</a>
+<a class="chip" href="#" style="background: #F0F1F3; text-decoration: none">Playtest.md</a>
+<a class="chip" href="#" style="background: #F0F1F3; text-decoration: none">UIRules.md</a>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":1240}}'>
+class Component extends DCLogic {
+renderVals() {
+var E = [
+['EPIC-136','Walls, water and voice','Active',4,7],
+['EPIC-135','Steady goals','Planned',1,15],
+['EPIC-137','Team goals and keys','Planned',1,8],
+['EPIC-138','Personalities','Planned',0,10],
+['EPIC-140','New ground','Planned',0,15],
+['EPIC-141','Ground detail','Planned',0,9],
+['EPIC-133','Box skills and spells','Planned',0,0]
+];
+return { epics: E.map(function (e) {
+return { id: e[0], name: e[1], status: e[2], done: e[4] ? e[3] + '/' + e[4] : 'no tasks', pct: (e[4] ? Math.round(100 * e[3] / e[4]) : 0) + '%' };
+}) };
+}
+}
+</script>
+</body>
+</html>

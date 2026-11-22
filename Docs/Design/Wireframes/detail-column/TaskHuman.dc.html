@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Designer task T-135.14</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F4FB8}a:hover{color:#163A88}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.lbl{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#4D5B6B}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border:1px solid #C3CCD6;border-radius:4px;font-size:12px;background:#FFFFFF}
+.btn{font:inherit;font-size:12px;height:26px;padding:0 10px;border:1px solid #9AA3AD;border-radius:4px;background:#FFFFFF;color:#1A1D21}
+.field{font:inherit;font-size:13px;height:30px;box-sizing:border-box;padding:0 8px;border:1px solid #7D8B9A;border-radius:4px;background:#FFFFFF;color:#14202E}
+.field:hover{border-color:#1F4FB8}
+.seg{display:flex;width:200px;box-sizing:border-box;border:1px solid #7D8B9A;border-radius:4px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;flex:1 1 0;width:50%;height:28px;padding:0;border:0;background:#FFFFFF;color:#14202E}
+.seg button+button{border-left:1px solid #7D8B9A}
+.seg button[aria-pressed="true"]{background:#3D5677;color:#FFFFFF}
+.ro{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;color:#4D5B6B}
+.md h3{margin:0 0 4px;font-size:14px}
+.md p{margin:0}
+</style>
+</helmet>
+<div style="width: 760px; min-height: 1240px; box-sizing: border-box; background: #F4F7FB; color: #14202E; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.55; border: 1px solid #C3CCD6">
+
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-bottom: 1px solid #D5DDE6">
+<span class="lbl" style="color: #1F4FB8">■ Detail</span>
+<span style="flex-grow: 1"></span>
+<button class="btn">A−</button><span class="mono" style="font-size: 12px; color: #1F4FB8">17</span><button class="btn">A+</button>
+</div>
+
+<div style="padding: 16px 20px 32px; display: flex; flex-direction: column; gap: 14px">
+<div class="mono" style="font-size: 12px; color: #4D5B6B">T-135.14 · Steady goals</div>
+<h1 style="margin: 0; font-size: 22px; line-height: 1.3">Decide the route lines and remembered-goal markers</h1>
+<div style="display: flex; gap: 6px; flex-wrap: wrap">
+<span class="chip"><span style="width: 8px; height: 8px; border-radius: 4px; background: #2B5FCC"></span>Task</span>
+<span class="chip">{{ownerLabel}}</span>
+<span class="chip"><span style="width: 8px; height: 8px; border-radius: 4px; background: #6B8E3A"></span>Box Trainer</span>
+</div>
+
+<div style="border: 1px solid #A9B6C4; border-radius: 6px; background: #FFFFFF; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap">
+<span class="lbl">Properties</span>
+<span style="font-size: 12px; color: #4D5B6B">Change any value here. Claude changes the same fields with <span class="mono" style="font-size: 11px">doit set box-trainer/T-135.14 key=value</span></span>
+</div>
+<div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); row-gap: 10px; column-gap: 12px; font-size: 13px; align-items: center">
+<label for="h-state">State</label>
+<select id="h-state" class="field" style="width: 160px" value="{{state}}" onChange="{{onState}}"><option value="todo">To-do</option><option value="progress">In progress</option><option value="backlog">Backlog</option><option value="done">Done</option></select>
+
+<span>Owner</span>
+<div class="seg"><button aria-pressed="{{ownerMe}}" onClick="{{setMe}}">Me</button><button aria-pressed="{{ownerAi}}" onClick="{{setAi}}">Claude</button></div>
+
+<span>Type</span>
+<div class="seg"><button aria-pressed="true">Task</button><button aria-pressed="false">Bug</button></div>
+
+<label for="h-deadline">Deadline</label>
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap"><input id="h-deadline" type="date" class="field" value="{{deadline}}" onChange="{{onDeadline}}"><label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #4D5B6B"><input type="checkbox">Archive when passed</label></div>
+
+<label for="h-blocks">Blocks</label>
+<div style="display: flex; align-items: center; gap: 8px"><input id="h-blocks" class="field mono" style="width: 120px; font-size: 12px" value="{{blocks}}" onChange="{{onBlocks}}"><span style="font-size: 12px; color: #4D5B6B">the task this holds up</span></div>
+
+<label for="h-agent" style="color: {{aiLabel}}">Agent</label>
+<input id="h-agent" class="field" style="width: 200px" placeholder="{{aiHint}}" disabled="{{aiOff}}">
+<label for="h-model" style="color: {{aiLabel}}">Model</label>
+<select id="h-model" class="field" style="width: 200px" disabled="{{aiOff}}"><option>{{aiHint}}</option><option>Haiku 5.5</option><option>Sonnet 5.5</option><option>Opus 5.5</option><option>Fable 5.2</option></select>
+<label for="h-effort" style="color: {{aiLabel}}">Effort</label>
+<select id="h-effort" class="field" style="width: 200px" disabled="{{aiOff}}"><option>{{aiHint}}</option><option>low</option><option>medium</option><option>high</option><option>xhigh</option></select>
+
+<span>Created</span><span class="ro">2026-11-22 09:31 · set by the board</span>
+<span>Updated</span><span class="ro">2026-11-22 09:36 · set by the board</span>
+</div>
+</div>
+
+<div style="display: flex; align-items: center; gap: 8px; padding-top: 6px"><span class="lbl">Description</span><button class="btn">Edit</button></div>
+
+<div class="md" style="display: flex; flex-direction: column; gap: 14px; font-size: 15px">
+<p><b>As</b> the designer,<br><b>I want</b> to choose how the route lines and a box's remembered goals are shown,<br><b>so that</b> I can read where a box is going and why.</p>
+<div><h3>What to do</h3>
+<ol style="margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px">
+<li>Pick one: a small legend on the run pane, or one line only.</li>
+<li>Say whether the selected box should show faded markers for goals it remembers out of sight.</li>
+<li>T-135.15 builds what you pick.</li>
+</ol></div>
+<div><h3>Today</h3><p>Yellow is the planned route and red, with the diamond, the point the box steers at now. Yellow vanishes while the box waits, thinks or is held.</p></div>
+<p style="font-size: 13px; color: #4D5B6B">Source: <a href="#">EPIC-135 findings 15 and 16</a></p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px; padding-top: 6px">
+<span class="lbl">Done when</span>
+<span>The choice is written in EPIC-135's Notes</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 6px">
+<span class="lbl">Comments · 0</span>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #4D5B6B">Add a comment<textarea rows="3" style="font: inherit; font-size: 13px; border: 1px solid #A9B6C4; border-radius: 4px; padding: 8px; background: #EAF0F7" placeholder="Claude reads new comments on its tasks before it continues."></textarea></label>
+<div style="display: flex; justify-content: flex-end"><button style="font: inherit; font-size: 13px; height: 32px; padding: 0 16px; border: 0; border-radius: 4px; background: #3D5677; color: #FFFFFF">Comment</button></div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":1240}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { state: 'done', owner: 'human', deadline: '', blocks: 'T-135.15' };
+}
+renderVals() {
+var s = this.state, self = this, ai = s.owner === 'ai';
+return {
+state: s.state, deadline: s.deadline, blocks: s.blocks,
+ownerMe: !ai, ownerAi: ai, ownerLabel: ai ? 'Claude' : 'Me',
+aiOff: !ai, aiLabel: ai ? '#14202E' : '#8A96A3', aiHint: ai ? 'choose' : 'used when Claude owns it',
+onState: function (e) { self.setState({ state: e.target.value }); },
+onDeadline: function (e) { self.setState({ deadline: e.target.value }); },
+onBlocks: function (e) { self.setState({ blocks: e.target.value }); },
+setMe: function () { self.setState({ owner: 'human' }); },
+setAi: function () { self.setState({ owner: 'ai' }); }
+};
+}
+}
+</script>
+</body>
+</html>

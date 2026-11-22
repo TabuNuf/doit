@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Research and principles</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F4FB8}a:hover{color:#163A88}
+</style>
+</helmet>
+<div style="width: 760px; min-height: 1500px; box-sizing: border-box; padding: 40px; background: #FFFFFF; color: #1A1D21; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5; border: 1px solid #D5D9DE; display: flex; flex-direction: column; gap: 28px">
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #545C66">What the usual practice says</div>
+<h1 style="margin: 0; font-size: 28px; line-height: 1.2">Six principles for the Detail column</h1>
+<p style="margin: 0; color: #3B424B">Drawn from issue trackers (Linear, Jira), spec formats (Shape Up pitches) and reading research (Nielsen Norman Group). Each one says what the wireframes do with it.</p>
+</div>
+
+<sc-for list="{{rules}}" as="r" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 16px; padding-top: 20px; border-top: 1px solid #E2E5E9">
+<div style="font-size: 28px; font-weight: 700; color: #9AA3AD; line-height: 1">{{r.n}}</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-size: 17px">{{r.title}}</h2>
+<p style="margin: 0; color: #3B424B">{{r.says}}</p>
+<p style="margin: 0"><b>In the wireframes:</b> {{r.use}}</p>
+<div style="font-size: 12px; color: #545C66">Source: {{r.src}}</div>
+</div>
+</div>
+</sc-for>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding-top: 20px; border-top: 1px solid #E2E5E9">
+<h2 style="margin: 0; font-size: 17px">Who changes what</h2>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<div style="background: #F4F5F7; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+<b>ClaudeStandards epic: how it is written</b>
+<span style="color: #3B424B">An In short block and a Why line under every epic title. Status holds one word. Findings open with a short bold line and a Decided or Proposed tag. Task descriptions in labelled lines per kind.</span>
+</div>
+<div style="background: #F4F5F7; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+<b>Doit epic: how it is shown</b>
+<span style="color: #3B424B">Header with progress and owner counts. Facts as a key-value grid. Findings folded. Tasks as a table. You and Claude in two colours with two marks. A project overview page.</span>
+</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() {
+return { rules: [
+{ n: 1, title: 'Bottom line first', says: 'Readers decide in the first lines whether to go on. Start with the conclusion (the inverted pyramid) and write about half the words a printed text would use.', use: 'every page opens with an In short block: the goal in one sentence and why the work exists.', src: 'Nielsen Norman Group, writing for the web' },
+{ n: 2, title: 'People scan the top and the left edge', says: 'Eyetracking shows an F-shaped pattern: attention sits at the top and down the left side. Some readers read only the headings (the layer-cake pattern).', use: 'headings and list lines start with the word that carries the meaning; ids, tags and numbers sit in a fixed left column.', src: 'NN/g, F-shaped pattern for reading web content' },
+{ n: 3, title: 'Properties out of the prose', says: 'Trackers keep state, owner, size and dates as fields beside or under a short summary, never inside the description text.', use: 'Status, Design, Order and Source become a facts grid; agent, model and effort become chips.', src: 'Linear docs, project overview and issue properties' },
+{ n: 4, title: 'Each part has its own section', says: 'Good templates split the story, the context and the acceptance criteria into labelled sections. A Shape Up pitch splits problem, appetite, solution, rabbit holes and no-gos.', use: 'Seen, Cause and Decided as labelled lines in a finding; Goal, Files, Decided, Leave alone and Check in a Claude task.', src: 'Atlassian community templates; Basecamp, Shape Up ch. 6' },
+{ n: 5, title: 'Detail on demand', says: 'Show the summary line by default and let the reader open the detail (progressive disclosure). A list you can scan beats a page you must read.', use: 'findings are folded to one line each; empty sections fold to one row with a note.', src: 'Common practice in Linear, Jira and GitHub issue views' },
+{ n: 6, title: 'Different readers, different shapes', says: 'An agent needs the spec in a fixed order; a person needs the story and where to start. Mixing the two makes both slower.', use: 'your tasks are warm, open with the story and number the steps; Claude tasks are cool and read like a spec.', src: 'the standard, Epic rules (arXiv 2512.21426 on agent issues)' }
+] };
+}
+}
+</script>
+</body>
+</html>
