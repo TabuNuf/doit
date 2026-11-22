@@ -15,6 +15,8 @@ export function parseEpic(text) {
   const event = /^Event:[ \t]*(.+?)\s*$/m.exec(header);
   // The Order: line names the epic this one is built after.
   const order = /^Order:.*?\bafter\s+(EPIC-\d+)/mi.exec(header);
+  // The Test plan's "Check in play: T-<nnn>.<n>" line names the designer's check task.
+  const check = /^- Check in play:\s*(T-\d+\.\d+)/m.exec(text);
   const brief = emptyBrief();
   for (const k of BRIEF_KEYS) {
     const m = new RegExp(`^${k[0].toUpperCase() + k.slice(1)}:[ \\t]*(.*?)\\s*$`, "m").exec(header);
@@ -28,7 +30,7 @@ export function parseEpic(text) {
   }
   const archivedOn = /^Archived:\s*(\d{4}-\d{2}-\d{2})/m.exec(text);
   const closed = /^Closed:\s*(\d{4}-\d{2}-\d{2})/m.exec(text);
-  return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", closed: closed ? closed[1] : null, archivedOn: archivedOn ? archivedOn[1] : null, game: game ? game[1] : null, event: event ? event[1] : null, after: order ? order[1] : null, brief, lines };
+  return { id: head[1], name: head[2].trim(), status: status ? status[1] : "Planned", closed: closed ? closed[1] : null, archivedOn: archivedOn ? archivedOn[1] : null, game: game ? game[1] : null, event: event ? event[1] : null, after: order ? order[1] : null, check: check ? check[1] : null, brief, lines };
 }
 
 /** Writes `Closed: <date>` on the line under Status, replacing an earlier one; a null date removes it. */

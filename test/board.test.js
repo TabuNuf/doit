@@ -248,3 +248,24 @@ test("the board view carries after on open and parked epics", t => {
   assert.deepEqual(v.epics.map(e => `${e.id}>${e.after}`), ["EPIC-009>EPIC-014", "EPIC-014>null"]);
   assert.deepEqual(v.parkedEpics.map(e => e.after), ["EPIC-009"]);
 });
+
+test("closing an epic waits for its open Check in play task, by close and by move", t => {
+  const s = setup(); t.after(s.cleanup);
+  const file = path.join(s.game, "GameDocs", "Epics", "EPIC-014-online-lobby.md");
+  fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace("- Batch A: development", "- Batch A: development\n- Check in play: T-014.3"));
+  const refused = /EPIC-014 waits for T-014\.3, Check in play\. Finish it, then close\./;
+  assert.throws(() => s.board.closeEpic("game", "EPIC-014"), refused);
+  assert.throws(() => s.board.moveEpic("game", "EPIC-014", "completed"), refused);
+  assert.throws(() => s.board.moveEpic("game", "EPIC-014", "archived"), refused);
+  assert.equal(s.board.get("game/T-014.2").state, "todo", "nothing archived by a refused close");
+  assert.ok(s.exists("Epics/EPIC-014-online-lobby.md") && !s.exists("Archive/Tasks/T-014.2.md"));
+  s.board.update("game/T-014.3", { state: "done" });
+  assert.equal(s.board.closeEpic("game", "EPIC-014"), 2);
+});
+
+test("an epic whose Check in play line says none closes as before", t => {
+  const s = setup(); t.after(s.cleanup);
+  const file = path.join(s.game, "GameDocs", "Epics", "EPIC-014-online-lobby.md");
+  fs.writeFileSync(file, fs.readFileSync(file, "utf8") + "- Check in play: none\n");
+  assert.equal(s.board.closeEpic("game", "EPIC-014"), 2);
+});

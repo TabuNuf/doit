@@ -14,6 +14,9 @@ export class EpicMoves {
   /** Archives every task of an epic not archived yet (the sweep's path), then completes the epic. Returns how many tasks. */
   close(project, epicId, archived, { epics, tasks }) {
     if (!epics.some(e => e.id === epicId && !e.completed)) throw new Error(`No open epic ${epicId} in ${project}`);
+    const epic = epics.find(e => e.id === epicId);
+    const wait = epic.check && tasks.find(t => t.id === epic.check);
+    if (wait && wait.state !== "done" && wait.state !== "archived") throw new Error(`${epicId} waits for ${wait.id}, Check in play. Finish it, then close.`);
     const open = tasks.filter(t => t.epic === epicId && t.state !== "archived");
     for (const task of open) this.write({ ...task, state: "archived", archived: `Epic ${epicId} closed` }, `archived: Epic ${epicId} closed`);
     const today = this.#today();

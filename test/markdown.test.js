@@ -49,6 +49,11 @@ test("parseEpic reads after from an Order line and gives null without one", () =
   assert.equal(parseEpic("# EPIC-030: X\n\nStatus: Planned\nOrder: after EPIC-028, then the rest\n\n## Why\n").after, "EPIC-028");
   assert.equal(parseEpic(LOBBY).after, null);
 });
+test("parseEpic reads check from the Check in play line and gives null without one or with none", () => {
+  assert.equal(parseEpic("# EPIC-030: X\n\nStatus: Planned\n\n## Test plan\n\n- Batch A: development\n- Check in play: T-030.4\n").check, "T-030.4");
+  assert.equal(parseEpic("# EPIC-030: X\n\n## Test plan\n\n- Check in play: none\n").check, null);
+  assert.equal(parseEpic(LOBBY).check, null);
+});
 
 test("a new epic opens with In short and Why it exists, a campaign epic does not", () => {
   const t = epicTemplate("EPIC-003", "N", "Planned");
