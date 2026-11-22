@@ -68,6 +68,14 @@ test("a pipe table renders as a table with header and body cells, keeping inline
   assert.equal(renderMarkdown("a | b\n\ntext"), "<p>a | b</p>\n<p>text</p>");
 });
 
+test("HTML comments are hidden, except inside code spans and fenced blocks", async () => {
+  const { renderMarkdown } = await import("../web/markdown.js");
+  assert.equal(renderMarkdown("a <!-- note --> b\n<!-- own line -->\nc"), "<p>a  b<br>c</p>");
+  assert.equal(renderMarkdown("x\n<!--\nmany\nlines\n-->\n\ny"), "<p>x</p>\n<p>y</p>");
+  assert.equal(renderMarkdown("`<!-- kept -->`"), "<p><code>&lt;!-- kept --&gt;</code></p>");
+  assert.equal(renderMarkdown("```\n<!-- kept -->\n```\n<!-- gone -->"), "<pre>&lt;!-- kept --&gt;</pre>");
+});
+
 test("the epic header has Close epic on an open epic and not on a completed one", async () => {
   const { S } = await import("../web/state.js");
   const { epicViewPane } = await import("../web/epicView.js");

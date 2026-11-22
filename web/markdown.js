@@ -34,9 +34,20 @@ function table(rows, i) {
   return { html: `<table><thead>${tr(head, "th")}</thead><tbody>${body.map(r => tr(r, "td")).join("")}</tbody></table>`, next: i };
 }
 
+const GONE = "\u0000";
+
+/** Drops HTML comments outside fenced blocks and code spans, as Markdown does; a line left empty by it goes too. */
+function stripComments(text) {
+  return text.split(/(^```[^\n]*\n[\s\S]*?(?:^```[^\n]*$|(?![\s\S])))/m).map((part, k) => {
+    if (k % 2) return part;
+    const cut = part.replace(/(`[^`\n]+`)|<!--[\s\S]*?-->/g, (m, code) => code ?? GONE);
+    return cut.split("\n").filter(r => !(r.includes(GONE) && !r.replaceAll(GONE, "").trim())).join("\n").replaceAll(GONE, "");
+  }).join("");
+}
+
 export function renderMarkdown(md) {
   const out = [];
-  const rows = String(md).replace(/\r/g, "").split("\n");
+  const rows = stripComments(String(md).replace(/\r/g, "")).split("\n");
   let i = 0;
   while (i < rows.length) {
     const row = rows[i];
