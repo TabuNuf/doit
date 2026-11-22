@@ -1,6 +1,7 @@
 # EPIC-027: Agent, model and effort on tasks
 
-Status: Active
+Status: Done
+Closed: 2026-11-22
 Goal: Every task for Claude says which agent builds it, on which model and at which effort, in fields of its own, and a task for a human shows none of it.
 Design: Design.md, sections Tasks (Who builds it) and The CLI
 
@@ -34,6 +35,19 @@ Design: Design.md, sections Tasks (Who builds it) and The CLI
 
 Decisions and deviations, newest first.
 
+- 2026-11-22, close: Audit 370 of 370. Checked in the running page on T-027.3: the three rows show under Type, Effort changed to high saved, owner Me removed the rows, owner Claude brought back batch-builder, Sonnet 5.5 and high unchanged. Checked in the CLI: `effort=huge` exits 1 with the list; plain `show` drops the line for owner human while `list --json` and the task file keep the values.
+- 2026-11-22, T-027.3: `.kv input[list]` added to the text-input rule in `web/style.css` so the Model input matches the others.
+- 2026-11-22, T-027.2: the plain-text line is built by a new `src/cli/assignmentLine.js`, since `cli.js` sits at 215 of 220 lines.
+- 2026-11-22, T-027.1: `addTask` checks the three fields before it writes the checklist line, so a refused effort leaves no line without a task.
+- 2026-11-22: the three tasks were built by one `batch-builder` run (Sonnet 5.5, medium) from their descriptions; their `For:` lines were the stopgap this epic replaces, and their fields were set once the fields existed.
+
 ## Close audit
 
+Diff read from `bf1c50a` to the last task commit against `Architecture.md` and `Core/03-Design.md`.
+
+- `web/assignment.js`: its own `EFFORTS` list beside the domain's in `src/domain/task.js`. A value written twice. Fix before release: T-022.10.
+- Nothing else found: the checks live once in `task.js` (`checkAssignment`), used by add and update; no import crosses a boundary; `board.js` 218 and `cli.js` 215 lines, under their guards; no class added, so the class diagram stands.
+
 ## For the standard
+
+- `Core/01-Tasks.md`, Epic rules and Template, and `Core/CLAUDE.core.md` step 2: a Claude task's agent, model and effort are the board's three fields (`doit add --agent --model --effort`, `doit set <project>/<T-id> agent= model= effort=`), replacing the `For:` line in the description. `CHANGELOG.md` has the line.
