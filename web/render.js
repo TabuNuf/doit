@@ -85,11 +85,20 @@ export function rowHtml(t, i, sec) {
     <span class="pills">${st}${due}${contact}${projPill}${left}${arch}<span class="own" title="${t.owner === "ai" ? "Claude" : "You"}">${t.owner === "ai" ? "🤖" : "🧑"}</span></span></div>`;
 }
 
+/** One line above the Active section when the selected epic is not open and its open tasks are listed. */
+function hiddenNote(base) {
+  if (!S.epic || !base.some(t => t.hidden)) return "";
+  const same = e => `${e.project}/${e.id}` === S.epic;
+  const closed = (S.data.closedEpics || []).find(same);
+  const place = (S.data.parkedEpics || []).some(same) ? "parked" : closed ? (closed.archived ? "archived" : "completed") : "not open";
+  return `<div class="note">${esc(S.epic.split("/")[1])} is ${place}, so its open tasks show only here. Drag it onto the open epics to bring them back.</div>`;
+}
+
 function listBody(base) {
   const none = msg => `<div class="empty">${msg}</div>`;
   if (S.tab === "open") {
     const { active, backlog } = sectionLists(base);
-    return `<div class="sec-h" data-drop="active">Active<span class="c">${active.length}</span><span class="muted">Ranked. Drag rows by the handle; drop here to put a task at the top.</span></div>
+    return `${hiddenNote(base)}<div class="sec-h" data-drop="active">Active<span class="c">${active.length}</span><span class="muted">Ranked. Drag rows by the handle; drop here to put a task at the top.</span></div>
       ${active.map((t, i) => rowHtml(t, i, "active")).join("") || none("Nothing active.")}
       <div class="sec-h" data-drop="backlog">Backlog<span class="c">${backlog.length}</span><span class="muted">Not planned. Claude does not pick these up.</span></div>
       ${backlog.map((t, i) => rowHtml(t, i, "backlog")).join("") || none("Backlog is empty.")}`;
@@ -117,7 +126,7 @@ function newTaskForm() {
     <button type="submit">Add task</button><button type="button" data-canceltask>Cancel</button></form>`;
 }
 
-function listPane() {
+export function listPane() {
   const base = visible();
   const count = v => base.filter(t => tabOf(t.state) === v).length;
   const epic = S.epic && S.data.epics.find(e => `${e.project}/${e.id}` === S.epic);

@@ -214,3 +214,19 @@ test("a hidden task shows only with its epic selected, and is not counted as due
   assert.deepEqual(waiting("game", S.data).map(x => x.id), ["T-1.1"]);
   S.data = null;
 });
+
+test("the list pane says why when the selected epic is parked and holds a hidden task", async () => {
+  const { S } = await import("../web/state.js");
+  const { listPane: listPaneHtml } = await import("../web/render.js");
+  const t = { project: "game", id: "T-9.1", epic: "EPIC-9", owner: "ai", state: "todo", type: "task", title: "x", description: "", hidden: true };
+  S.data = { tasks: [t], epics: [{ project: "game", id: "EPIC-1", name: "Open" }], parkedEpics: [{ project: "game", id: "EPIC-9" }], closedEpics: [], settings: { keepCompletedDays: 7 }, projects: [] };
+  Object.assign(S, { tab: "open", q: "", owner: "all", fOpen: false, newTask: false, f: { task: true, bug: true, due: "any" }, epic: "game/EPIC-9" });
+  assert.match(listPaneHtml(), /EPIC-9 is parked, so its open tasks show only here\. Drag it onto the open epics to bring them back\./);
+  S.data.closedEpics = [{ project: "game", id: "EPIC-9", archived: true }]; S.data.parkedEpics = [];
+  assert.match(listPaneHtml(), /EPIC-9 is archived/);
+  S.epic = null;
+  assert.doesNotMatch(listPaneHtml(), /show only here/);
+  S.epic = "game/EPIC-1"; t.hidden = false; t.epic = "EPIC-1";
+  assert.doesNotMatch(listPaneHtml(), /show only here/);
+  S.data = null;
+});
