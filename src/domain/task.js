@@ -74,7 +74,7 @@ export function defaultsFor(epic, line) {
 export function makeTask(projectId, epic, line, file) {
   const base = defaultsFor(epic, line);
   const fields = file ? { ...base, ...stripNulls(file) } : base;
-  return {
+  const task = {
     project: projectId,
     id: line.id,
     epic: epic.id,
@@ -86,7 +86,21 @@ export function makeTask(projectId, epic, line, file) {
     game: epic.game ?? null,
     games: splitGames(epic.game),
     ...fields,
+    epicOpen: epicIsOpen(epic),
+    hidden: false,
   };
+  task.hidden = isHidden(task);
+  return task;
+}
+
+/** An epic is open while its file is in Epics/ with status Planned or Active. */
+export function epicIsOpen(epic) {
+  return !epic.parked && !epic.completed && epic.status !== "Parked" && epic.status !== "Done";
+}
+
+/** An open task of an epic that is not open is hidden from lists and reports; nothing is written to it. */
+export function isHidden(task) {
+  return !task.epicOpen && tabOf(task.state) === "open";
 }
 
 function stripNulls(obj) {

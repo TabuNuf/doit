@@ -17,7 +17,7 @@ test("the API reads and changes tasks, and serves the page", async t => {
 
   const view = await api("/api/board?project=game");
   assert.equal(view.status, 200);
-  assert.equal(view.body.tasks.length, 4);
+  assert.equal(view.body.tasks.length, 3);
 
   const patched = await api("/api/tasks/game/T-014.2", send("PATCH", { state: "progress" }));
   assert.equal(patched.body.state, "progress");

@@ -1,6 +1,6 @@
 // taskEdit: applies a change set (field to value) to a task, refusing a bad value. Pure; Board.update writes the result.
 
-import { STATES, OWNERS, TYPES, check, checkContact, checkAssignment, oneLine } from "./task.js";
+import { STATES, OWNERS, TYPES, isHidden, check, checkContact, checkAssignment, oneLine } from "./task.js";
 
 /** `now` is the stamp the state change records as completed. Throws on an unknown field or a refused value. */
 export function applyChanges(task, changes, now) {
@@ -29,6 +29,7 @@ export function applyChanges(task, changes, now) {
       default: throw new Error(`Unknown field: ${key}`);
     }
   }
+  task.hidden = isHidden(task);
 }
 
 function changeState(task, state, now) {

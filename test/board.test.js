@@ -7,7 +7,7 @@ import { setup } from "./helpers.js";
 test("open tasks follow epic status; ticked and completed epics stay out", t => {
   const s = setup(); t.after(s.cleanup);
   const tasks = s.board.list({ project: "game" });
-  assert.deepEqual(tasks.map(x => `${x.id}:${x.state}`), ["T-009.1:todo", "T-014.2:todo", "T-014.3:todo", "T-016.1:backlog"]);
+  assert.deepEqual(tasks.map(x => `${x.id}:${x.state}`), ["T-009.1:todo", "T-014.2:todo", "T-014.3:todo"]);
   assert.equal(tasks[0].type, "bug");
   const epics = s.board.view({ project: "game" }).epics;
   assert.deepEqual(epics.map(e => `${e.id} ${e.done}/${e.total}`), ["EPIC-009 0/1", "EPIC-014 1/3"]);
@@ -149,7 +149,7 @@ test("move places a task between neighbours, across sections and at the top", t 
   assert.deepEqual(order("active"), ["T-009.1", "T-014.3", "T-014.2"]);
   const moved = s.board.move("game/T-014.2", { section: "backlog" });
   assert.equal(moved.state, "backlog");
-  assert.deepEqual(order("backlog"), ["T-014.2", "T-016.1"]);
+  assert.deepEqual(order("backlog"), ["T-014.2"]);
   assert.throws(() => s.board.move("game/T-014.2", { section: "done" }), /section must be/);
   assert.throws(() => s.board.move("game/T-014.2", { section: "active", before: "game/T-099.1" }), /No task|not in/);
 });
@@ -279,4 +279,24 @@ test("a sibling EPIC-nnn-name.notes.md file is in no epic list, whichever folder
   const ids = [...v.epics, ...v.parkedEpics, ...v.closedEpics].map(e => e.id);
   assert.deepEqual(ids.sort(), ["EPIC-009", "EPIC-013", "EPIC-014", "EPIC-016"]);
   assert.ok(![...v.epics, ...v.parkedEpics, ...v.closedEpics].some(e => /notes/.test(e.title)));
+});
+
+test("open tasks of a parked epic are hidden from view and list, found by epic and get, and back after reopening", t => {
+  const s = setup(); t.after(s.cleanup);
+  const id = s.board.addEpic("game", "Side quest", "Planned");
+  const todo = s.board.addTask({ project: "game", epic: id, title: "Sketch it", state: "todo" });
+  const back = s.board.addTask({ project: "game", epic: id, title: "Later", state: "backlog" });
+  s.board.moveEpic("game", id, "parked");
+  const ids = () => s.board.view({ project: "game" }).tasks.map(x => x.id);
+  for (const state of ["open", "active", "backlog"]) {
+    assert.ok(!s.board.list({ project: "game", state }).some(x => x.epic === id), state);
+  }
+  assert.ok(!ids().includes(todo.id) && !ids().includes(back.id));
+  assert.equal(s.board.view({ project: "game", hidden: true }).tasks.find(x => x.id === todo.id).hidden, true);
+  assert.deepEqual(s.board.list({ project: "game", epic: id }).map(x => `${x.id}:${x.state}:${x.hidden}`), [`${todo.id}:todo:true`, `${back.id}:backlog:true`]);
+  assert.equal(s.board.get(`game/${todo.id}`).hidden, true);
+  s.board.moveEpic("game", id, "open");
+  assert.ok(ids().includes(todo.id) && ids().includes(back.id));
+  assert.equal(s.board.get(`game/${back.id}`).state, "backlog");
+  assert.equal(s.board.get(`game/${back.id}`).hidden, false);
 });
