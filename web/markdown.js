@@ -7,7 +7,8 @@ export function inline(text) {
   return esc(text)
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\u0001([^\u0002]*)\u0002/g, '<span class="md-note">$1</span>');
 }
 
 function item(text) {
@@ -34,20 +35,19 @@ function table(rows, i) {
   return { html: `<table><thead>${tr(head, "th")}</thead><tbody>${body.map(r => tr(r, "td")).join("")}</tbody></table>`, next: i };
 }
 
-const GONE = "\u0000";
+// An HTML comment becomes a note: its text between these two marks, on one line, so the reader sees the note
+// and not the markup. Fenced blocks and code spans keep their comments as written.
+const OPEN = "\u0001", SHUT = "\u0002";
+const NOTE_ROW = new RegExp(`^\\s*${OPEN}[^${SHUT}]*${SHUT}\\s*$`);
 
-/** Drops HTML comments outside fenced blocks and code spans, as Markdown does; a line left empty by it goes too. */
-function stripComments(text) {
-  return text.split(/(^```[^\n]*\n[\s\S]*?(?:^```[^\n]*$|(?![\s\S])))/m).map((part, k) => {
-    if (k % 2) return part;
-    const cut = part.replace(/(`[^`\n]+`)|<!--[\s\S]*?-->/g, (m, code) => code ?? GONE);
-    return cut.split("\n").filter(r => !(r.includes(GONE) && !r.replaceAll(GONE, "").trim())).join("\n").replaceAll(GONE, "");
-  }).join("");
+function markComments(text) {
+  return text.split(/(^```[^\n]*\n[\s\S]*?(?:^```[^\n]*$|(?![\s\S])))/m).map((part, k) => k % 2 ? part
+    : part.replace(/(`[^`\n]+`)|<!--([\s\S]*?)-->/g, (m, code, body) => code ?? (body.trim() ? OPEN + body.trim().replace(/\s*\n\s*/g, " ") + SHUT : ""))).join("");
 }
 
 export function renderMarkdown(md) {
   const out = [];
-  const rows = stripComments(String(md).replace(/\r/g, "")).split("\n");
+  const rows = markComments(String(md).replace(/\r/g, "")).split("\n");
   let i = 0;
   while (i < rows.length) {
     const row = rows[i];
@@ -65,7 +65,10 @@ export function renderMarkdown(md) {
     if (list) {
       const tag = /\d/.test(list[2]) ? "ol" : "ul";
       const items = [];
-      for (; i < rows.length && /^\s*([-*]|\d+\.)\s+/.test(rows[i]); i++) items.push(item(rows[i].replace(/^\s*([-*]|\d+\.)\s+/, "")));
+      for (; i < rows.length && (/^\s*([-*]|\d+\.)\s+/.test(rows[i]) || (items.length && NOTE_ROW.test(rows[i]))); i++) {
+        if (NOTE_ROW.test(rows[i])) items.push(items.pop().replace(/<\/li>$/, `<br>${inline(rows[i].trim())}</li>`));
+        else items.push(item(rows[i].replace(/^\s*([-*]|\d+\.)\s+/, "")));
+      }
       out.push(`<${tag}>${items.join("")}</${tag}>`);
       continue;
     }

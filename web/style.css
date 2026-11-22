@@ -229,6 +229,7 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .doc li.check input { margin-right: 6px; }
 .doc code, .doc pre { font-family: var(--mono); font-size: .9em; background: var(--fill); border-radius: 3px; padding: 1px 4px; }
 .doc pre { padding: 8px 10px; overflow: auto; }
+.doc .md-note { color: var(--muted); font-size: .85em; font-style: italic; }
 
 /* Docs on the Board: tree, document table, edit box, linked cards */
 .tnode { display: block; width: 100%; text-align: left; border: 0; background: transparent; padding-top: 4px; padding-bottom: 4px; padding-right: 8px; font-size: 13px; }

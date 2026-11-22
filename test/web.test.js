@@ -68,12 +68,14 @@ test("a pipe table renders as a table with header and body cells, keeping inline
   assert.equal(renderMarkdown("a | b\n\ntext"), "<p>a | b</p>\n<p>text</p>");
 });
 
-test("HTML comments are hidden, except inside code spans and fenced blocks", async () => {
+test("HTML comments show as notes without their markers, except inside code spans and fenced blocks", async () => {
   const { renderMarkdown } = await import("../web/markdown.js");
-  assert.equal(renderMarkdown("a <!-- note --> b\n<!-- own line -->\nc"), "<p>a  b<br>c</p>");
-  assert.equal(renderMarkdown("x\n<!--\nmany\nlines\n-->\n\ny"), "<p>x</p>\n<p>y</p>");
+  const note = t => `<span class="md-note">${t}</span>`;
+  assert.equal(renderMarkdown("Stage: demo\n<!-- from **Design** -->\nRelease:"), `<p>Stage: demo<br>${note("from <strong>Design</strong>")}<br>Release:</p>`);
+  assert.equal(renderMarkdown("<!--\nmany\nlines\n-->\n\n<!-- -->y"), `<p>${note("many lines")}</p>\n<p>y</p>`);
+  assert.equal(renderMarkdown("- Engine: Unity\n  <!-- ProjectVersion.txt -->\n- Players: one"), `<ul><li>Engine: Unity<br>${note("ProjectVersion.txt")}</li><li>Players: one</li></ul>`);
   assert.equal(renderMarkdown("`<!-- kept -->`"), "<p><code>&lt;!-- kept --&gt;</code></p>");
-  assert.equal(renderMarkdown("```\n<!-- kept -->\n```\n<!-- gone -->"), "<pre>&lt;!-- kept --&gt;</pre>");
+  assert.equal(renderMarkdown("```\n<!-- kept -->\n```\n<!-- shown -->"), `<pre>&lt;!-- kept --&gt;</pre>\n<p>${note("shown")}</p>`);
 });
 
 test("the epic header has Close epic on an open epic and not on a completed one", async () => {
