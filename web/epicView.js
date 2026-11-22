@@ -1,7 +1,7 @@
 // The epic view: one epic's document, read only, shown in the Detail pane while its tasks fill the list.
 
 import { S, esc, api, act, toast } from "./state.js";
-import { renderMarkdown } from "./markdown.js";
+import { epicPage } from "./epicPage.js";
 
 /** Filters the list to the epic and shows its document in the Detail pane. */
 export const openEpic = key => act(async () => {
@@ -37,5 +37,5 @@ export function epicViewPane(tools) {
   const e = S.epicView;
   return `<section class="pane" aria-label="Epic ${esc(e.id)}">
     <div class="pane-h">Epic · ${esc(e.id)} · ${esc(e.status)}${e.completed ? "" : `<button class="fsz" data-close-epic="${esc(S.epic || `${e.project}/${e.id}`)}" style="text-transform:none">Close epic</button>`}${isCampaign(e) ? `<button class="fsz" data-add-contacts="${esc(S.epic || `${e.project}/${e.id}`)}" style="text-transform:none">Add contacts</button>` : ""}${tools}</div>
-    <div class="pane-b doc">${renderMarkdown(e.text)}</div></section>`;
+    <div class="pane-b">${epicPage(e, S.data ? S.data.tasks : [])}</div></section>`;
 }

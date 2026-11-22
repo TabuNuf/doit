@@ -7,3 +7,17 @@
 :root[data-theme="dark"] {
   --select: #8FA9CC; --on-select: #0b2545; --you: #4A2E14; --on-you: #FFC89A; --claude: #1D3F73; --on-claude: #BBD4FF;
 }
+
+/* Chips and the epic page header */
+.chip { display: inline-block; padding: 1px 8px; border: 1px solid transparent; font-size: .85em }
+.chip.you { background: var(--you); color: var(--on-you) }
+.chip.claude { background: var(--claude); color: var(--on-claude) }
+.chip.status { background: var(--select); color: var(--on-select) }
+.ep-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 8px 0 }
+.ep-prog { display: inline-flex; align-items: center; gap: 8px }
+.ep-prog .bar { width: 140px }
+.ep-lead { font-size: 1.25em; margin: 12px 0 4px }
+.ep-why { margin: 0 0 12px }
+.ep-facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 12px 0 }
+.ep-facts dt { opacity: .7 } .ep-facts dd { margin: 0 }
+.ep-facts .link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit }
