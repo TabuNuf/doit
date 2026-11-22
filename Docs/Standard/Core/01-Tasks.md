@@ -61,7 +61,9 @@ Why: one board shows what Claude is doing in each project and what is left for t
   Why: a title and a check say when a task is done but not why it matters or where to start; a project whose board held only titles and checks left the designer unable to tell what a task asked of them. An agent needs the spec, and a story line only adds reading.
 - Documents, epics and tasks are written by Fable 5.2 at high effort, and it alone sets each task's agent, model and effort. Fable plans and describes; it never builds: no code, no assets, no commits of a task. That covers the design doc, `Architecture.md`, `Playtest.md`, a rule for the standard, an epic's text and every task description. A session on another model that needs a new task or a changed plan hands it to a Fable sub-agent or asks `<Designer>` for a Fable session. A diagram or a generated doc updated inside a build task stays with that task's agent.
   Why: the plan is the one place where a wrong call costs every task after it, and the builders are only as good as the description they get. Anthropic's guide names Fable as the planner for other models, so the dearest model is spent on the text every builder reads.
-- A task for Claude (owner ai) opens its description with the line `For: <agent>, <model>, <effort>`, such as `For: batch-builder, Sonnet 5.5, medium`. The model is the lowest row that will finish the task:
+- A task for Claude (owner ai) names its agent, model and effort in the board's three fields, never in its description: `doit add <project> <EPIC-nnn> "<title>" --agent batch-builder --model "Sonnet 5.5" --effort medium`, or `doit set <project>/<T-id> agent=batch-builder model="Sonnet 5.5" effort=medium` later (an empty value clears one). `doit show` and `doit list --json` return them. The board refuses an effort that is not in the table below; agent and model are free text, written as in the model table. For a task owned by `<Designer>` the board leaves the three out and keeps what is stored.
+  Why: as a `For:` line in the description the three could not be listed, filtered or checked, and every coordinator had to pick them out of prose.
+- The model is the lowest row that will finish the task:
 
   | Model | Its tasks |
   |---|---|
@@ -116,7 +118,7 @@ Design: GameDesign.md, section <name>
 
 ## Tasks
 
-- [ ] T-<nnn>.1 <what, short> (done when: <check>)   (the spec goes in the task description, opening with its For: line, Epic rules)
+- [ ] T-<nnn>.1 <what, short> (done when: <check>)   (the spec goes in the task description, a Claude task's agent, model and effort in its fields, Epic rules)
 - [ ] T-<nnn>.2 ...
 
 ## Test plan
