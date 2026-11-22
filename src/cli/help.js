@@ -9,7 +9,7 @@ export const HELP = `doit: the task board, from the command line. Every command 
   doit epics <project>                            open epics with done/total
   doit epic add <project> <name> [--status Planned|Active|Parked]
   doit epic close <project> <EPIC-nnn>            archive the epic's completed task files, leave open ones hidden, set it Done, move it to Completed/
-  doit list [--project p] [--epic EPIC-nnn] [--state open|active|backlog|done|archived] [--owner ai|human] [--json]
+  doit list [--project p] [--epic EPIC-nnn] [--state open|active|backlog|done|archived] [--owner ai|human] [--json]  (open tasks of a parked, completed or archived epic only with --epic)
   doit show <project>/<T-id> [--json]
   doit add <project> <EPIC-nnn> <title> [--owner ai|human] [--type task|bug] [--done-when text]
            [--deadline YYYY-MM-DD] [--state todo|progress|backlog] [--description text] [--contact <id>]

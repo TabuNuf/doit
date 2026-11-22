@@ -93,3 +93,16 @@ test("agent, model and effort: flags, keys, check, owner hiding, help", t => {
   assert.equal(JSON.parse(run(b, "list", "--json").out).find(x => x.ref === "game/T-014.2").agent, null);
   assert.match(run(b, "help").out, /--agent a\] \[--model m\] \[--effort[\s\S]*keys:.* agent model effort/);
 });
+
+test("a parked epic's task is left out of list, listed by --epic, and shown with a hidden line", t => {
+  const s = setup(); t.after(s.cleanup);
+  const id = s.board.addEpic("game", "Side quest", "Planned");
+  const task = s.board.addTask({ project: "game", epic: id, title: "Sketch it" });
+  s.board.moveEpic("game", id, "parked");
+  assert.doesNotMatch(run(s.board, "list", "--project", "game").out, /Sketch it/);
+  assert.match(run(s.board, "list", "--epic", id).out, /Sketch it/);
+  assert.match(run(s.board, "show", `game/${task.id}`).out, new RegExp(`hidden: ${id} is not open \\(parked, completed or archived\\)\\. doit list leaves it out unless --epic names the epic\\.`));
+  assert.equal(JSON.parse(run(s.board, "list", "--epic", id, "--json").out)[0].hidden, true);
+  assert.doesNotMatch(run(s.board, "show", "game/T-014.2").out, /hidden:/);
+  assert.match(run(s.board, "help").out, /only with --epic\)/);
+});
