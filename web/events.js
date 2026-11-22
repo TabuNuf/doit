@@ -1,6 +1,6 @@
 // Every listener on the page, and the live reload from the server's change events.
 
-import { S, $, keyOf, tabOf, api, act, load, patch, task, reloadHeld } from "./state.js";
+import { S, $, keyOf, api, act, load, patch, task, reloadHeld } from "./state.js";
 import { render } from "./render.js";
 import { nudge, dragKey } from "./ordering.js";
 import { epicDragging } from "./epicMove.js";
@@ -107,7 +107,8 @@ document.addEventListener("change", ev => {
   if (ev.target.name === "f-due") { S.f.due = ev.target.value; return render(); }
   const t = task(S.sel);
   if (!t) return;
-  if (id === "st") { const st = ev.target.value; S.tab = tabOf(st) === "archived" ? S.tab : tabOf(st); return patch(t, { state: st }); }
+  // A state change moves the task between tabs; the middle column stays on the tab the user chose.
+  if (id === "st") return patch(t, { state: ev.target.value });
   if (id === "dlon") {
     const d = new Date(); d.setDate(d.getDate() + 7);
     return patch(t, { deadline: ev.target.checked ? d.toISOString().slice(0, 10) : "" });
