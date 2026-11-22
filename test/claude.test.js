@@ -73,3 +73,22 @@ test("clicking a card opens its task on the Board, in its project", async () => 
     assert.equal(claudeClick({}), false, "other clicks are left alone");
   } finally { delete globalThis.document; delete globalThis.fetch; }
 });
+
+test("the panes leave out the open tasks of a parked epic and list them again once it is open", t => {
+  const s = setup(); t.after(s.cleanup);
+  const b = s.board;
+  const view = new ClaudeView(b, makeActivity({ home: s.home, now: () => s.clock.t }));
+  const id = b.addEpic("game", "Side quest", "Planned");
+  const add = (title, extra = {}) => b.addTask({ project: "game", epic: id, title, ...extra }).id;
+  const doing = add("Doing");
+  b.update(`game/${doing}`, { state: "progress" });
+  const next = add("Next");
+  const blocker = add("Pick", { owner: "human" });
+  b.update(`game/${blocker}`, { blocks: next });
+  const due = add("Sign", { owner: "human", deadline: "2026-11-23" });
+  const mine = () => { const p = view.panes("game"); return [...p.working, ...p.upNext, ...p.blocked, ...p.due].map(c => c.id).filter(x => x.startsWith(`T-${id.slice(5)}.`)); };
+  b.moveEpic("game", id, "parked");
+  assert.deepEqual(mine(), []);
+  b.moveEpic("game", id, "open");
+  assert.deepEqual([...new Set(mine())].sort(), [doing, next, blocker, due].sort());
+});

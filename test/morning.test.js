@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { makeCli } from "../src/root.js";
-import { morningReport } from "../src/domain/claude.js";
+import { morningReport, ClaudeView } from "../src/domain/claude.js";
 import { setup } from "./helpers.js";
 
 /** Every file under a folder, relative path -> text. */
@@ -69,4 +69,25 @@ test("an empty part says none", () => {
   assert.deepEqual(morningReport({ swept: [], tasks: [], today: "2026-11-23" }).slice(1), [
     "Swept: none", "In progress: none", "Up next: none", "Blocked on you: none", "Due within 7 days: none",
   ]);
+});
+
+test("the morning report names no open task of a parked epic, and names them once it is open", t => {
+  const s = setup(); t.after(s.cleanup);
+  const b = s.board;
+  const id = b.addEpic("game", "Side quest", "Planned");
+  const add = (title, extra = {}) => b.addTask({ project: "game", epic: id, title, ...extra }).id;
+  const doing = add("Doing");
+  b.update(`game/${doing}`, { state: "progress" });
+  const next = add("Next");
+  const blocker = add("Pick", { owner: "human" });
+  b.update(`game/${blocker}`, { blocks: next });
+  const due = add("Sign", { owner: "human", deadline: "2026-11-23" });
+  const view = new ClaudeView(b, { record() {} }, () => s.clock.t);
+  const mine = () => view.morning().filter(l => l.includes(`game/T-${id.slice(5)}.`));
+  b.moveEpic("game", id, "parked");
+  assert.deepEqual(mine(), []);
+  b.moveEpic("game", id, "open");
+  const text = mine().join("\n");
+  // Up next shows only the top three, so the To-do task is not required here.
+  for (const x of [doing, blocker, due]) assert.ok(text.includes(`game/${x}`), x);
 });

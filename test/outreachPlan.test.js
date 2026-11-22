@@ -124,3 +124,13 @@ test("week gathers festivals per game, and the morning report ends with its line
   assert.match(lines.at(-2), /^Festival deadlines within 14 days 1: Next Fest 2027/);
   assert.equal(lines.at(-1), "Campaign steps: none");
 });
+
+test("the week's campaign steps leave out the open tasks of a parked campaign epic and list them once it is open", t => {
+  const w = world(t);
+  const id = w.board.addEpic("game", "Side push", { status: "Planned", game: "bunny-bunker" });
+  const step = w.board.addTask({ project: "game", epic: id, title: "Draft the pitch" }).id;
+  w.board.moveEpic("game", id, "parked");
+  assert.deepEqual(w.outreach.week().steps, []);
+  w.board.moveEpic("game", id, "open");
+  assert.deepEqual(w.outreach.week().steps.map(x => x.ref), [`game/${step}`]);
+});
