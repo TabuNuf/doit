@@ -108,12 +108,18 @@ export function appendLine(text, line) {
 export function epicTemplate(id, name, status, extra = {}) {
   const campaign = (extra.game ? `Game: ${extra.game}\n` : "") + (extra.event ? `Event: ${extra.event}\n` : "");
   const brief = extra.brief ?? {};
-  const keys = BRIEF_KEYS.filter(k => brief[k] || k === "goal");
+  const keys = extra.game ? BRIEF_KEYS.filter(k => brief[k] || k === "goal") : BRIEF_KEYS.filter(k => brief[k]);
   const briefLines = keys.map(k => `${k[0].toUpperCase() + k.slice(1)}: ${brief[k] || "<one sentence, the outcome for the user>"}\n`).join("");
+  const intro = extra.game ? "" : `In short: <the goal in one sentence>
+Why it exists: <what was seen, when, and what replaces it>
+
+`;
   return `# ${id}: ${name}
 
-Status: ${status}
+${intro}Status: ${status}
 ${campaign}${briefLines}Design: Design.md, section <name>
+
+## Findings
 
 ## Tasks
 
