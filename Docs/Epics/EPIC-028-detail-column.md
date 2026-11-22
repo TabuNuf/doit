@@ -6,18 +6,18 @@ Design: Design.md, sections Projects, Epics, Tasks and Look (T-028.1 brings them
 
 ## Tasks
 
-- [ ] T-028.1 Design.md: the Detail column's project, epic and task pages (done when: Design.md sections Projects, Epics, Tasks and Look match the Specification of EPIC-028, and its Changelog has the line)
-- [ ] T-028.2 Colour tokens for select, You and Claude in a new detail.css (done when: style.test.js passes over every css file in web/ and finds the six new tokens in the light block and both dark blocks)
-- [ ] T-028.3 epicDoc.js: read an epic's text into header, findings and sections, old shapes too (done when: epicDoc.test.js passes on the new shape and on one fixture per old shape, and every line of each fixture is in the result)
-- [ ] T-028.4 Epic page: status and progress header, In short block and facts grid (done when: epicPage.test.js passes: status chip, progress text, both counts, In short, Why it exists and one grid row per fact, and an epic that has none of them shows none)
-- [ ] T-028.5 Epic page: findings folded, tasks table, test plan and folded end sections (done when: epicPage.test.js passes: one folded row per finding with the count line, an opened finding shows its detail, one table row per task, a batch grid, and each empty end section shows its note)
-- [ ] T-028.6 Task page: Properties box, every value a control, assignment greyed on a designer task (done when: taskProps.test.js and assignmentPane.test.js pass: every control renders for both owners, the three assignment controls are disabled and keep their stored values for owner human, and the doit set line names the task)
-- [ ] T-028.7 Owner chip on the task page, slate selected fill on every pane, story lines bold (done when: web.test.js and style.test.js pass with new tests: the owner chip carries its class for each owner, a description opening with As, I want, so that renders the three openers bold, and no selected rule in style.css fills with ink)
-- [ ] T-028.8 Project page: opens from the project's name; header, three cards, Waiting on you (done when: projectPage.test.js passes: the three cards and the waiting list hold the right counts for a fixture board, a task that an open task blocks is not waiting, the left pane renders the name as a button, and one selected project with nothing chosen shows its page)
-- [ ] T-028.9 An open epic carries the epic its Order line puts it after (done when: npm test passes with new tests: parseEpic reads after from an Order line and gives null without one, and the board view carries it on open and parked epics)
-- [ ] T-028.10 Project page: In short line, epics in build order, parked row, document links (done when: projectPage.test.js passes: build order for a fixture with two Order lines and an epic without tasks, the parked row folded and open, one link per document that exists, and In short read from the design doc)
-- [ ] T-028.11 doit epic add writes the new epic header: In short and Why it exists above Status (done when: npm test passes: a new epic's file opens with In short and Why it exists placeholder lines, a blank line, then Status and Design, and a campaign epic is written as today)
-- [ ] T-028.12 Closing an epic waits for its open Check in play task (done when: npm test passes with new tests: a close by CLI and by move is refused with the task named while the Check in play task is open, nothing is archived by the refused close, and it goes through once the task is done or the epic has no such line)
+- [x] T-028.1 Design.md: the Detail column's project, epic and task pages (done when: Design.md sections Projects, Epics, Tasks and Look match the Specification of EPIC-028, and its Changelog has the line)
+- [x] T-028.2 Colour tokens for select, You and Claude in a new detail.css (done when: style.test.js passes over every css file in web/ and finds the six new tokens in the light block and both dark blocks)
+- [x] T-028.3 epicDoc.js: read an epic's text into header, findings and sections, old shapes too (done when: epicDoc.test.js passes on the new shape and on one fixture per old shape, and every line of each fixture is in the result)
+- [x] T-028.4 Epic page: status and progress header, In short block and facts grid (done when: epicPage.test.js passes: status chip, progress text, both counts, In short, Why it exists and one grid row per fact, and an epic that has none of them shows none)
+- [x] T-028.5 Epic page: findings folded, tasks table, test plan and folded end sections (done when: epicPage.test.js passes: one folded row per finding with the count line, an opened finding shows its detail, one table row per task, a batch grid, and each empty end section shows its note)
+- [x] T-028.6 Task page: Properties box, every value a control, assignment greyed on a designer task (done when: taskProps.test.js and assignmentPane.test.js pass: every control renders for both owners, the three assignment controls are disabled and keep their stored values for owner human, and the doit set line names the task)
+- [x] T-028.7 Owner chip on the task page, slate selected fill on every pane, story lines bold (done when: web.test.js and style.test.js pass with new tests: the owner chip carries its class for each owner, a description opening with As, I want, so that renders the three openers bold, and no selected rule in style.css fills with ink)
+- [x] T-028.8 Project page: opens from the project's name; header, three cards, Waiting on you (done when: projectPage.test.js passes: the three cards and the waiting list hold the right counts for a fixture board, a task that an open task blocks is not waiting, the left pane renders the name as a button, and one selected project with nothing chosen shows its page)
+- [x] T-028.9 An open epic carries the epic its Order line puts it after (done when: npm test passes with new tests: parseEpic reads after from an Order line and gives null without one, and the board view carries it on open and parked epics)
+- [x] T-028.10 Project page: In short line, epics in build order, parked row, document links (done when: projectPage.test.js passes: build order for a fixture with two Order lines and an epic without tasks, the parked row folded and open, one link per document that exists, and In short read from the design doc)
+- [x] T-028.11 doit epic add writes the new epic header: In short and Why it exists above Status (done when: npm test passes: a new epic's file opens with In short and Why it exists placeholder lines, a blank line, then Status and Design, and a campaign epic is written as today)
+- [x] T-028.12 Closing an epic waits for its open Check in play task (done when: npm test passes with new tests: a close by CLI and by move is refused with the task named while the Check in play task is open, nothing is archived by the refused close, and it goes through once the task is done or the epic has no such line)
 - [ ] T-028.13 Check in play (done when: Every check in the description is confirmed in the running board, or its failure is a task in EPIC-028)
 
 ## Specification
@@ -148,6 +148,18 @@ Moved to the planned task T-028.13, as decision 3 of the companion document asks
 
 Decisions and deviations, newest first.
 
+- 2026-11-22: Build of T-028.1 to .12 done. Batches A 392 of 392, B 401 of 401, C 411 of 411 (development); Audit 412 of 412. A smoke look at the running board (project page, epic page, a task page) showed no console errors. T-028.13 waits on the designer. A stray `doit epic close doit EPIC-028 --dry-run` by the coordinator was refused by T-028.12's rule ("EPIC-028 waits for T-028.13"), so nothing was archived.
+- 2026-11-22: Readings the builders took where the Specification was silent, for T-028.13 to judge:
+  - T-028.12: a Check in play task the board cannot find (archived or gone) does not hold the close.
+  - T-028.11: `## Findings` is written into campaign epics too.
+  - T-028.10: Open file shows only once the Docs tree is loaded and holds the epic's file. `S.pp` and `S.ppParkedOpen` are created lazily, not declared in web/state.js. `test/helpers.js` fixtures (T-028.9) gained `Order:` lines.
+  - T-028.8: the Active card skips an epic whose only open task is titled "Check in play" (a title match, not the Test plan's `check` line, which came later in T-028.12). `test/docsBoard.test.js` regex changed for the name button.
+  - T-028.7: the story openers match case-insensitively; one CSS line was added to detail.css for the Comment button (it had no rule).
+  - T-028.6: "Archive when passed" keeps today's handler: ticking with no date sets one 7 days out. The "Change any value here" line sits above the box.
+  - T-028.5: opened findings stay open per epic across visits (`S.epicOpen` keyed by epic id), not only while the epic shows. An empty end section cannot be opened. Code split into web/epicParts.js.
+  - T-028.4: "done" counts done and archived tasks.
+  - T-028.3: a whole placeholder value reads as null; Status takes the first word ("In progress" shows "In" with "progress" under it); an old `Why:` key goes to the facts grid; old findings with no Decided or Proposed marker get no chip.
+  - T-028.1: Design.md does not mark Decided and Proposed per item; its Changelog points to this Specification. "The existing Docs view" is written as "opens as a document (section Docs)", since documents open on the Board since EPIC-021.
 - 2026-11-22: Added from the draft of 2026-11-22 (ClaudeStandards, Docs/Requirements/doit-detail-column.md). Its "Before this is added from a Doit session" section, its line saying it is not on the board, and Planned tasks are left out: the first two were instructions for this step, the third became the tasks under Tasks.
 
 ## Close audit
