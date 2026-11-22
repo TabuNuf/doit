@@ -4,7 +4,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
-const CSS = path.join(import.meta.dirname, "..", "web", "style.css");
+const WEB = path.join(import.meta.dirname, "..", "web");
+const CSS = path.join(WEB, "style.css");
+const SHEETS = fs.readdirSync(WEB).filter(f => f.endsWith(".css"));
 const NAMED = ["white", "black", "red", "green", "blue", "gray", "grey", "silver", "orange", "yellow", "purple",
   "pink", "brown", "navy", "teal", "maroon", "olive", "lime", "aqua", "cyan", "magenta", "gold", "coral", "crimson",
   "indigo", "violet", "tan", "salmon", "khaki", "ivory", "beige", "lavender", "tomato", "orchid", "plum"];
@@ -22,9 +24,19 @@ export function colourLiterals(css) {
   return found;
 }
 
-test("style.css has no literal colour outside its token blocks", () => {
-  const rest = withoutTokens(fs.readFileSync(CSS, "utf8"));
-  assert.deepEqual(colourLiterals(rest), []);
+test("no css file has a literal colour outside its token blocks", () => {
+  for (const f of SHEETS) {
+    const rest = withoutTokens(fs.readFileSync(path.join(WEB, f), "utf8"));
+    assert.deepEqual(colourLiterals(rest), [], f);
+  }
+});
+
+test("the Detail column tokens stand in the light block and both dark blocks", () => {
+  const css = fs.readFileSync(path.join(WEB, "detail.css"), "utf8");
+  const roots = [...css.matchAll(/:root[^{}]*\{[^{}]*\}/g)].map(m => m[0]);
+  assert.equal(roots.length, 3, "one light and two dark :root blocks");
+  for (const t of ["select", "on-select", "you", "on-you", "claude", "on-claude"])
+    for (const root of roots) assert.match(root, new RegExp(`--${t}:`), `--${t} missing in ${root.slice(0, 40)}`);
 });
 
 test("the literal-colour check catches a planted literal", () => {

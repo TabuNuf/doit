@@ -1,0 +1,9 @@
+/* Detail column colour tokens: select, You and Claude, each with a light and two dark values. */
+:root {
+  --select: #3D5677; --on-select: #ffffff; --you: #FCEFE3; --on-you: #8F3F05; --claude: #E8EEFA; --on-claude: #1A449E;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --select: #8FA9CC; --on-select: #0b2545; --you: #4A2E14; --on-you: #FFC89A; --claude: #1D3F73; --on-claude: #BBD4FF } }
+:root[data-theme="dark"] {
+  --select: #8FA9CC; --on-select: #0b2545; --you: #4A2E14; --on-you: #FFC89A; --claude: #1D3F73; --on-claude: #BBD4FF;
+}
