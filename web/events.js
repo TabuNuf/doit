@@ -114,6 +114,7 @@ document.addEventListener("change", ev => {
     return patch(t, { deadline: ev.target.checked ? d.toISOString().slice(0, 10) : "" });
   }
   if (id === "dl") return patch(t, { deadline: ev.target.value });
+  if (id === "ag" || id === "mdl" || id === "eff") return patch(t, { [{ ag: "agent", mdl: "model", eff: "effort" }[id]]: ev.target.value.trim() });
   if (id === "blk") return patch(t, { blocks: ev.target.value.trim() });
 });
 

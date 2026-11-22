@@ -8,7 +8,7 @@ Design: Design.md, sections Tasks (Who builds it) and The CLI
 
 - [x] T-027.1 A task carries agent, model and effort, kept in its task file (done when: npm test passes with new tests: add and update store the three fields, a bad effort is refused, owner human and back keeps them, a task file without them loads)
 - [x] T-027.2 CLI: add and set take agent, model and effort; show and list --json return them (done when: npm test passes with new CLI tests: add flags, set keys, effort check exits 1, plain show hides the line for owner human, --json carries the values for both owners, help names them)
-- [ ] T-027.3 Detail pane: agent, model and effort editable on a Claude task, not shown on a human one (done when: npm test passes with new pane tests, and in the page a Claude task shows the three controls and saves them, a human task shows none, and owner flipped to Me and back shows the same values (Check in play))
+- [x] T-027.3 Detail pane: agent, model and effort editable on a Claude task, not shown on a human one (done when: npm test passes with new pane tests, and in the page a Claude task shows the three controls and saves them, a human task shows none, and owner flipped to Me and back shows the same values (Check in play))
 
 ## Specification
 

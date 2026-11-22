@@ -8,6 +8,7 @@ import { leftPane } from "./leftPane.js";
 import { docsPanes } from "./docsView.js";
 import { claudePanes } from "./claudeView.js";
 import { marketingPanes, marketingTabs } from "./marketingView.js";
+import { assignmentRows } from "./assignment.js";
 import { setLayout } from "./resize.js";
 import { contactButton, ensureContactNames } from "./contactNames.js";
 import { renderMarkdown, inline } from "./markdown.js";
@@ -169,6 +170,7 @@ function detailPane() {
       <dt>State</dt><dd><select id="st" aria-label="State">${STATES.map(([v, l]) => `<option value="${v}" ${t.state === v ? "selected" : ""}>${l}</option>`).join("")}</select></dd>
       <dt>Owner</dt><dd><div class="seg">${[["human", "🧑 Me"], ["ai", "🤖 Claude"]].map(([v, l]) => `<button aria-pressed="${t.owner === v}" data-own="${v}">${l}</button>`).join("")}</div></dd>
       <dt>Type</dt><dd><div class="seg">${[["task", "Task"], ["bug", "Bug"]].map(([v, l]) => `<button aria-pressed="${t.type === v}" data-type="${v}">${l}</button>`).join("")}</div></dd>
+      ${assignmentRows(t)}
       <dt>Deadline</dt><dd><label class="toggle"><input type="checkbox" id="dlon" ${t.deadline ? "checked" : ""}> Archive when passed</label>
         ${t.deadline ? `<div><input type="date" id="dl" value="${t.deadline}" aria-label="Deadline"> <span class="muted">${dl < 0 ? "passed" : dl + " days left"}</span></div>` : ""}</dd>
       <dt>Blocks</dt><dd><input id="blk" value="${esc(t.blocks || "")}" placeholder="T-014.3" pattern="T-\\d+\\.\\d+" size="10" aria-label="The task this one holds up"> <span class="muted">the task this holds up</span></dd>
