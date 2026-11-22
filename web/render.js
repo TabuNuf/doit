@@ -8,7 +8,7 @@ import { leftPane } from "./leftPane.js";
 import { docsPanes } from "./docsView.js";
 import { claudePanes } from "./claudeView.js";
 import { marketingPanes, marketingTabs } from "./marketingView.js";
-import { assignmentRows } from "./assignment.js";
+import { taskProps } from "./taskProps.js";
 import { setLayout } from "./resize.js";
 import { contactButton, ensureContactNames } from "./contactNames.js";
 import { renderMarkdown, inline } from "./markdown.js";
@@ -158,7 +158,6 @@ function detailPane() {
   const t = S.sel && task(S.sel);
   if (!t && S.epicView) return epicViewPane(fontCtl());
   if (!t) return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b"><div class="empty">Select a task.</div></div></section>`;
-  const dl = t.deadline ? daysLeft(t.deadline) : null;
   const where = t.state === "archived" ? "Archive/Tasks" : "Epics/Tasks";
   const { head, rest } = headline(t.title);
   return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b detail">
@@ -166,21 +165,7 @@ function detailPane() {
     <h2>${inline(head)}</h2>
     <div class="pills" style="justify-content:flex-start"><span class="pill"><span class="tdot ${t.type}"></span>${t.type === "bug" ? "Bug" : "Task"}</span><span class="pill">${t.owner === "ai" ? "🤖 Claude" : "🧑 You"}</span><span class="pill"><span class="dot" style="background:${color(t.project)}"></span>${esc(proj(t.project).name)}</span></div>
     ${rest ? `<div class="sect" style="margin-top:8px">Spec</div><div class="doc spec">${renderMarkdown(rest)}</div>` : ""}
-    <dl class="kv">
-      <dt>State</dt><dd><select id="st" aria-label="State">${STATES.map(([v, l]) => `<option value="${v}" ${t.state === v ? "selected" : ""}>${l}</option>`).join("")}</select></dd>
-      <dt>Owner</dt><dd><div class="seg">${[["human", "🧑 Me"], ["ai", "🤖 Claude"]].map(([v, l]) => `<button aria-pressed="${t.owner === v}" data-own="${v}">${l}</button>`).join("")}</div></dd>
-      <dt>Type</dt><dd><div class="seg">${[["task", "Task"], ["bug", "Bug"]].map(([v, l]) => `<button aria-pressed="${t.type === v}" data-type="${v}">${l}</button>`).join("")}</div></dd>
-      ${assignmentRows(t)}
-      <dt>Deadline</dt><dd><label class="toggle"><input type="checkbox" id="dlon" ${t.deadline ? "checked" : ""}> Archive when passed</label>
-        ${t.deadline ? `<div><input type="date" id="dl" value="${t.deadline}" aria-label="Deadline"> <span class="muted">${dl < 0 ? "passed" : dl + " days left"}</span></div>` : ""}</dd>
-      <dt>Blocks</dt><dd><input id="blk" value="${esc(t.blocks || "")}" placeholder="T-014.3" pattern="T-\\d+\\.\\d+" size="10" aria-label="The task this one holds up"> <span class="muted">the task this holds up</span></dd>
-      ${t.contact ? `<dt>Contact</dt><dd>${contactButton(t.contact)}</dd>` : ""}
-      <dt>Created</dt><dd class="mono">${t.created || "-"}</dd>
-      <dt>Updated</dt><dd class="mono">${t.updated || "-"}</dd>
-      ${t.completed ? `<dt>Completed</dt><dd class="mono">${t.completed}</dd>` : ""}
-      ${t.source ? `<dt>Source</dt><dd>${esc(t.source)}</dd>` : ""}
-      ${t.state === "archived" && t.archived ? `<dt>Archived</dt><dd class="warnline">${esc(t.archived)}</dd>` : ""}
-    </dl>
+    ${taskProps(t)}
     ${descSection(t)}
     <div class="sect">Done when</div>
     <p>${esc(t.doneWhen || "Not written yet.")}</p>

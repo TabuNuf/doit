@@ -17,8 +17,15 @@ test("an ai task shows the three controls with the stored values", () => {
   assert.equal((h.match(/aria-label/g) || []).length, 3);
 });
 
-test("a human task shows none, however much is stored", () => {
-  assert.equal(assignmentRows(task({ owner: "human" })), "");
+test("a human task shows the three disabled with the stored values", () => {
+  const h = assignmentRows(task({ owner: "human" }));
+  assert.match(h, /id="ag"[^>]*value="batch-builder"[^>]*disabled/);
+  assert.match(h, /id="mdl"[^>]*value="Sonnet 5.5"[^>]*disabled/);
+  assert.match(h, /id="eff"[^>]*disabled/);
+  assert.match(h, /<option value="high" selected>/);
+  assert.match(h, /used when Claude owns it/);
+  assert.equal((h.match(/class="off"/g) || []).length, 3);
+  assert.doesNotMatch(assignmentRows(task()), /disabled/);
 });
 
 test("stored values are escaped", () => {
@@ -28,7 +35,7 @@ test("stored values are escaped", () => {
 });
 
 test("the pane calls it and the change listener patches the three", () => {
-  assert.match(src("render.js"), /\$\{assignmentRows\(t\)\}/);
+  assert.match(src("taskProps.js"), /\$\{assignmentRows\(t\)\}/);
   const ev = src("events.js");
   for (const k of ["agent", "model", "effort"]) assert.match(ev, new RegExp(k));
   assert.match(ev, /id === "ag" \|\| id === "mdl" \|\| id === "eff"/);

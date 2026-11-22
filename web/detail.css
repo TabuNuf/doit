@@ -40,3 +40,12 @@
 .ep-tasks td, .ep-plan td { padding: 6px 8px 6px 0; border-bottom: 1px dashed var(--line); vertical-align: top }
 .ep-trow { cursor: pointer } .ep-trow:hover { background: var(--fill) } .ep-trow.muted { opacity: .55 }
 .ep-tier { opacity: .65 }
+
+/* Task page properties box */
+.props-head { margin: 12px 0 0; opacity: .8; font-size: 13px }
+.props .kv { margin-top: 6px }
+.props .seg { display: flex; width: 100% } .props .seg button { flex: 1 }
+.props .seg button[aria-pressed="true"] { background: var(--select); color: var(--on-select) }
+.props select, .props input[type=date] { min-width: 150px }
+.kv dt.off, .kv dt.off + dd { opacity: .55 }
+.kv dt.off { color: var(--muted) }
