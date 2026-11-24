@@ -102,7 +102,7 @@ export function docsPanes(tools) {
   const D = S.docs;
   const head = D.doc ? `<span class="mono doc-path">${esc(D.path)}</span><span class="muted doc-change">${changeNote(D.doc)}</span>
       <button data-${D.editing ? "doc-done" : "doc-edit"}>${D.editing ? "Done" : "Edit"}</button>` : "Document";
-  return `<section class="pane" aria-label="Document"><div class="pane-h">${head}${tools}</div><div class="pane-b">${docBody()}</div></section>
+  return `<section class="pane" aria-label="Document"><div class="pane-h">${head}${tools}</div><div class="pane-b" data-scroll="doc:${esc(`${D.project}/${D.path}`)}">${docBody()}</div></section>
     ${linkedPane()}`;
 }
 
