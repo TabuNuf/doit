@@ -20,7 +20,7 @@ export class SqliteContacts {
       for (const r of this.db.prepare(sql).all()) (m.get(key(r)) ?? m.set(key(r), []).get(key(r))).push(r);
       return m;
     };
-    const channels = by("SELECT contact_id, kind, url, followers, active FROM channels ORDER BY position");
+    const channels = by("SELECT contact_id, kind, url, followers, active, dead FROM channels ORDER BY position");
     const fit = by("SELECT contact_id, game, reason FROM fit ORDER BY game");
     const games = by("SELECT contact_id, title, scales, kind, date, source, genres FROM games ORDER BY date DESC, title");
     const touches = by("SELECT contact_id, date, kind, game, note FROM touches ORDER BY date DESC, id DESC");
@@ -29,7 +29,7 @@ export class SqliteContacts {
       id: r.id, name: r.name, types: r.types.split(","), topic: r.topic, email: r.email, reach: r.reach,
       genres: split(r.genres), about: r.about, notes: r.notes, special: r.special, status: r.status, next: r.next,
       reddit: r.reddit, scales: split(r.scales), scaleNote: r.scale_note, checked: r.checked,
-      channels: (channels.get(r.id) ?? []).map(({ kind, url, followers, active }) => ({ kind, url, followers, active })),
+      channels: (channels.get(r.id) ?? []).map(({ kind, url, followers, active, dead }) => ({ kind, url, followers, active, dead })),
       fit: (fit.get(r.id) ?? []).map(({ game, reason }) => ({ game, reason })),
       games: (games.get(r.id) ?? []).map(g => ({ title: g.title, scales: split(g.scales), kind: g.kind, date: g.date, source: g.source, genres: split(g.genres) })),
       touches: (touches.get(r.id) ?? []).map(({ date, kind, game, note }) => ({ date, kind, game, note })),
@@ -90,7 +90,7 @@ export class SqliteContacts {
   }
 
   #channels(id, list) {
-    const add = this.db.prepare("INSERT INTO channels (contact_id, position, kind, url, followers, active) VALUES (?, ?, ?, ?, ?, ?)");
-    list.forEach((ch, i) => add.run(id, i, ch.kind, ch.url, ch.followers ?? null, ch.active ?? ""));
+    const add = this.db.prepare("INSERT INTO channels (contact_id, position, kind, url, followers, active, dead) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    list.forEach((ch, i) => add.run(id, i, ch.kind, ch.url, ch.followers ?? null, ch.active ?? "", ch.dead ?? ""));
   }
 }

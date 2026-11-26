@@ -26,7 +26,7 @@ test("festival upsert twice gives one festival, and only the fields given change
     year: 2027, starts: "", ends: "", deadline: "2026-12-01", cost: "free", where: "steam",
     criteria: { genres: ["co-op"], stages: ["demo"], platforms: [] }, state: "watching",
   });
-  assert.deepEqual(f.channels, [{ kind: "website", url: "https://store.example.test/fest", followers: null, active: "" }]);
+  assert.deepEqual(f.channels, [{ kind: "website", url: "https://store.example.test/fest", followers: null, active: "", dead: "" }]);
   run("festival", "upsert", "Steam Next Fest", "--year", "2027", "--url", "https://store.example.test/fest/");
   assert.equal(JSON.parse(run("festivals", "--json").out)[0].channels.length, 1);
   assert.match(run("festival", "upsert", "Steam Next Fest", "--year", "2028").out, /^Added festival 2/);

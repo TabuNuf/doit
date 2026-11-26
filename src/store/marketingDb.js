@@ -6,7 +6,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { takeGenreLines } from "../domain/contactImport.js";
 
-const VERSION = 7;
+const VERSION = 8;
 
 const SCHEMA_V1 = `
   CREATE TABLE contacts (
@@ -83,6 +83,9 @@ const V7 = `
   );
 `;
 
+// v8: the date a channel was seen dead (suspended, deleted); empty: alive.
+const V8 = `ALTER TABLE channels ADD COLUMN dead TEXT NOT NULL DEFAULT '';`;
+
 export class MarketingDb {
   constructor(dir) {
     this.dir = dir;
@@ -121,6 +124,7 @@ export class MarketingDb {
       if (v < 5) this.db.exec(V5);
       if (v < 6) this.db.exec(V6);
       if (v < 7) this.db.exec(V7);
+      if (v < 8) this.db.exec(V8);
       this.db.exec(`PRAGMA user_version = ${VERSION}`);
     });
   }

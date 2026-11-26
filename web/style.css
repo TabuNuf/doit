@@ -261,6 +261,7 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mk-ch input { flex: 1; min-width: 8em; font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 2px; background: var(--bg); color: var(--ink); }
 .mk-ch input.mk-chn { flex: 0 0 7em; min-width: 0; }
 .mk-ch input[type=date] { flex: 0 0 9.5em; }
+.mk-ch.dead input, .mk-ch.dead select { opacity: .5; text-decoration: line-through; }
 .mk-parked { margin-top: 12px; border-top: 1px dashed var(--line); }
 .mk-parked > button.sec-h { width: 100%; background: none; border: 0; color: var(--ink); cursor: pointer; text-align: left; font: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
 .mk-touch { margin-top: 8px; }

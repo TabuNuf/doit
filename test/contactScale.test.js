@@ -39,7 +39,7 @@ test("a contact carries reddit, scales, scale note and checked; bad values are r
 });
 
 test("channels: the new kinds, followers and last-active date are checked; an unknown host stays website", () => {
-  const ch = ["kick", "tiktok", "reddit", "patreon", "podcast", "rumble"].map(kind => ({ kind, url: `https://${kind}.example/x`, followers: 1200, active: "2026-11-01" }));
+  const ch = ["kick", "tiktok", "reddit", "patreon", "podcast", "rumble"].map(kind => ({ kind, url: `https://${kind}.example/x`, followers: 1200, active: "2026-11-01", dead: "" }));
   assert.deepEqual(makeContact({ name: "A", types: ["press"], channels: ch }).channels, ch);
   assert.throws(() => makeContact({ name: "A", types: ["press"], channels: [{ kind: "myspace", url: "x" }] }), ContactError);
   assert.throws(() => makeContact({ name: "A", types: ["press"], channels: [{ kind: "kick", url: "x", active: "soon" }] }), ContactError);
@@ -131,7 +131,7 @@ test("CLI: contact fields, channel syntax, show, --json, --scale, --relevant and
   assert.match(show, /twitch https:\/\/twitch.tv\/ada  active 2026-11-20/);
   assert.match(show, /kick https:\/\/kick.com\/ada\n/);
   const json = JSON.parse(run("contact", "show", "1", "--json").out);
-  assert.deepEqual(json.channels[0], { kind: "youtube", url: "https://youtube.com/@ada", followers: 4770000, active: "2026-11-26" });
+  assert.deepEqual(json.channels[0], { kind: "youtube", url: "https://youtube.com/@ada", followers: 4770000, active: "2026-11-26", dead: "" });
   assert.deepEqual([json.scales, json.scaleNote, json.checked, json.reddit, json.relevant], [["indie", "aa"], "5 of 20 indie", "2026-11-26", "https://www.reddit.com/r/ada", true]);
   const names = a => run("contacts", ...a).out.split("\n").filter(Boolean).map(l => l.split("  ")[1]);
   assert.deepEqual(names(["--relevant"]).sort(), ["Ada", "Cy"], "Ada shares indie with bb, Cy has a fit");
@@ -152,11 +152,11 @@ test("an old channels table (kind and url only) keeps its rows when migrated", t
   const book0 = makeContacts({ home: s.home, now: () => s.clock.t });
   book0.add({ name: "Old", types: ["influencer"], channels: [{ kind: "youtube", url: "https://youtube.com/@old" }, { kind: "website", url: "https://old.example" }] });
   book0.source.close();
-  db.exec("DROP TABLE games; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; PRAGMA user_version = 5");
+  db.exec("DROP TABLE games; ALTER TABLE channels DROP COLUMN dead; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; PRAGMA user_version = 5");
   db.close();
   const book = makeContacts({ home: s.home, now: () => s.clock.t });
   const c = book.get(1);
-  assert.deepEqual(c.channels, [{ kind: "youtube", url: "https://youtube.com/@old", followers: null, active: "" }, { kind: "website", url: "https://old.example", followers: null, active: "" }]);
+  assert.deepEqual(c.channels, [{ kind: "youtube", url: "https://youtube.com/@old", followers: null, active: "", dead: "" }, { kind: "website", url: "https://old.example", followers: null, active: "", dead: "" }]);
   assert.deepEqual([c.reddit, c.scales, c.scaleNote, c.checked], ["", [], "", ""]);
   book.source.close();
 });
@@ -249,4 +249,18 @@ test("campaign suggest ranks by genre overlap and names the games; the league is
   const out = run("campaign", "suggest", "bb", id).out;
   assert.ok(out.indexOf("Bo") < out.indexOf("Ada"), out);
   assert.match(out, /Bo.*covered like it: Farm Days/);
+});
+
+test("a dead channel: the fourth part marks it, shows in show and json, alive clears it, and an update keeps it", t => {
+  const { run } = world(t);
+  run("contact", "add", "Ada", "--type", "influencer", "--channels", "twitch=https://twitch.tv/ada|||dead,youtube=https://youtube.com/@ada|10k|2026-11-01|2026-10-01");
+  const show = run("contact", "show", "1").out;
+  assert.match(show, /twitch https:\/\/twitch.tv\/ada  DEAD since 2026-11-20/);
+  assert.match(show, /youtube .*  DEAD since 2026-10-01/);
+  assert.equal(JSON.parse(run("contact", "show", "1", "--json").out).channels[0].dead, "2026-11-20");
+  run("contact", "set", "1", "channel=twitch=https://twitch.tv/ada|5k");
+  assert.match(run("contact", "show", "1").out, /twitch .*5K? ?followers?.*DEAD|twitch .*DEAD/, "a later update keeps the mark");
+  run("contact", "set", "1", "channel=twitch=https://twitch.tv/ada|||alive");
+  assert.doesNotMatch(run("contact", "show", "1").out, /twitch .*DEAD/);
+  assert.equal(run("contact", "set", "1", "channel=twitch=https://twitch.tv/ada|||soon").code, 1);
 });

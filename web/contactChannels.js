@@ -19,11 +19,12 @@ const kindSelect = (id, kind, label) => `<select id="${id}" aria-label="${label}
 export function channelsBlock(list) {
   const rows = list.map((ch, i) => {
     const href = channelHref(ch.url);
-    return `<li class="mk-ch">${kindSelect(`mk-chk-${i}`, ch.kind, "Channel kind")}
+    return `<li class="mk-ch${ch.dead ? " dead" : ""}"${ch.dead ? ` title="Dead since ${esc(ch.dead)}"` : ""}>${kindSelect(`mk-chk-${i}`, ch.kind, "Channel kind")}
       <input type="text" id="mk-chu-${i}" value="${esc(ch.url)}" aria-label="Channel URL">
       <input type="number" min="0" step="1" id="mk-chf-${i}" value="${esc(ch.followers ?? "")}" aria-label="Followers" placeholder="followers" class="mk-chn">
       <input type="date" id="mk-cha-${i}" value="${esc(ch.active ?? "")}" aria-label="Last active date">
       ${href ? `<a href="${esc(href)}" target="_blank" rel="noopener" title="Open ${esc(ch.url)}">Open</a>` : ""}
+      ${ch.dead ? `<span class="pill">dead ${esc(ch.dead)}</span>` : ""}
       <button data-mk-ch-del="${i}" aria-label="Remove ${esc(ch.kind)} channel">Remove</button></li>`;
   }).join("");
   return `<div class="sect">Channels</div>

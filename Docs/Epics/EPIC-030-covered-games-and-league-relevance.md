@@ -16,6 +16,7 @@ Design: Design.md, section Marketing (covered games, why relevant)
 - [x] T-030.4 CLI, routes and help for covered games (done when: Tests on CLI and routes)
 - [x] T-030.5 Board: covered games block (done when: Pure-function tests pass)
 - [ ] T-030.6 Check in play: covered games on the board (done when: Tabu confirms)
+- [x] T-030.7 Dead flag on a channel (done when: Tests: syntax, round trip, v7 file migrates, pane greys it)
 
 ## Test plan
 

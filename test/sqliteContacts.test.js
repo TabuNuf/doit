@@ -15,12 +15,12 @@ function home() { return path.join(fs.mkdtempSync(path.join(os.tmpdir(), "doit-c
 const ADA = {
   name: "Ada Plays", types: ["influencer", "blogger"], topic: "", email: "ada@example.test", reach: 12400, genres: ["Co-op"], about: "Cozy co-op streamer.", notes: "Likes co-op.\nSecond line.",
   status: "active", next: "2026-12-01", special: "", reddit: "https://www.reddit.com/r/ada", scales: ["indie", "aa"], scaleNote: "5 of 20 indie", checked: "2026-11-20",
-  channels: [{ kind: "youtube", url: "https://youtube.example.test/ada", followers: 12400, active: "2026-11-19" }, { kind: "bluesky", url: "https://bsky.example.test/ada", followers: null, active: "" }],
+  channels: [{ kind: "youtube", url: "https://youtube.example.test/ada", followers: 12400, active: "2026-11-19", dead: "" }, { kind: "bluesky", url: "https://bsky.example.test/ada", followers: null, active: "", dead: "" }],
   event: null,
 };
 
 // What a version 5 file lacks.
-const DOWN6 = "DROP TABLE games; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ";
+const DOWN6 = "DROP TABLE games; ALTER TABLE channels DROP COLUMN dead; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ";
 
 test("a contact with channels, fit and touches is read back after reopening", () => {
   const dir = home();
@@ -56,16 +56,16 @@ test("the file and its schema version are made on first open and kept on the nex
   s.close();
   assert.ok(fs.existsSync(path.join(dir, "marketing.db")));
   const b = open(dir);
-  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 7);
+  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 8);
   b.close();
 });
 
 test("a file from a newer schema is refused", () => {
   const dir = home();
   const a = open(dir);
-  a.db.exec("PRAGMA user_version = 8");
+  a.db.exec("PRAGMA user_version = 9");
   a.close();
-  assert.throws(() => open(dir).all(), /version 8/);
+  assert.throws(() => open(dir).all(), /version 9/);
 });
 
 test("update replaces fields and channels and keeps fit and touches; a second fit replaces the reason", () => {
@@ -78,7 +78,7 @@ test("update replaces fields and channels and keeps fit and touches; a second fi
   s.setFit(id, "good-box", "new");
   const c = s.get(id);
   assert.equal(c.status, "dormant");
-  assert.deepEqual(c.channels, [{ kind: "twitch", url: "https://twitch.example.test/ada", followers: null, active: "" }]);
+  assert.deepEqual(c.channels, [{ kind: "twitch", url: "https://twitch.example.test/ada", followers: null, active: "", dead: "" }]);
   assert.deepEqual(c.fit, [{ game: "good-box", reason: "new" }]);
   assert.equal(c.touches.length, 1);
   s.close();
@@ -135,7 +135,7 @@ test("a version 1 file is migrated in place and keeps its contacts and touches",
   const m = new MarketingDb(dir);
   const store = new SqliteContacts(m);
   assert.deepEqual(store.get(1).touches, [{ date: "2026-10-01", kind: "mail", game: "good-box", note: "" }]);
-  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 7);
+  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 8);
   assert.equal(new SqliteDrafts(m).all().length, 0);
   store.addTouch(1, { date: "2026-11-01", kind: "mail", note: "S", ref: "<x@example.com>" });
   assert.equal(store.get(1).touches.length, 2);
@@ -167,7 +167,7 @@ test("a version 2 file is migrated, keeps its contacts and drafts, and reads an 
   const m = new MarketingDb(dir);
   const store = new SqliteContacts(m);
   assert.equal(store.get(1).event, null);
-  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 7);
+  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 8);
   assert.equal(new SqliteDrafts(m).all().length, 1);
   const event = {
     year: 2027, starts: "2027-02-23", ends: "2027-03-02", deadline: "2027-01-15", cost: "free", where: "steam",
@@ -206,7 +206,7 @@ test("a version 4 file is migrated: special appears empty, contacts stay, and a 
   first.close();
   const store = new SqliteContacts(new MarketingDb(dir));
   assert.equal(store.get(1).special, "");
-  assert.equal(store.db.prepare("PRAGMA user_version").get().user_version, 7);
+  assert.equal(store.db.prepare("PRAGMA user_version").get().user_version, 8);
   store.update(1, { ...ADA, special: "Friend since 2019" });
   assert.equal(store.get(1).special, "Friend since 2019");
   store.update(1, { ...ADA, special: "" });
