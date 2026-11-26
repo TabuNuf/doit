@@ -23,6 +23,9 @@ export function contactPath(f) {
   return "/api/contacts" + (s ? "?" + s : "");
 }
 
+/** The request for the Parked section: every parked contact, events left out; the filters do not apply to it. */
+export const parkedPath = () => `/api/contacts?parked=1&except=${EVENT_TYPES}`;
+
 const opts = (options, value) => options.map(([v, l]) => `<option value="${esc(v)}" ${v === value ? "selected" : ""}>${esc(l)}</option>`).join("");
 const select = (id, label, options, value, extra = "") => `<label for="${id}">${label}<select id="${id}">${opts(options, value)}${extra}</select></label>`;
 

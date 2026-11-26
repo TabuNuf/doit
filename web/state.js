@@ -8,7 +8,7 @@ export const FUNNEL = '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4z
 export const S = {
   project: "all", epic: null, tab: "open", q: "", owner: "all",
   f: { task: true, bug: true, due: "any" }, fOpen: false, projOpen: false,
-  view: "board", claude: null, mk: { contacts: null, profiles: [], game: "", f: { type: "", reach: "", status: "", genre: "", fits: "", contacted: "" }, genres: [], sel: null, detail: null, history: null, touchOpen: false, fitOpen: false, pane: "campaigns", newCampaign: false, newEvent: "", campaign: null, suggest: null, events: [], fest: null, campaigns: null, drafts: null, status: null, sweep: "", week: null, sort: null }, show: { epics: true, docs: true }, docs: { project: null, trees: {}, active: false, path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
+  view: "board", claude: null, mk: { contacts: null, parked: [], parkedOpen: false, profiles: [], game: "", f: { type: "", reach: "", status: "", genre: "", fits: "", contacted: "" }, genres: [], sel: null, detail: null, history: null, touchOpen: false, fitOpen: false, pane: "campaigns", newCampaign: false, newEvent: "", campaign: null, suggest: null, events: [], fest: null, campaigns: null, drafts: null, status: null, sweep: "", week: null, sort: null }, show: { epics: true, docs: true }, docs: { project: null, trees: {}, active: false, path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
   settings: { open: false, profiles: [], msg: "" },
   sel: null, descEdit: null, font: 15, newProj: false, newTask: false, newEpic: null, projectPage: null, epicView: null, epicFold: {}, epicOpen: {}, data: null, npErr: "",
 };

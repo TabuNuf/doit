@@ -3,7 +3,7 @@
 
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest } from "./contactDetail.js";
-import { EMPTY_FILTERS, FILTERS, contactPath, filterPane } from "./contactFilters.js";
+import { EMPTY_FILTERS, FILTERS, contactPath, parkedPath, filterPane } from "./contactFilters.js";
 import { fitRequest, unfitRequest } from "./contactGames.js";
 import { channelRemove, channelAdd } from "./contactChannels.js";
 import { clickSort, orderContacts, headerRow, rowCells, specialMark } from "./contactColumns.js";
@@ -35,13 +35,20 @@ export function contactRow(c, sel, game = null) {
 }
 
 /** The list column: a header row, then (with no sort chosen) a Due group when any contact is due and the rest, or one list in the chosen order. */
-export function listPane(contacts, sel, draftCount = null, game = null, filtered = false, sort = null) {
+export function listPane(contacts, sel, draftCount = null, game = null, filtered = false, sort = null, parked = [], parkedOpen = false) {
   if (!contacts) return `<section class="pane"><div class="pane-h">Contacts</div><div class="pane-b"><div class="empty">Loading…</div></div></section>`;
   const rows = list => list.map(c => contactRow(c, sel, game)).join("");
   const due = sort ? [] : contacts.filter(c => c.due), rest = sort ? orderContacts(contacts, sort) : contacts.filter(c => !c.due);
   const group = (name, list) => list.length ? `<div class="sec-h">${name}<span class="c">${list.length}</span></div>${rows(list)}` : "";
   const body = contacts.length ? headerRow(sort) + (sort ? rows(rest) : group("Due", due) + group(due.length ? "Others" : "All", rest)) : filtered ? `<div class="empty">No contact matches these filters. <button data-mk-clear>Clear filters</button></div>` : `<div class="empty">No contacts yet.</div>`;
-  return `<section class="pane" aria-label="Contacts"><div class="pane-h">Contacts<span class="c">${contacts.length}</span><button data-mk-pane="drafts" class="pane-close">Drafts${draftCount === null ? "" : ` (${draftCount})`}</button></div><div class="pane-b">${body}</div></section>`;
+  return `<section class="pane" aria-label="Contacts"><div class="pane-h">Contacts<span class="c">${contacts.length}</span><button data-mk-pane="drafts" class="pane-close">Drafts${draftCount === null ? "" : ` (${draftCount})`}</button></div><div class="pane-b">${body}${parkedSection(parked, parkedOpen, sel, game)}</div></section>`;
+}
+
+/** The Parked section under the list: contacts that suit no game, folded until its header is clicked; each row shows the review date. */
+export function parkedSection(parked, open, sel, game = null) {
+  if (!parked || !parked.length) return "";
+  const rows = open ? `<div class="muted" style="padding:4px 0">Not relevant to any game. Each comes up for review on its date.</div>${parked.map(c => contactRow(c, sel, game)).join("")}` : "";
+  return `<div class="mk-parked"><button class="sec-h" data-mk-parked aria-expanded="${open}">${open ? "▾" : "▸"} Parked<span class="c">${parked.length}</span></button>${rows}</div>`;
 }
 
 export const MK_TABS = [["campaigns", "Campaigns"], ["contacts", "Contacts"], ["festivals", "Festivals"], ["events", "Events"], ["drafts", "Drafts"], ["overview", "Overview"]];
@@ -66,7 +73,7 @@ export function marketingPanes() {
   if (m.pane === "campaigns") return campaignsPane(m.campaigns && campaignsList(m.campaigns), "", m.campaign || "")
     + briefPane(campaignOf(m), m.profiles, m.events, m.suggest, m.sel, m.newCampaign ? campaignForm(m.profiles, m.game, m.events, m.newEvent) : "") + detail();
   if (EVENT_TAB[m.pane]) { const title = m.pane === "events" ? "Events" : "Festivals"; return eventsInfoPane(title, m.game, m.profiles) + festivalsPane(m.fest, m.sel, title) + eventPane(m.detail && m.detail.event ? m.detail : null, title === "Events" ? "Event" : "Festival"); }
-  const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length, fitGame(m), Object.values(m.f).some(Boolean), m.sort);
+  const middle = m.pane === "drafts" ? draftsPane(m.drafts, m.status, m.sweep) : listPane(m.contacts, m.sel, m.drafts && m.drafts.length, fitGame(m), Object.values(m.f).some(Boolean), m.sort, m.f.status ? [] : m.parked, m.parkedOpen);
   return filterPane(m.f, m.genres, m.profiles) + middle + detail();
 }
 
@@ -105,7 +112,7 @@ export async function openMarketing() {
 export async function refreshMarketing() {
   const m = S.mk;
   try {
-    [m.profiles, m.contacts, m.drafts, m.status, m.genres] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f)), api("GET", "/api/drafts"), api("GET", "/api/mail/status"), api("GET", "/api/genres")]);
+    [m.profiles, m.contacts, m.parked, m.drafts, m.status, m.genres] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f)), api("GET", parkedPath()), api("GET", "/api/drafts"), api("GET", "/api/mail/status"), api("GET", "/api/genres")]);
     if (m.pane === "overview") m.week = await api("GET", "/api/outreach").catch(() => null);
     if (EVENT_TAB[m.pane]) m.fest = await api("GET", festivalPath(m.game, EVENT_TAB[m.pane]));
     if (m.pane === "campaigns") await loadCampaigns(m);
@@ -140,6 +147,7 @@ export function marketingClick(d) {
   const m = S.mk;
   if (d.taskContact) { S.view = "marketing"; m.pane = "contacts"; m.sel = d.taskContact; m.detail = null; m.touchOpen = false; m.fitOpen = false; redraw(); refreshMarketing(); return true; }
   if (d.contact) { if (d.mkTo) m.pane = d.mkTo; m.sel = d.contact; m.detail = null; m.touchOpen = false; m.fitOpen = false; redraw(); refreshMarketing(); return true; }
+  if ("mkParked" in d) { m.parkedOpen = !m.parkedOpen; redraw(); return true; }
   if (d.mkSort) { m.sort = clickSort(m.sort, d.mkSort); try { localStorage.setItem("doit.contacts.sort", JSON.stringify(m.sort)); } catch { /* storage off */ } redraw(); return true; }
   if (d.mkSettings) { openSettingsFor(d.mkSettings); return true; }
   if (d.mkCampaign) { m.campaign = d.mkCampaign; m.newCampaign = false; m.suggest = null; redraw(); refreshMarketing(); return true; }

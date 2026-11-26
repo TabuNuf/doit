@@ -22,7 +22,7 @@ Design: Design.md, section Marketing (scale labels, relevant, parked, per-channe
 - [x] T-029.6 CLI: filters, show, set and help text (done when: Tests on the CLI output; doit help documents every new flag and key)
 - [x] T-029.7 API routes for the new fields (done when: Route tests pass)
 - [x] T-029.8 Indie fit migration and relevance report (done when: Tests: dry run changes nothing; apply sets the fields and keeps other notes)
-- [ ] T-029.9 Board: parked section, scale and channel fields (done when: Pure-function tests pass)
+- [x] T-029.9 Board: parked section, scale and channel fields (done when: Pure-function tests pass)
 - [ ] T-029.10 Check in play: parked section and contact pane (done when: Tabu confirms the board)
 
 ## Test plan

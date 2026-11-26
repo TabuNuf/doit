@@ -3,7 +3,7 @@
 
 import { esc } from "./state.js";
 
-export const CHANNEL_KINDS = ["youtube", "twitch", "bluesky", "x", "instagram", "facebook", "discord", "steam", "website", "linktree"];
+export const CHANNEL_KINDS = ["youtube", "twitch", "kick", "tiktok", "bluesky", "x", "instagram", "facebook", "reddit", "discord", "steam", "patreon", "podcast", "rumble", "website", "linktree"];
 
 /** A channel url made safe to link: http(s) as given, a bare host gets https://, any other scheme is not linked. */
 export function channelHref(url) {
@@ -21,6 +21,8 @@ export function channelsBlock(list) {
     const href = channelHref(ch.url);
     return `<li class="mk-ch">${kindSelect(`mk-chk-${i}`, ch.kind, "Channel kind")}
       <input type="text" id="mk-chu-${i}" value="${esc(ch.url)}" aria-label="Channel URL">
+      <input type="number" min="0" step="1" id="mk-chf-${i}" value="${esc(ch.followers ?? "")}" aria-label="Followers" placeholder="followers" class="mk-chn">
+      <input type="date" id="mk-cha-${i}" value="${esc(ch.active ?? "")}" aria-label="Last active date">
       ${href ? `<a href="${esc(href)}" target="_blank" rel="noopener" title="Open ${esc(ch.url)}">Open</a>` : ""}
       <button data-mk-ch-del="${i}" aria-label="Remove ${esc(ch.kind)} channel">Remove</button></li>`;
   }).join("");
@@ -35,12 +37,12 @@ const save = (c, channels) => ({ method: "PATCH", path: `/api/contacts/${encodeU
 
 /** The request an edited channel field sends (`el` is {id, value}), or null when it holds nothing new. */
 export function channelEdit(el, c) {
-  const m = /^mk-ch([ku])-(\d+)$/.exec(el.id);
+  const m = /^mk-ch([kufa])-(\d+)$/.exec(el.id);
   const i = m ? Number(m[2]) : -1;
   if (!c.channels[i]) return null;
-  const field = m[1] === "k" ? "kind" : "url";
-  const value = field === "url" ? el.value.trim() : el.value;
-  if (value === c.channels[i][field]) return null;
+  const field = { k: "kind", u: "url", f: "followers", a: "active" }[m[1]];
+  const value = field === "url" ? el.value.trim() : field === "followers" ? (el.value === "" ? null : Number(el.value)) : el.value;
+  if (value === (c.channels[i][field] ?? (field === "active" ? "" : null))) return null;
   return save(c, c.channels.map((ch, j) => (j === i ? { ...ch, [field]: value } : ch)));
 }
 

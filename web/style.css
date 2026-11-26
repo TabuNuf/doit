@@ -259,6 +259,10 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mk-links a { color: var(--accent); }
 .mk-ch { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
 .mk-ch input { flex: 1; min-width: 8em; font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 2px; background: var(--bg); color: var(--ink); }
+.mk-ch input.mk-chn { flex: 0 0 7em; min-width: 0; }
+.mk-ch input[type=date] { flex: 0 0 9.5em; }
+.mk-parked { margin-top: 12px; border-top: 1px dashed var(--line); }
+.mk-parked > button.sec-h { width: 100%; background: none; border: 0; color: var(--ink); cursor: pointer; text-align: left; font: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
 .mk-touch { margin-top: 8px; }
 .mk-draft { border: 1px solid var(--line); border-radius: 2px; padding: 8px; margin-bottom: 10px; }
 .mk-draft input { width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 5px 8px; background: var(--bg); color: var(--ink); }
