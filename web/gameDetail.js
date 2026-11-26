@@ -2,6 +2,7 @@
 
 import { esc, compactCount } from "./state.js";
 import { linksBlock, coveredByBlock, TRACKER_KINDS } from "./gameLinks.js";
+import { compareBlock } from "./gameCompare.js";
 import { GM_STAGES } from "./gameFilters.js";
 
 // [field, label, kind, hint]: kinds line, date, list, num, text (a text area), stage, demo, source.
@@ -54,7 +55,7 @@ export function gameDetailPane(e, compOpen = false) {
   return wrap(group("Identity", IDENTITY, e) + linksBlock("Stores", "stores", e.stores) + linksBlock("Trackers", "trackers", e.trackers)
     + group("What it is", WHAT, e) + group("Success", SUCCESS, e) + group("Ratings", RATINGS, e) + group("How it got there", HOW, e)
     + `<div class="sect">Coverage</div><div class="muted">${e.coverage.count} contact${e.coverage.count === 1 ? "" : "s"}, reach ${esc(e.coverage.reach)}${e.coverage.newest ? `, newest ${esc(e.coverage.newest)}` : ""}</div>`
-    + coveredByBlock(e.coveredBy ?? [])
+    + coveredByBlock(e.coveredBy ?? []) + compareBlock(e.compare ?? [], compOpen)
     + group("Notes and sources", NOTES, e));
 }
 

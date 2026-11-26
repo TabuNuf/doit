@@ -38,10 +38,10 @@ export function gameHeaderRow(sort) {
 
 const mono = (text, title) => text === "" ? `<span class="muted">-</span>` : `<span class="mono" title="${esc(title)}">${esc(text)}</span>`;
 
-/** The seven cells of a row: the title carries a pill for each store, the rating its label, the sales estimate its source. */
-export function gameCells(e) {
+/** The seven cells of a row: the title carries a pill for each store (and `comp` when marked for the game `comp`), the rating its label, the sales estimate its source. */
+export function gameCells(e, comp = "") {
   const from = e.estimates.salesFrom || "";
-  return `<span class="title">${esc(e.title)}<span class="pills">${Object.keys(e.stores).map(k => `<span class="pill">${esc(k)}</span>`).join("")}</span></span>`
+  return `<span class="title">${esc(e.title)}<span class="pills">${comp && (e.comps ?? []).some(c => c.game === comp) ? `<span class="pill comp" title="Marked comparable to ${esc(comp)}">comp</span>` : ""}${Object.keys(e.stores).map(k => `<span class="pill">${esc(k)}</span>`).join("")}</span></span>`
     + `<span>${e.genres.length ? esc(e.genres.join(", ")) : `<span class="muted">-</span>`}</span>`
     + `<span>${e.scales.length ? esc(e.scales.join("+")) : `<span class="muted">-</span>`}</span>`
     + mono(e.rating === null ? "" : `${e.rating}%`, e.ratingLabel || "Rating")

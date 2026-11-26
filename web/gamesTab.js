@@ -4,18 +4,19 @@ import { S, esc, api, redraw, toast } from "./state.js";
 import { EMPTY_GM_FILTERS, GM_FILTERS, gamePath, filterPane } from "./gameFilters.js";
 import { clickGameSort, orderGames, gameHeaderRow, gameCells, nextGame } from "./gameColumns.js";
 import { gameDetailPane, gameEditRequest } from "./gameDetail.js";
+import { compRequest, uncompRequest } from "./gameCompare.js";
 import { linkAdd, linkRemove } from "./gameLinks.js";
 
 export { gameDetailPane };
 
-export function gameRow(e, sel) {
-  return `<button class="mk-row gm-cols" data-game="${esc(e.key)}" aria-pressed="${sel === e.key}">${gameCells(e)}</button>`;
+export function gameRow(e, sel, comp = "") {
+  return `<button class="mk-row gm-cols" data-game="${esc(e.key)}" aria-pressed="${sel === e.key}">${gameCells(e, comp)}</button>`;
 }
 
 /** The list column: a header row, then the games in the chosen order. */
-export function gameListPane(list, sel, sort = null, filtered = false) {
+export function gameListPane(list, sel, sort = null, filtered = false, comp = "") {
   if (!list) return `<section class="pane"><div class="pane-h">Games</div><div class="pane-b"><div class="empty">Loading…</div></div></section>`;
-  const body = list.length ? gameHeaderRow(sort) + orderGames(list, sort).map(e => gameRow(e, sel)).join("")
+  const body = list.length ? gameHeaderRow(sort) + orderGames(list, sort).map(e => gameRow(e, sel, comp)).join("")
     : filtered ? `<div class="empty">No game matches these filters. <button data-gm-clear>Clear filters</button></div>`
       : `<div class="empty">No games yet. A game appears here when a contact covers it.</div>`;
   return `<section class="pane" aria-label="Games"><div class="pane-h">Games<span class="c">${list.length}</span></div><div class="pane-b">${body}</div></section>`;
@@ -23,7 +24,7 @@ export function gameListPane(list, sel, sort = null, filtered = false) {
 
 export function gamesPanes() {
   const g = S.gm;
-  return filterPane(g.f, g.tags, S.mk.profiles) + gameListPane(g.list, g.sel, g.sort, Object.values(g.f).some(Boolean)) + gameDetailPane(g.detail, g.compOpen);
+  return filterPane(g.f, g.tags, S.mk.profiles) + gameListPane(g.list, g.sel, g.sort, Object.values(g.f).some(Boolean), g.f.comp) + gameDetailPane(g.detail, g.compOpen);
 }
 
 /** Loads the filtered list, the tags in use and the selected game; no redraw. */
@@ -52,6 +53,9 @@ export function gamesClick(d) {
   if (d.game) { g.sel = d.game; g.detail = null; g.compOpen = false; redraw(); refreshGames(); return true; }
   if (d.gmSort) { g.sort = clickGameSort(g.sort, d.gmSort); try { localStorage.setItem("doit.games.sort", JSON.stringify(g.sort)); } catch { /* storage off */ } redraw(); return true; }
   if ("gmClear" in d) { g.f = { ...EMPTY_GM_FILTERS }; refreshGames(); return true; }
+  if ("gmCompOpen" in d) { g.compOpen = true; redraw(); document.getElementById("gm-comp-reason")?.focus(); return true; }
+  if ("gmCompCancel" in d) { g.compOpen = false; redraw(); return true; }
+  if (d.gmUncomp && g.detail) { sendGame(uncompRequest(g.detail, d.gmUncomp)); return true; }
   if (d.gmDel && g.detail) { const [field, kind] = d.gmDel.split("/"); sendGame(linkRemove(g.detail, field, kind)); return true; }
   if (d.gmAdd && g.detail) {
     const req = linkAdd(g.detail, d.gmAdd, document.getElementById(`gm-lk-${d.gmAdd}`).value, document.getElementById(`gm-lu-${d.gmAdd}`).value);
@@ -85,7 +89,13 @@ export function gamesFocusOut(ev) {
   return true;
 }
 
-export const gamesSubmit = () => false;
+/** The + Comparable to form; true when the form was this one. */
+export function gamesSubmit(f) {
+  if (f.id !== "gm-comp" || !S.gm.detail) return false;
+  S.gm.compOpen = false;
+  sendGame(compRequest(S.gm.detail, document.getElementById("gm-comp-game").value, document.getElementById("gm-comp-reason").value));
+  return true;
+}
 
 /** Arrow up and down move the selection in the list, and the pane follows; true when the key was handled. */
 export function gamesKey(ev) {
