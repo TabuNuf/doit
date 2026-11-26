@@ -21,7 +21,7 @@ test("the Marketing view shows its tabs where the other views show the projects"
   render();
   const bar = els.get("#projects").innerHTML;
   assert.match(bar, /data-mk-pane="festivals" aria-pressed="true"/);
-  assert.match(bar, /^<button[^>]*>Campaigns<.*>Contacts<.*>Festivals<.*>Events<.*>Drafts<.*>Overview</s, "only the tabs, in order");
+  assert.match(bar, /^<button[^>]*>Campaigns<.*>Contacts<.*>Games<.*>Festivals<.*>Events<.*>Drafts<.*>Overview</s, "only the tabs, in order");
   assert.doesNotMatch(bar, /data-p=|data-projmenu|All projects|Projects|<select/);
 
   for (const view of ["board", "claude"]) {

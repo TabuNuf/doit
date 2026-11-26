@@ -9,10 +9,12 @@ export const S = {
   project: "all", epic: null, tab: "open", q: "", owner: "all",
   f: { task: true, bug: true, due: "any" }, fOpen: false, projOpen: false,
   view: "board", claude: null, mk: { contacts: null, parked: [], parkedOpen: false, profiles: [], game: "", f: { type: "", reach: "", status: "", genre: "", fits: "", contacted: "" }, genres: [], sel: null, detail: null, history: null, touchOpen: false, fitOpen: false, pane: "campaigns", newCampaign: false, newEvent: "", campaign: null, suggest: null, events: [], fest: null, campaigns: null, drafts: null, status: null, sweep: "", week: null, sort: null }, show: { epics: true, docs: true }, docs: { project: null, trees: {}, active: false, path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
+  gm: { list: null, tags: { genres: [], keywords: [] }, f: { genre: "", keyword: "", scale: "", stage: "", store: "", rating: "", reviews: "", covered: "", comp: "", similar: "", noFacts: "" }, sort: null, sel: null, detail: null, compOpen: false },
   settings: { open: false, profiles: [], msg: "" },
   sel: null, descEdit: null, font: 15, newProj: false, newTask: false, newEpic: null, projectPage: null, epicView: null, epicFold: {}, epicOpen: {}, data: null, npErr: "",
 };
 try { S.mk.sort = JSON.parse(localStorage.getItem("doit.contacts.sort") || "null"); } catch { /* storage off or unreadable */ }
+try { S.gm.sort = JSON.parse(localStorage.getItem("doit.games.sort") || "null"); } catch { /* storage off or unreadable */ }
 try { S.font = Number(localStorage.getItem("doit.font")) || 15; S.project = localStorage.getItem("doit.project") || "all"; S.docs.linkedClosed = localStorage.getItem("doit.docs.linked") === "closed"; Object.assign(S.show, JSON.parse(localStorage.getItem("doit.show") || "{}")); } catch { /* storage off */ }
 
 let renderer = () => {};

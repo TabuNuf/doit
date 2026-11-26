@@ -15,6 +15,7 @@ import { campaignsList, campaignsPane, campaignForm, campaignRequest } from "./c
 import { briefPane, briefRequest } from "./campaignBrief.js";
 import { openEpic } from "./epicView.js";
 import { openSettingsFor } from "./projectSettings.js";
+import { gamesPanes, refreshGames, gamesClick, gamesChange, gamesFocusOut, gamesSubmit, gamesKey } from "./gamesTab.js";
 import { draftsPane, draftEditRequest, sendQuestion, sweepSummary } from "./draftsPane.js";
 
 export { TYPES, REACH_OPTIONS, contactPath, filterPane, EMPTY_FILTERS, FILTERS } from "./contactFilters.js";
@@ -52,7 +53,7 @@ export function parkedSection(parked, open, sel, game = null) {
   return `<div class="mk-parked"><button class="sec-h" data-mk-parked aria-expanded="${open}">${open ? "▾" : "▸"} Parked<span class="c">${parked.length}</span></button>${rows}</div>`;
 }
 
-export const MK_TABS = [["campaigns", "Campaigns"], ["contacts", "Contacts"], ["festivals", "Festivals"], ["events", "Events"], ["drafts", "Drafts"], ["overview", "Overview"]];
+export const MK_TABS = [["campaigns", "Campaigns"], ["contacts", "Contacts"], ["games", "Games"], ["festivals", "Festivals"], ["events", "Events"], ["drafts", "Drafts"], ["overview", "Overview"]];
 /** The `platform` each event tab asks for: Events are the store events (Steam, Epic, GOG, itch), Festivals every other. */
 const EVENT_TAB = { festivals: "0", events: "1" };
 
@@ -70,6 +71,7 @@ export function marketingPanes() {
   const detail = () => m.detail && m.detail.event
     ? eventPane(m.detail, ["steam", "epic", "gog", "itch"].includes(m.detail.event.where) ? "Event" : "Festival")
     : detailPane(m.detail, m.profiles, m.touchOpen, today(), m.history, m.fitOpen);
+  if (m.pane === "games") return gamesPanes();
   if (m.pane === "overview") return overviewPanes(m.week, m.sel);
   if (m.pane === "campaigns") return campaignsPane(m.campaigns && campaignsList(m.campaigns), "", m.campaign || "")
     + briefPane(campaignOf(m), m.profiles, m.events, m.suggest, m.sel, m.newCampaign ? campaignForm(m.profiles, m.game, m.events, m.newEvent) : "") + detail();
@@ -91,6 +93,7 @@ export function marketingKey(ev) {
   const m = S.mk;
   if (S.view !== "marketing" || (ev.key !== "ArrowUp" && ev.key !== "ArrowDown") || ev.altKey || ev.ctrlKey || ev.metaKey) return false;
   if (/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) || ev.target.isContentEditable) return false;
+  if (m.pane === "games") return gamesKey(ev);
   const ids = m.pane === "contacts" ? orderContacts(m.contacts || [], m.sort).map(c => c.id) : EVENT_TAB[m.pane] ? (m.fest || []).map(c => c.id) : null;
   if (!ids) return false;
   ev.preventDefault();
@@ -114,6 +117,7 @@ export async function refreshMarketing() {
   const m = S.mk;
   try {
     [m.profiles, m.contacts, m.parked, m.drafts, m.status, m.genres] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f)), api("GET", parkedPath()), api("GET", "/api/drafts"), api("GET", "/api/mail/status"), api("GET", "/api/genres")]);
+    if (m.pane === "games") await refreshGames();
     if (m.pane === "overview") m.week = await api("GET", "/api/outreach").catch(() => null);
     if (EVENT_TAB[m.pane]) m.fest = await api("GET", festivalPath(m.game, EVENT_TAB[m.pane]));
     if (m.pane === "campaigns") await loadCampaigns(m);
@@ -146,6 +150,7 @@ async function send(req) {
 /** Handles a click on a Marketing control; true when the click was one. */
 export function marketingClick(d) {
   const m = S.mk;
+  if (m.pane === "games" && gamesClick(d)) return true;
   if (d.taskContact) { S.view = "marketing"; m.pane = "contacts"; m.sel = d.taskContact; m.detail = null; m.touchOpen = false; m.fitOpen = false; redraw(); refreshMarketing(); return true; }
   if (d.contact) { if (d.mkTo) m.pane = d.mkTo; m.sel = d.contact; m.detail = null; m.touchOpen = false; m.fitOpen = false; redraw(); refreshMarketing(); return true; }
   if ("mkParked" in d) { m.parkedOpen = !m.parkedOpen; redraw(); return true; }
@@ -193,6 +198,7 @@ async function discardDraft(id) {
 /** A changed filter or detail field; true when the change was one. */
 export function marketingChange(ev) {
   const el = ev.target;
+  if (el.id.startsWith("gm-")) return gamesChange(ev);
   if (el.id === "mk-ev-game") { S.mk.game = el.value; S.mk.fest = null; refreshMarketing(); return true; }
   if (el.id.startsWith("cb-")) { const e = campaignOf(S.mk), req = e && briefRequest(el, e); if (req) saveBrief(req); return true; }
   if (FILTERS[el.id]) { S.mk.f[FILTERS[el.id]] = el.value; refreshMarketing(); return true; }
@@ -206,6 +212,7 @@ export function marketingChange(ev) {
 
 /** Notes and About save when the field loses focus; true when the event was one of them. */
 export function marketingFocusOut(ev) {
+  if (S.mk.pane === "games") return gamesFocusOut(ev);
   if ((ev.target.id !== "mk-notes" && ev.target.id !== "mk-about") || !S.mk.detail) return false;
   const req = editRequest(ev.target, S.mk.detail);
   if (req) send(req);
@@ -254,6 +261,7 @@ async function startCampaign() {
 
 /** The add-touch form; true when the form was this one. */
 export function marketingSubmit(f) {
+  if (f.id.startsWith("gm-")) return gamesSubmit(f);
   if (f.id === "mk-campaign") { startCampaign(); return true; }
   if (f.id === "mk-fit" && S.mk.detail) { send(fitRequest(S.mk.detail, $("#mk-fit-game").value, $("#mk-fit-reason").value)); return true; }
   if (f.id !== "mk-touch" || !S.mk.detail) return false;
