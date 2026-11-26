@@ -29,6 +29,10 @@ test("the pane has a control for every field under the headings, and the three t
     "reviews", "sales", "revenue", "salesSource", "peakPlayers", "followers", "rating", "ratingLabel", "metacritic", "opencritic", "playtime", "team", "devTime", "festivals", "earlyAccess", "worked", "notes", "sources", "checked"]) {
     assert.ok(html.includes(`id="gm-f-${f}"`), f);
   }
+  const at = x => html.indexOf(`id="gm-f-${x}"`), sect = h => html.indexOf(`>${h}</div>`);
+  for (const f of ["price", "launchPrice", "playtime"]) assert.ok(at(f) > sect("Success") && at(f) < sect("Ratings"), f);
+  assert.ok(at("price") < at("reviews") && at("playtime") > at("followers"));
+  for (const f of ["demo", "languages"]) assert.ok(at(f) > sect("How it got there") && at(f) < sect("Coverage"), f);
   assert.equal([...html.matchAll(/<textarea/g)].length, 3);
   assert.match(html, /<option value="early-access" >early-access/);
 });

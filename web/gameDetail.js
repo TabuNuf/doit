@@ -8,10 +8,10 @@ import { GM_STAGES } from "./gameFilters.js";
 // [field, label, kind, hint]: kinds line, date, list, num, text (a text area), stage, demo, source.
 const IDENTITY = [["developer", "Developer", "line"], ["publisher", "Publisher", "line"], ["release", "Release", "date"], ["stage", "Stage", "stage"], ["platforms", "Platforms", "list", "PC, Switch"]];
 const WHAT = [["description", "Description", "text"], ["hook", "Hook", "line"], ["look", "Look", "line"], ["genres", "Genres", "list", "Roguelike, Action"], ["keywords", "Keywords", "list", "fast, co-op"],
-  ["modes", "Modes", "list", "single-player, co-op"], ["scales", "Scales", "list", "indie, aa"], ["price", "Price", "num", "19.99"], ["launchPrice", "Launch price", "num", "19.99"], ["demo", "Demo", "demo"], ["languages", "Languages", "num", "number of languages"]];
-const SUCCESS = [["reviews", "Reviews", "num"], ["sales", "Sales", "num"], ["revenue", "Revenue", "num"], ["salesSource", "Sales source", "source"], ["peakPlayers", "Peak players", "num"], ["followers", "Followers", "num"]];
-const RATINGS = [["rating", "Rating %", "num"], ["ratingLabel", "Rating label", "line", "Very Positive"], ["metacritic", "Metacritic", "num"], ["opencritic", "OpenCritic", "num"], ["playtime", "Playtime (hours)", "num"]];
-const HOW = [["team", "Team", "line"], ["devTime", "Dev time", "line"], ["festivals", "Festivals", "line"], ["earlyAccess", "Early access", "line"], ["worked", "What worked", "text"]];
+  ["modes", "Modes", "list", "single-player, co-op"], ["scales", "Scales", "list", "indie, aa"]];
+const SUCCESS = [["price", "Price", "num", "19.99"], ["launchPrice", "Launch price", "num", "19.99"], ["reviews", "Reviews", "num"], ["sales", "Sales", "num"], ["revenue", "Revenue", "num"], ["salesSource", "Sales source", "source"], ["peakPlayers", "Peak players", "num"], ["followers", "Followers", "num"], ["playtime", "Playtime (hours)", "num"]];
+const RATINGS = [["rating", "Rating %", "num"], ["ratingLabel", "Rating label", "line", "Very Positive"], ["metacritic", "Metacritic", "num"], ["opencritic", "OpenCritic", "num"]];
+const HOW = [["team", "Team", "line"], ["devTime", "Dev time", "line"], ["festivals", "Festivals", "line"], ["earlyAccess", "Early access", "line"], ["demo", "Demo", "demo"], ["languages", "Languages", "num", "number of languages"], ["worked", "What worked", "text"]];
 const NOTES = [["notes", "Notes", "text"], ["sources", "Sources", "list", "https://..."], ["checked", "Checked", "date"]];
 const ALL = [IDENTITY, WHAT, SUCCESS, RATINGS, HOW, NOTES].flat();
 

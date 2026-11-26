@@ -38,8 +38,8 @@ export function filterPane(f, tags = { genres: [], keywords: [] }, profiles = []
     ${select("gm-rating", "Rating at least", RATING, f.rating)}
     ${select("gm-reviews", "Reviews at least", REVIEWS, f.reviews)}
     ${select("gm-covered", "Covered by at least", COVERED, f.covered)}
-    ${select("gm-comp", "Comp of", games, f.comp)}
+    ${select("gm-comp", "Comparable to", games, f.comp)}
     ${select("gm-similar", "Similar to", games, f.similar)}
-    <label for="gm-nofacts"><input type="checkbox" id="gm-nofacts" ${f.noFacts ? "checked" : ""}> Not yet checked</label>
+    <label for="gm-nofacts" style="display:flex;flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="gm-nofacts" ${f.noFacts ? "checked" : ""}> Not researched</label>
     <button data-gm-clear>Clear filters</button></div></section>`;
 }

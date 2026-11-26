@@ -31,6 +31,8 @@ test("the filter column has a control for each filter, with the tags and profile
   assert.match(html, /<option value="action" selected>/);
   assert.match(html, /<option value="good-box" >Good Box/);
   assert.match(html, /id="gm-nofacts" checked/);
+  assert.match(html, /Comparable to<select id="gm-comp"/);
+  assert.match(html, /<input type="checkbox" id="gm-nofacts" checked> Not researched/);
   assert.match(html, /data-gm-clear/);
 });
 
