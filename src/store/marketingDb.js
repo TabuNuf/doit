@@ -6,7 +6,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { takeGenreLines } from "../domain/contactImport.js";
 
-const VERSION = 5;
+const VERSION = 6;
 
 const SCHEMA_V1 = `
   CREATE TABLE contacts (
@@ -64,6 +64,16 @@ const V4 = `
 // v5: a special relationship on a contact, a one-line reason (empty: none).
 const V5 = `ALTER TABLE contacts ADD COLUMN special TEXT NOT NULL DEFAULT '';`;
 
+// v6: reddit, scales (comma separated labels), a scale note and a checked date on a contact; followers and a last-active date on a channel. Rows keep their values.
+const V6 = `
+  ALTER TABLE contacts ADD COLUMN reddit TEXT NOT NULL DEFAULT '';
+  ALTER TABLE contacts ADD COLUMN scales TEXT NOT NULL DEFAULT '';
+  ALTER TABLE contacts ADD COLUMN scale_note TEXT NOT NULL DEFAULT '';
+  ALTER TABLE contacts ADD COLUMN checked TEXT NOT NULL DEFAULT '';
+  ALTER TABLE channels ADD COLUMN followers INTEGER;
+  ALTER TABLE channels ADD COLUMN active TEXT NOT NULL DEFAULT '';
+`;
+
 export class MarketingDb {
   constructor(dir) {
     this.dir = dir;
@@ -100,6 +110,7 @@ export class MarketingDb {
       if (v < 3) this.db.exec(V3);
       if (v < 4) this.#genresFromNotes();
       if (v < 5) this.db.exec(V5);
+      if (v < 6) this.db.exec(V6);
       this.db.exec(`PRAGMA user_version = ${VERSION}`);
     });
   }

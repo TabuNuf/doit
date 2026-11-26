@@ -6,9 +6,11 @@
 //   a contact carries id, fit [{game, reason}], touches [{date, kind, game, note}] newest first.
 // The ProfileShelf it is given: list() -> profiles, has(game) -> bool.
 
-import { makeContact, contactFilter, byReach, isDue, checkDate, checkTouchKind, lastContact, lastActive, genresOf, ContactError } from "./contacts.js";
+import { makeContact, contactFilter, byReach, isDue, isRelevant, checkDate, checkTouchKind, lastContact, lastActive, genresOf, ContactError } from "./contacts.js";
 import { mapStreamers, mergeNotes } from "./contactImport.js";
 import { EventMatch } from "./eventMatch.js";
+import { takeIndieFit } from "./scaleNotes.js";
+import { channelKind } from "./contactImport.js";
 import { daysLeft, checkWatchState, checkYear, checkProfile, isPlatformEvent } from "./events.js";
 
 const day = d => {
@@ -17,10 +19,10 @@ const day = d => {
 };
 
 /** The input fields of a stored contact: what `makeContact` takes, without the facts the book adds. */
-const plain = ({ fit, touches, due, id, last, active, ...fields }) => fields;
+const plain = ({ fit, touches, due, id, last, active, relevant, ...fields }) => fields;
 
 /** Channel kinds that name one person; a shared Discord server or a website does not. */
-const PERSONAL = new Set(["youtube", "twitch", "bluesky", "x", "instagram", "facebook", "linktree", "steam"]);
+const PERSONAL = new Set(["youtube", "twitch", "kick", "tiktok", "bluesky", "x", "instagram", "facebook", "reddit", "patreon", "rumble", "linktree", "steam"]);
 
 const linkKey = url => String(url).trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "");
 
@@ -34,18 +36,24 @@ export class ContactBook {
 
   today() { return day(this.now()); }
 
-  /** Contacts matching the filter (see `contactFilter`), due ones first, then largest reach. */
+  /** Contacts matching the filter (see `contactFilter`; parked ones only when asked for), due ones first, then largest reach. */
   list(filter = {}) {
     const today = this.today();
-    const keep = contactFilter(filter, today);
-    return this.source.all().filter(keep).map(c => ({ ...c, due: isDue(c, today), last: lastContact(c.touches), active: lastActive(c.touches) }))
+    const profiles = this.shelf.list();
+    const keep = contactFilter(filter, today, profiles);
+    return this.source.all().filter(keep).map(c => this.#facts(c, today, profiles))
       .sort((a, b) => Number(b.due) - Number(a.due) || byReach(a, b));
   }
 
   get(id) {
     const c = this.source.get(this.#id(id));
     if (!c) throw new ContactError(`No contact ${id}`, 404);
-    return { ...c, due: isDue(c, this.today()), last: lastContact(c.touches), active: lastActive(c.touches) };
+    return this.#facts(c, this.today(), this.shelf.list());
+  }
+
+  /** The contact with the facts the book adds: due, last, active and relevant (a festival is never relevant). */
+  #facts(c, today, profiles) {
+    return { ...c, due: isDue(c, today), last: lastContact(c.touches), active: lastActive(c.touches), relevant: !c.event && isRelevant(c, profiles) };
   }
 
   /** Every genre in use, for the Genre filter. */
@@ -58,6 +66,32 @@ export class ContactBook {
     const c = this.get(id);
     this.source.update(c.id, makeContact({ ...plain(c), ...changes }));
     return this.get(c.id);
+  }
+
+  /** One channel by url: a known url takes the kind, followers and last-active date given (what is empty stays); an unknown one is added. */
+  setChannel(id, channel) {
+    const c = this.get(id);
+    const key = linkKey(channel.url);
+    const known = c.channels.find(x => linkKey(x.url) === key);
+    const given = { ...channel, followers: channel.followers ?? known?.followers ?? null, active: channel.active || known?.active || "" };
+    const channels = known ? c.channels.map(x => (x === known ? { ...known, ...given } : x)) : [...c.channels, given];
+    return this.update(c.id, { channels });
+  }
+
+  /** The `Indie fit:` first line of a contact's notes moved into scales, scale note and checked date, a website channel of a known host retyped (kick, reddit, rumble...)
+   *  and a reddit link copied to the reddit field. Other note lines stay. `apply` false only reports. Returns [{id, name, scales, scaleNote, checked, retyped}]. */
+  migrateScale(apply = false) {
+    const out = [];
+    for (const c of this.source.all()) {
+      const got = takeIndieFit(c.notes);
+      if (!got) continue;
+      const channels = c.channels.map(ch => (ch.kind === "website" && channelKind(ch.url) !== "website" ? { ...ch, kind: channelKind(ch.url) } : ch));
+      const retyped = channels.filter((ch, i) => ch.kind !== c.channels[i].kind).map(ch => `${ch.kind} ${ch.url}`);
+      const reddit = c.reddit || channels.find(ch => ch.kind === "reddit")?.url || "";
+      out.push({ id: c.id, name: c.name, scales: got.scales, scaleNote: got.scaleNote, checked: got.checked, retyped });
+      if (apply) this.source.update(c.id, makeContact({ ...plain(c), notes: got.notes, scales: got.scales, scaleNote: got.scaleNote, checked: got.checked, channels, reddit }));
+    }
+    return out;
   }
 
   setFit(id, game, reason) {
@@ -93,6 +127,13 @@ export class ContactBook {
 
   /** Saves the profile fields of a project with a kind (see `checkProfile`). */
   saveProfile(project, input) { return this.shelf.save(project, checkProfile(input)); }
+
+  /** Changes named fields of a project's profile (genres, platforms, needs, stage, release, scale); the others stay. */
+  setProfile(project, changes) {
+    const now = this.shelf.list().find(p => p.project === project);
+    if (!now) throw new ContactError(`No profile for project "${project}"; add one first`);
+    return this.saveProfile(project, { ...now, ...changes });
+  }
 
   /** A profile template in a project's own Marketing folder; `kind` defaults to the project's kind, else game. */
   addProfile(project, kind) { return this.shelf.createFor(project, kind); }

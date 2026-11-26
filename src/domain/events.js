@@ -1,6 +1,6 @@
 // The event fields of a festival or conference contact. Pure.
 
-import { checkDate, ContactError } from "./contacts.js";
+import { checkDate, checkScales, ContactError } from "./contacts.js";
 
 export const WHERES = ["steam", "epic", "gog", "itch", "physical", "online"];
 export const WATCH_STATES = ["watching", "applied", "accepted", "declined", "past"];
@@ -59,5 +59,6 @@ export function checkProfile(input = {}) {
   const list = v => [...new Set((Array.isArray(v) ? v : String(v ?? "").split(",")).map(s => String(s).trim()).filter(Boolean))];
   const stage = String(input.stage ?? "").trim().toLowerCase();
   if (!GAME_STAGES.includes(stage)) throw new ContactError(`Unknown stage "${input.stage ?? ""}"; use ${GAME_STAGES.join(", ")}`);
-  return { genres: list(input.genres), platforms: list(input.platforms), needs: list(input.needs), stage, release: input.release ? checkDate(input.release, "Release date") : "" };
+  return { genres: list(input.genres), platforms: list(input.platforms), needs: list(input.needs), stage, release: input.release ? checkDate(input.release, "Release date") : "",
+    scale: input.scale === undefined ? undefined : checkScales(input.scale) };
 }

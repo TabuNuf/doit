@@ -15,13 +15,13 @@ Design: Design.md, section Marketing (scale labels, relevant, parked, per-channe
 ## Tasks
 
 - [x] T-029.1 Architecture and class diagram for scale and parked (done when: Architecture.md lists scales, channel facts, relevance and parked; diagram updated)
-- [ ] T-029.2 Scale vocabulary and new contact fields (done when: Tests: a contact round trips the fields; bad scale refused; old db opens with empty values)
-- [ ] T-029.3 Channel kinds and per-channel followers and last-active (done when: Tests: old channel rows survive the migration; new kinds accepted; syntax parsed; unknown host stays website)
-- [ ] T-029.4 Game profile scale and profile set (done when: Tests: scale parsed and saved; page save keeps an existing scale; profile set works)
-- [ ] T-029.5 Relevance rule and parked status (done when: Tests: fit only, scale overlap, both empty; filters; campaign picking skips parked)
-- [ ] T-029.6 CLI: filters, show, set and help text (done when: Tests on the CLI output; doit help documents every new flag and key)
-- [ ] T-029.7 API routes for the new fields (done when: Route tests pass)
-- [ ] T-029.8 Indie fit migration and relevance report (done when: Tests: dry run changes nothing; apply sets the fields and keeps other notes)
+- [x] T-029.2 Scale vocabulary and new contact fields (done when: Tests: a contact round trips the fields; bad scale refused; old db opens with empty values)
+- [x] T-029.3 Channel kinds and per-channel followers and last-active (done when: Tests: old channel rows survive the migration; new kinds accepted; syntax parsed; unknown host stays website)
+- [x] T-029.4 Game profile scale and profile set (done when: Tests: scale parsed and saved; page save keeps an existing scale; profile set works)
+- [x] T-029.5 Relevance rule and parked status (done when: Tests: fit only, scale overlap, both empty; filters; campaign picking skips parked)
+- [x] T-029.6 CLI: filters, show, set and help text (done when: Tests on the CLI output; doit help documents every new flag and key)
+- [x] T-029.7 API routes for the new fields (done when: Route tests pass)
+- [x] T-029.8 Indie fit migration and relevance report (done when: Tests: dry run changes nothing; apply sets the fields and keeps other notes)
 - [ ] T-029.9 Board: parked section, scale and channel fields (done when: Pure-function tests pass)
 - [ ] T-029.10 Check in play: parked section and contact pane (done when: Tabu confirms the board)
 

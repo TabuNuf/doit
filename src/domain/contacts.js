@@ -3,8 +3,10 @@
 import { checkEvent } from "./events.js";
 
 export const TYPES = ["influencer", "blogger", "press", "publisher", "tester", "festival", "conference"];
-export const STATUSES = ["active", "dormant", "archived"];
-export const CHANNEL_KINDS = ["youtube", "twitch", "bluesky", "x", "instagram", "facebook", "discord", "steam", "website", "linktree"];
+export const STATUSES = ["active", "dormant", "parked", "archived"];
+// Production scale: loose labels for funding, ownership and team structure, never quality; one game or creator may carry several.
+export const SCALES = ["solo", "indie", "triple-i", "aa", "aaa"];
+export const CHANNEL_KINDS = ["youtube", "twitch", "kick", "tiktok", "bluesky", "x", "instagram", "facebook", "reddit", "discord", "steam", "patreon", "podcast", "rumble", "website", "linktree"];
 export const TOUCH_KINDS = ["mail", "reply", "video"];
 
 /** An error the interfaces turn into a status: 400 for a refused value, 404 for a missing contact. */
@@ -46,13 +48,35 @@ export function checkGenres(value) {
 
 export function checkTouchKind(value) { return oneOf(value, TOUCH_KINDS, "touch kind"); }
 
+/** Scale labels as a list in vocabulary order; an array or a comma separated string; `iii` is triple-i. */
+export function checkScales(value) {
+  const list = Array.isArray(value) ? value : String(value ?? "").split(",");
+  const got = list.map(text).filter(Boolean).map(v => oneOf(v.toLowerCase() === "iii" ? "triple-i" : v, SCALES, "scale"));
+  return SCALES.filter(s => got.includes(s));
+}
+
 function checkChannels(list) {
   if (!Array.isArray(list)) throw new ContactError("Channels must be a list");
   return list.map(c => {
     const url = text(c?.url);
     if (!url) throw new ContactError("A channel needs a url");
-    return { kind: oneOf(c?.kind, CHANNEL_KINDS, "channel kind"), url };
+    const active = c?.active ? checkDate(c.active, "Channel last active date") : "";
+    return { kind: oneOf(c?.kind, CHANNEL_KINDS, "channel kind"), url, followers: checkReach(c?.followers), active };
   });
+}
+
+/** Followers as a short label: 4770000 is 4.77M, 349800 is 349.8K, 900 stays 900; "-" when unknown. */
+export function countLabel(n) {
+  if (n === null || n === undefined) return "-";
+  const f = (v, u) => `${Number(v.toFixed(2))}${u}`;
+  return n >= 1e6 ? f(n / 1e6, "M") : n >= 1e4 ? f(n / 1e3, "K") : String(n);
+}
+
+/** True when the contact suits at least one game: it has a fit, or its scales share a label with a profile's `scale`. */
+export function isRelevant(contact, profiles = []) {
+  if (contact.fit?.length) return true;
+  const mine = contact.scales ?? [];
+  return profiles.some(p => (p.scale ?? []).some(s => mine.includes(s)));
 }
 
 /** A whole contact from input, with defaults; throws ContactError on a refused value. Fit and touches are not part of the input. */
@@ -73,6 +97,10 @@ export function makeContact(input = {}) {
     about: String(input.about ?? "").trim(),
     notes: String(input.notes ?? "").trim(),
     special: text(input.special),
+    reddit: text(input.reddit),
+    scales: checkScales(input.scales),
+    scaleNote: text(input.scaleNote),
+    checked: input.checked ? checkDate(input.checked, "Checked date") : "",
     status: input.status ? oneOf(input.status, STATUSES, "status") : "active",
     next: input.next ? checkDate(input.next, "Next contact") : "",
     channels: checkChannels(input.channels ?? []),
@@ -80,13 +108,15 @@ export function makeContact(input = {}) {
   };
 }
 
-/** Due: active, with a next contact date on or before `today` (YYYY-MM-DD). */
+/** Due: active, or parked (its review date), with a next date on or before `today` (YYYY-MM-DD). */
 export function isDue(contact, today) {
-  return contact.status === "active" && Boolean(contact.next) && contact.next <= today;
+  return (contact.status === "active" || contact.status === "parked") && Boolean(contact.next) && contact.next <= today;
 }
 
-/** The filter as a checked predicate: {type, fits, contacted, notContacted (games: a touch for / none for that game), noAbout: true, genre, status, reach: at least n followers, due: true} all optional; every one given must match. */
-export function contactFilter(filter = {}, today) {
+/** The filter as a checked predicate: {type, fits, contacted, notContacted (games: a touch for / none for that game), noAbout: true, genre, status, reach: at least n followers, due: true,
+ *  scale (a label the contact covers), relevant / irrelevant: true (see `isRelevant`, against `profiles`; events are neither), parked: true (only parked), all: true (parked too)} all optional; every one given must match.
+ *  With no status, parked and all, parked contacts are left out. */
+export function contactFilter(filter = {}, today, profiles = []) {
   const type = filter.type ? oneOf(filter.type, TYPES, "type") : null;
   const status = filter.status ? oneOf(filter.status, STATUSES, "status") : null;
   const reach = filter.reach === undefined || filter.reach === null || filter.reach === "" ? null : checkReach(filter.reach);
@@ -96,11 +126,22 @@ export function contactFilter(filter = {}, today) {
   const noAbout = Boolean(filter.noAbout);
   const genre = filter.genre ? text(filter.genre).toLowerCase() : null;
   const due = Boolean(filter.due);
+  const scale = filter.scale ? checkScales(filter.scale)[0] : null;
+  if (filter.scale && !scale) throw new ContactError(`Unknown scale "${filter.scale}"; use ${SCALES.join(", ")}`);
+  const parked = Boolean(filter.parked);
+  const hideParked = !status && !parked && !filter.all;
+  const relevant = Boolean(filter.relevant);
+  const irrelevant = Boolean(filter.irrelevant);
   // `except` leaves out contacts of any of these types (the Contacts tab: no festivals or conferences).
   const except = String(filter.except ?? "").split(",").map(s => s.trim()).filter(Boolean).map(t => oneOf(t, TYPES, "type"));
   return c => (!type || c.types.includes(type))
     && !except.some(t => c.types.includes(t))
     && (!status || c.status === status)
+    && (!parked || c.status === "parked")
+    && (!hideParked || c.status !== "parked")
+    && (!scale || (c.scales ?? []).includes(scale))
+    && (!relevant || (!c.event && isRelevant(c, profiles)))
+    && (!irrelevant || (!c.event && !isRelevant(c, profiles)))
     && (reach === null || (c.reach !== null && c.reach >= reach))
     && (!fits || c.fit.some(f => f.game === fits))
     && (!contacted || c.touches.some(t => t.game === contacted))

@@ -1,7 +1,7 @@
 // The contact routes of the JSON API, as [method, pattern, handler] rows for HttpServer.
 // A refused value reaches the client as a ContactError: 400 for the value, 404 for a missing contact.
 
-const FIELDS = ["name", "types", "topic", "email", "reach", "genres", "about", "special", "notes", "status", "next", "channels", "event"];
+const FIELDS = ["name", "types", "topic", "email", "reach", "genres", "about", "special", "notes", "status", "next", "channels", "event", "reddit", "scales", "scaleNote", "checked"];
 const on = v => v === "1" || v === "true";
 
 export function contactRoutes(book) {
@@ -9,6 +9,7 @@ export function contactRoutes(book) {
     ["GET", /^\/api\/contacts$/, q => book.list({
       type: q.get("type") || undefined, except: q.get("except") || undefined, fits: q.get("fits") || undefined, genre: q.get("genre") || undefined, status: q.get("status") || undefined,
       reach: q.get("reach") || undefined, due: on(q.get("due")),
+      scale: q.get("scale") || undefined, relevant: on(q.get("relevant")), irrelevant: on(q.get("irrelevant")), parked: on(q.get("parked")), all: on(q.get("all")),
       contacted: q.get("contacted") || undefined, notContacted: q.get("notContacted") || undefined, noAbout: on(q.get("noAbout")),
     })],
     ["GET", /^\/api\/genres$/, () => book.genres()],
