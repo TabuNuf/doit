@@ -264,3 +264,19 @@ test("a dead channel: the fourth part marks it, shows in show and json, alive cl
   assert.doesNotMatch(run("contact", "show", "1").out, /twitch .*DEAD/);
   assert.equal(run("contact", "set", "1", "channel=twitch=https://twitch.tv/ada|||soon").code, 1);
 });
+
+test("contact set: several channel= keys all apply; any other repeated key is an error that writes nothing", t => {
+  const { run } = world(t);
+  run("contact", "add", "Ada", "--type", "influencer", "--channels", "youtube=https://youtube.com/@ada|1k");
+  const r = run("contact", "set", "1", "channel=twitch=https://twitch.tv/ada|2k|2026-11-01", "channel=tiktok=https://tiktok.com/@ada|712k", "channel=youtube=https://youtube.com/@ada|140k", "scales=indie");
+  assert.equal(r.code, 0, r.err);
+  const c = JSON.parse(run("contact", "show", "1", "--json").out);
+  assert.deepEqual(c.channels.map(x => [x.kind, x.followers]), [["youtube", 140000], ["twitch", 2000], ["tiktok", 712000]]);
+  assert.deepEqual(c.scales, ["indie"]);
+  const bad = run("contact", "set", "1", "scales=aa", "scales=aaa", "reddit=https://reddit.com/r/a");
+  assert.equal(bad.code, 1);
+  assert.match(bad.err, /given twice; nothing was written/);
+  const after = JSON.parse(run("contact", "show", "1", "--json").out);
+  assert.deepEqual([after.scales, after.reddit], [["indie"], ""]);
+  assert.match(run("help").out, /channel=kind=url\|followers\|date adds or updates one channel/);
+});

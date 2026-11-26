@@ -78,13 +78,17 @@ export class ContactsCli {
       for (const kv of rest.slice(1)) {
         const i = kv.indexOf("=");
         if (i < 1) throw new Error(`Expected key=value, got: ${kv}`);
-        changes[kv.slice(0, i)] = kv.slice(i + 1);
+        const key = kv.slice(0, i);
+        if (key === "channel") (changes.channel ??= []).push(kv.slice(i + 1));
+        else if (key in changes) throw new Error(`Key "${key}" is given twice; nothing was written. Only channel= may repeat`);
+        else changes[key] = kv.slice(i + 1);
       }
       if (!Object.keys(changes).length) throw new Error(`Usage: ${USAGE.set}`);
       const id = need(rest[0], USAGE.set);
-      const { channel: one, ...others } = changes;
+      const { channel: many, ...others } = changes;
+      const parsed = (many ?? []).map(v => channel(need(v, USAGE.set)));
       let c = Object.keys(others).length ? this.book.update(id, fields(others)) : this.book.get(id);
-      if (one !== undefined) c = this.book.setChannel(id, channel(need(one, USAGE.set)));
+      for (const ch of parsed) c = this.book.setChannel(id, ch);
       return this.print(line(c));
     }
     throw new Error(`Usage: ${USAGE.show}\n       ${USAGE.add}\n       ${USAGE.set}\n       ${USAGE.game}`);
