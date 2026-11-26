@@ -28,7 +28,7 @@ export function checkDate(value, what = "Date") {
   return s;
 }
 
-function oneOf(value, list, what) {
+export function oneOf(value, list, what) {
   const v = String(value ?? "").trim().toLowerCase();
   if (!list.includes(v)) throw new ContactError(`Unknown ${what} "${value}"; use ${list.join(", ")}`);
   return v;

@@ -24,7 +24,7 @@ Design: Design.md, section Marketing, step 6 (Games)
 ## Tasks
 
 - [x] T-031.1 Design, epic, architecture and the research run for covered games (done when: Design.md step 6, Architecture.md (modules, class diagram), the epic's Specification and Marketing-Claude.md name the same fields and commands)
-- [ ] T-031.2 Game entries in the domain: vocabulary, checks, estimates and compare (done when: test/gameEntries.test.js passes: an unknown key, store kind or stage is refused, sales without a sales source is refused, estimates fall back to reviews x 30)
+- [x] T-031.2 Game entries in the domain: vocabulary, checks, estimates and compare (done when: test/gameEntries.test.js passes: an unknown key, store kind or stage is refused, sales without a sales source is refused, estimates fall back to reviews x 30)
 - [ ] T-031.3 Schema v9: game_entries and comps, and covered games read scale and genres from the entry (done when: test/sqliteGames.test.js passes: a v8 file migrates with one entry per distinct title holding the union of scales and genres; npm test passes)
 - [ ] T-031.4 GameCatalog facade with coverage, filters and comps, wired in the root (done when: test/gameCatalog.test.js passes: list gives coverage and estimates, each filter narrows, a comp to an unknown game is refused; test/boundaries.test.js passes)
 - [ ] T-031.5 CLI: games, game show, add, set and comp (done when: test/gamesCli.test.js passes: games lists with each flag, game set writes a store and a tracker link, game comp adds and removes; doit help prints the commands)
