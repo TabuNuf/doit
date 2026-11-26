@@ -18,6 +18,7 @@ Design: Design.md, section Marketing (covered games, why relevant)
 - [ ] T-030.6 Check in play: covered games on the board (done when: Tabu confirms)
 - [x] T-030.7 Dead flag on a channel (done when: Tests: syntax, round trip, v7 file migrates, pane greys it)
 - [x] T-030.8 Several channel= keys in one contact set (done when: Test: three channel= keys all land; a repeated key writes nothing)
+- [x] T-030.9 Contacts list: Next contact column replaces Last active (done when: Tests pass)
 
 ## Test plan
 
