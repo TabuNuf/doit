@@ -5,7 +5,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { ContactError } from "../domain/contacts.js";
+import { ContactError, SCALES } from "../domain/contacts.js";
 
 const DEFAULT_PROJECT = "polyspice-marketing";
 const STAGES = ["in development", "demo", "released"];
@@ -15,22 +15,23 @@ const list = v => String(v ?? "").split(",").map(s => s.trim()).filter(Boolean);
 
 /** A profile from its text: `# Name`, then `Key: value` lines. Unknown keys are ignored. */
 export function parseProfile(game, text) {
-  const out = { game, name: game, kind: "game", genres: [], platforms: [], stage: "", release: "", needs: [] };
+  const out = { game, name: game, kind: "game", genres: [], platforms: [], stage: "", release: "", needs: [], scale: [] };
   for (const line of text.split("\n")) {
     const h = line.match(/^#\s+(.+?)\s*$/);
     if (h && out.name === game) { out.name = h[1]; continue; }
-    const m = line.match(/^(Genres|Platforms|Stage|Release|Needs|Kind):\s*(.*?)\s*$/i);
+    const m = line.match(/^(Genres|Platforms|Stage|Release|Needs|Kind|Scale):\s*(.*?)\s*$/i);
     if (!m) continue;
     const key = m[1].toLowerCase();
     if (key === "kind") out.kind = KINDS.includes(m[2].toLowerCase()) ? m[2].toLowerCase() : "game";
     else if (key === "stage" || key === "release") out[key] = m[2];
+    else if (key === "scale") out.scale = SCALES.filter(x => list(m[2].toLowerCase().replace(/\biii\b/g, "triple-i")).includes(x));
     else out[key] = list(m[2]);
   }
   return out;
 }
 
 export function profileTemplate(name, kind = "game") {
-  return `# ${name}\n\nKind: ${kind}\nGenres: \nPlatforms: \nStage: in development\nRelease: \nNeeds: \n`;
+  return `# ${name}\n\nKind: ${kind}\nGenres: \nPlatforms: \nStage: in development\nRelease: \nNeeds: \nScale: \n`;
 }
 
 /** The profile text with each `Key: value` line set (added at the end when missing); every other line stays as it was. */
@@ -82,7 +83,7 @@ export class ProfileShelf {
   }
 
   /** Sets the profile fields of a project that has a kind, creating `<docs>/Marketing/Profile.md` from the template when missing.
-   *  `fields` has genres, platforms, needs (arrays), stage and release; other content of an existing file stays. */
+   *  `fields` has genres, platforms, needs (arrays), stage and release, and scale (an array; left as it is when undefined); other content of an existing file stays. */
   save(projectId, fields) {
     const p = this.settingsFile.read().projects.find(x => x.id === projectId);
     if (!p) throw new ContactError(`No project ${projectId}`);
@@ -91,7 +92,7 @@ export class ProfileShelf {
     const text = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : profileTemplate(p.name, p.kind);
     const f = fields;
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, applyProfile(text, { Kind: p.kind, Genres: f.genres.join(", "), Platforms: f.platforms.join(", "), Stage: f.stage, Release: f.release, Needs: f.needs.join(", ") }));
+    fs.writeFileSync(file, applyProfile(text, { Kind: p.kind, Genres: f.genres.join(", "), Platforms: f.platforms.join(", "), Stage: f.stage, Release: f.release, Needs: f.needs.join(", "), ...(f.scale ? { Scale: f.scale.join(", ") } : {}) }));
     return { ...parseProfile(p.id, fs.readFileSync(file, "utf8")), project: p.id, file };
   }
 

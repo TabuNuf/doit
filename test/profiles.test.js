@@ -24,7 +24,7 @@ test("reads two profiles", () => {
   const { home } = marketing();
   const shelf = new ProfileShelf(new SettingsFile(home));
   const [bunny, box] = shelf.list();
-  assert.deepEqual(bunny, { game: "bunny-bunker", name: "Bunny Bunker", kind: "game", genres: ["co-op", "cozy"], platforms: ["Steam", "Switch"], stage: "demo", release: "2027-03-01", needs: ["wishlists", "demo players"] });
+  assert.deepEqual(bunny, { game: "bunny-bunker", name: "Bunny Bunker", kind: "game", genres: ["co-op", "cozy"], platforms: ["Steam", "Switch"], stage: "demo", release: "2027-03-01", scale: [], needs: ["wishlists", "demo players"] });
   assert.equal(box.game, "good-box");
   assert.equal(box.stage, "released");
   assert.deepEqual(box.needs, []);
@@ -107,7 +107,7 @@ test("the project's kind wins over the file's Kind line, and a project with a ki
   settings.write(s);
   const list = new ProfileShelf(settings).list();
   assert.equal(list.find(p => p.game === "box-trainer").kind, "application");
-  assert.deepEqual(list.find(p => p.game === "polyspice-marketing"), { game: "polyspice-marketing", name: "Polyspice Marketing", kind: "podcast", genres: [], platforms: [], stage: "", release: "", needs: [], project: "polyspice-marketing", missing: true });
+  assert.deepEqual(list.find(p => p.game === "polyspice-marketing"), { game: "polyspice-marketing", name: "Polyspice Marketing", kind: "podcast", genres: [], platforms: [], stage: "", release: "", needs: [], scale: [], project: "polyspice-marketing", missing: true });
 });
 
 test("doit profile add takes the project's kind when none is given", async () => {

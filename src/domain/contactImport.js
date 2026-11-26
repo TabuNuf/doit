@@ -42,7 +42,7 @@ const ALIASES = {
 };
 const FIELD_OF = Object.fromEntries(Object.entries(ALIASES).flatMap(([f, names]) => names.map(n => [n, f])));
 // Channel columns: header (lower case) to channel kind.
-const KIND_OF = { linktree: "linktree", youtube: "youtube", twitch: "twitch", steam: "steam", discord: "discord", bluesky: "bluesky", x: "x", instagram: "instagram", facebook: "facebook", www: "website" };
+const KIND_OF = { linktree: "linktree", youtube: "youtube", twitch: "twitch", steam: "steam", discord: "discord", bluesky: "bluesky", x: "x", instagram: "instagram", facebook: "facebook", kick: "kick", tiktok: "tiktok", reddit: "reddit", patreon: "patreon", rumble: "rumble", www: "website" };
 // A bare @handle on these columns becomes a profile link.
 const HANDLE_URL = { bluesky: h => `https://bsky.app/profile/${h}`, x: h => `https://x.com/${h}`, instagram: h => `https://instagram.com/${h}`, twitch: h => `https://twitch.tv/${h}`, youtube: h => `https://youtube.com/@${h}` };
 /** The game the sheet's BB1 and BB2 mailings were for (a project id). */
@@ -51,7 +51,7 @@ export const BB_GAME = "bunny-bunker";
 /** The channel kind of a URL, by host; an unknown host is a website. */
 export function channelKind(url) {
   const host = (url.match(/^(?:https?:\/\/)?([^/?#]+)/i)?.[1] || "").toLowerCase().replace(/^www\./, "");
-  const hit = { "youtu.be": "youtube", "t.co": "x", "twitter.com": "x", "bsky.app": "bluesky", "linktr.ee": "linktree", "store.steampowered.com": "steam", "steamcommunity.com": "steam", "discord.gg": "discord" }[host]
+  const hit = { "youtu.be": "youtube", "t.co": "x", "twitter.com": "x", "bsky.app": "bluesky", "linktr.ee": "linktree", "store.steampowered.com": "steam", "steamcommunity.com": "steam", "discord.gg": "discord", "redd.it": "reddit" }[host]
     || CHANNEL_KINDS.find(k => host === k + ".com" || host.endsWith("." + k + ".com") || host === k + ".tv");
   return hit || "website";
 }

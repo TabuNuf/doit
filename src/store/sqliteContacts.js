@@ -20,14 +20,15 @@ export class SqliteContacts {
       for (const r of this.db.prepare(sql).all()) (m.get(key(r)) ?? m.set(key(r), []).get(key(r))).push(r);
       return m;
     };
-    const channels = by("SELECT contact_id, kind, url FROM channels ORDER BY position");
+    const channels = by("SELECT contact_id, kind, url, followers, active FROM channels ORDER BY position");
     const fit = by("SELECT contact_id, game, reason FROM fit ORDER BY game");
     const touches = by("SELECT contact_id, date, kind, game, note FROM touches ORDER BY date DESC, id DESC");
     const events = new Map(this.db.prepare("SELECT * FROM events").all().map(r => [r.contact_id, toEvent(r)]));
     return this.db.prepare("SELECT * FROM contacts ORDER BY id").all().map(r => ({
       id: r.id, name: r.name, types: r.types.split(","), topic: r.topic, email: r.email, reach: r.reach,
       genres: split(r.genres), about: r.about, notes: r.notes, special: r.special, status: r.status, next: r.next,
-      channels: (channels.get(r.id) ?? []).map(({ kind, url }) => ({ kind, url })),
+      reddit: r.reddit, scales: split(r.scales), scaleNote: r.scale_note, checked: r.checked,
+      channels: (channels.get(r.id) ?? []).map(({ kind, url, followers, active }) => ({ kind, url, followers, active })),
       fit: (fit.get(r.id) ?? []).map(({ game, reason }) => ({ game, reason })),
       touches: (touches.get(r.id) ?? []).map(({ date, kind, game, note }) => ({ date, kind, game, note })),
       event: events.get(r.id) ?? null,
@@ -38,8 +39,8 @@ export class SqliteContacts {
 
   insert(c) {
     return this.store.atomic(() => {
-      const r = this.db.prepare("INSERT INTO contacts (name, types, topic, email, reach, genres, about, notes, status, next, special) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.genres.join(","), c.about, c.notes, c.status, c.next, c.special ?? "");
+      const r = this.db.prepare("INSERT INTO contacts (name, types, topic, email, reach, genres, about, notes, status, next, special, reddit, scales, scale_note, checked) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.genres.join(","), c.about, c.notes, c.status, c.next, c.special ?? "", c.reddit ?? "", (c.scales ?? []).join(","), c.scaleNote ?? "", c.checked ?? "");
       const id = Number(r.lastInsertRowid);
       this.#channels(id, c.channels);
       this.#event(id, c.event);
@@ -50,8 +51,8 @@ export class SqliteContacts {
   /** Replaces the contact's fields and channels; fit and touches stay. */
   update(id, c) {
     this.store.atomic(() => {
-      this.db.prepare("UPDATE contacts SET name = ?, types = ?, topic = ?, email = ?, reach = ?, genres = ?, about = ?, notes = ?, status = ?, next = ?, special = ? WHERE id = ?")
-        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.genres.join(","), c.about, c.notes, c.status, c.next, c.special ?? "", id);
+      this.db.prepare("UPDATE contacts SET name = ?, types = ?, topic = ?, email = ?, reach = ?, genres = ?, about = ?, notes = ?, status = ?, next = ?, special = ?, reddit = ?, scales = ?, scale_note = ?, checked = ? WHERE id = ?")
+        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.genres.join(","), c.about, c.notes, c.status, c.next, c.special ?? "", c.reddit ?? "", (c.scales ?? []).join(","), c.scaleNote ?? "", c.checked ?? "", id);
       this.db.prepare("DELETE FROM channels WHERE contact_id = ?").run(id);
       this.#channels(id, c.channels);
       this.#event(id, c.event);
@@ -79,7 +80,7 @@ export class SqliteContacts {
   }
 
   #channels(id, list) {
-    const add = this.db.prepare("INSERT INTO channels (contact_id, position, kind, url) VALUES (?, ?, ?, ?)");
-    list.forEach((ch, i) => add.run(id, i, ch.kind, ch.url));
+    const add = this.db.prepare("INSERT INTO channels (contact_id, position, kind, url, followers, active) VALUES (?, ?, ?, ?, ?, ?)");
+    list.forEach((ch, i) => add.run(id, i, ch.kind, ch.url, ch.followers ?? null, ch.active ?? ""));
   }
 }
