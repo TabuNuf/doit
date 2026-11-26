@@ -36,6 +36,14 @@ Check in play: T-029.10
 
 Decisions and deviations, newest first.
 
+- 2026-11-26: built in a worktree branch, not on main, because the main checkout held unrelated uncommitted changes. A third epic was `Active` beside 026 and 028, on Tabu's request. T-029.2 to T-029.8 went in one commit and were built by the session itself, not `batch-builder`, since it already held the sources.
+- Default listing: parked contacts are hidden unless `--parked`, `--all` or `--status`. `--irrelevant` is added beside `--relevant`; it is the read-only report of who would be parked.
+- Channel syntax `kind=url|followers|date`; `channel=` on `contact set` adds or updates one channel by url without replacing the list. JSON field is `scaleNote`, CLI key `scale_note`.
+- `profile set` works on projects only; a profile kept as a file in the marketing project's `Profiles/` folder is read but not written by it.
+- Parked contacts use `next` as the review date and show as due on it (`isDue` now covers active and parked).
+
 ## Close audit
+
+Not closed: T-029.10 (Check in play) waits for Tabu. The Audit tests ran green on 2026-11-26.
 
 ## For the standard
