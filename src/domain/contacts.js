@@ -8,6 +8,9 @@ export const STATUSES = ["active", "dormant", "parked", "archived"];
 export const SCALES = ["solo", "indie", "triple-i", "aa", "aaa"];
 export const CHANNEL_KINDS = ["youtube", "twitch", "kick", "tiktok", "bluesky", "x", "instagram", "facebook", "reddit", "discord", "steam", "patreon", "podcast", "rumble", "website", "linktree"];
 export const TOUCH_KINDS = ["mail", "reply", "video"];
+export const GAME_KINDS = ["played", "reviewed", "streamed"];
+/** Covered games in a game profile's league (sharing a scale label) that make a contact relevant without a fit. */
+export const COVERED_GAMES_MIN = 3;
 
 /** An error the interfaces turn into a status: 400 for a refused value, 404 for a missing contact. */
 export class ContactError extends Error {
@@ -72,11 +75,37 @@ export function countLabel(n) {
   return n >= 1e6 ? f(n / 1e6, "M") : n >= 1e4 ? f(n / 1e3, "K") : String(n);
 }
 
-/** True when the contact suits at least one game: it has a fit, or its scales share a label with a profile's `scale`. */
-export function isRelevant(contact, profiles = []) {
-  if (contact.fit?.length) return true;
-  const mine = contact.scales ?? [];
-  return profiles.some(p => (p.scale ?? []).some(s => mine.includes(s)));
+/** A covered game from input: title, scales (at least one), kind, a date and an http(s) source (primary evidence), genre tags. Throws ContactError. */
+export function checkGame(input = {}) {
+  const title = text(input.title);
+  if (!title) throw new ContactError("A covered game needs a title");
+  const scales = checkScales(input.scales);
+  if (!scales.length) throw new ContactError(`A covered game needs a scale: ${SCALES.join(", ")}`);
+  const source = text(input.source);
+  if (!/^https?:\/\/\S+$/i.test(source)) throw new ContactError("A covered game needs a source URL (http or https): the creator's own video, stream or post");
+  if (!input.date) throw new ContactError("A covered game needs a date: YYYY-MM-DD");
+  return { title, scales, kind: oneOf(input.kind, GAME_KINDS, "kind"), date: checkDate(input.date, "Date"), source, genres: checkGenres(input.genres) };
+}
+
+/** The paths by which the contact suits a game, each {kind: "fit"|"scale"|"games", ...}: a fit; `scales` sharing a label with a profile's `scale`;
+ *  at least COVERED_GAMES_MIN distinct covered games whose scales share a label with a profile's. Empty: not relevant. */
+export function relevance(contact, profiles = []) {
+  const out = [];
+  if (contact.fit?.length) out.push({ kind: "fit", games: contact.fit.map(f => f.game) });
+  const ours = new Set(profiles.flatMap(p => p.scale ?? []));
+  const shared = (contact.scales ?? []).filter(s => ours.has(s));
+  if (shared.length) out.push({ kind: "scale", scales: shared });
+  const league = new Set((contact.games ?? []).filter(g => g.scales.some(s => ours.has(s))).map(g => g.title.toLowerCase()));
+  if (league.size >= COVERED_GAMES_MIN) out.push({ kind: "games", count: league.size });
+  return out;
+}
+
+/** True when the contact suits at least one game (see `relevance`). */
+export function isRelevant(contact, profiles = []) { return relevance(contact, profiles).length > 0; }
+
+/** The relevance paths as one line: "fit bb, gb; scale indie; 3 covered games in our league". */
+export function whyText(paths) {
+  return paths.map(p => (p.kind === "fit" ? `fit ${p.games.join(", ")}` : p.kind === "scale" ? `scale ${p.scales.join(", ")}` : `${p.count} covered games in our league`)).join("; ");
 }
 
 /** A whole contact from input, with defaults; throws ContactError on a refused value. Fit and touches are not part of the input. */
@@ -114,7 +143,7 @@ export function isDue(contact, today) {
 }
 
 /** The filter as a checked predicate: {type, fits, contacted, notContacted (games: a touch for / none for that game), noAbout: true, genre, status, reach: at least n followers, due: true,
- *  scale (a label the contact covers), relevant / irrelevant: true (see `isRelevant`, against `profiles`; events are neither), parked: true (only parked), all: true (parked too)} all optional; every one given must match.
+ *  nowRelevant: true (parked and relevant by the rule), scale (a label the contact covers), relevant / irrelevant: true (see `isRelevant`, against `profiles`; events are neither), parked: true (only parked), all: true (parked too)} all optional; every one given must match.
  *  With no status, parked and all, parked contacts are left out. */
 export function contactFilter(filter = {}, today, profiles = []) {
   const type = filter.type ? oneOf(filter.type, TYPES, "type") : null;
@@ -132,6 +161,7 @@ export function contactFilter(filter = {}, today, profiles = []) {
   const hideParked = !status && !parked && !filter.all;
   const relevant = Boolean(filter.relevant);
   const irrelevant = Boolean(filter.irrelevant);
+  const nowRelevant = Boolean(filter.nowRelevant);
   // `except` leaves out contacts of any of these types (the Contacts tab: no festivals or conferences).
   const except = String(filter.except ?? "").split(",").map(s => s.trim()).filter(Boolean).map(t => oneOf(t, TYPES, "type"));
   return c => (!type || c.types.includes(type))
@@ -141,6 +171,7 @@ export function contactFilter(filter = {}, today, profiles = []) {
     && (!hideParked || c.status !== "parked")
     && (!scale || (c.scales ?? []).includes(scale))
     && (!relevant || (!c.event && isRelevant(c, profiles)))
+    && (!nowRelevant || (c.status === "parked" && !c.event && isRelevant(c, profiles)))
     && (!irrelevant || (!c.event && !isRelevant(c, profiles)))
     && (reach === null || (c.reach !== null && c.reach >= reach))
     && (!fits || c.fit.some(f => f.game === fits))

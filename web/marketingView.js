@@ -3,6 +3,7 @@
 
 import { S, $, esc, api, redraw, toast, today, fmtDate, compactCount } from "./state.js";
 import { detailPane, editRequest, touchRequest } from "./contactDetail.js";
+import { gameRemove } from "./contactCovered.js";
 import { EMPTY_FILTERS, FILTERS, contactPath, parkedPath, filterPane } from "./contactFilters.js";
 import { fitRequest, unfitRequest } from "./contactGames.js";
 import { channelRemove, channelAdd } from "./contactChannels.js";
@@ -160,6 +161,7 @@ export function marketingClick(d) {
   if (d.mkSend) { sendDraft(d.mkSend); return true; }
   if (d.mkDiscard) { discardDraft(d.mkDiscard); return true; }
   if (d.mkChDel !== undefined && m.detail) { send(channelRemove(m.detail, d.mkChDel)); return true; }
+  if (d.mkGameDel !== undefined && m.detail) { send(gameRemove(m.detail, d.mkGameDel)); return true; }
   if ("mkChAdd" in d && m.detail) { const req = channelAdd(m.detail, $("#mk-chk-new").value, $("#mk-chu-new").value); req ? send(req) : toast("Give the channel a URL first."); return true; }
   if ("mkTouch" in d) { m.touchOpen = true; redraw(); $("#mk-tk-kind")?.focus(); return true; }
   if (d.mkUnfit !== undefined && m.detail) { send(unfitRequest(m.detail, d.mkUnfit)); return true; }

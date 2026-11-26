@@ -1,15 +1,16 @@
 // The contact commands of the doit CLI. Cli parses, this class runs them against the ContactBook.
 // Files are read through `readText(path)`, given by the root: the CLI tier does not touch the disk.
 
-import { checkScales, countLabel, SCALES } from "../domain/contacts.js";
+import { checkScales, countLabel, GAME_KINDS, SCALES } from "../domain/contacts.js";
 import { reachOf } from "../domain/contactImport.js";
 
 const USAGE = {
-  contacts: "doit contacts [--type t] [--fits <game>] [--genre g] [--status s] [--scale <label>] [--relevant|--irrelevant] [--parked] [--all] [--contacted <game>] [--not-contacted <game>] [--no-about] [--due] [--reach <n>] [--json] | doit contacts import <file> | doit contacts migrate-scale [--apply]",
+  contacts: "doit contacts [--type t] [--fits <game>] [--genre g] [--status s] [--scale <label>] [--relevant|--irrelevant] [--parked [--now-relevant]] [--all] [--contacted <game>] [--not-contacted <game>] [--no-about] [--due] [--reach <n>] [--json] | doit contacts import <file> | doit contacts migrate-scale [--apply]",
   show: "doit contact show <id> [--json]",
   add: "doit contact add <name> --type a,b [--email] [--reach <followers>] [--genres a,b] [--about text] [--topic] [--notes] [--status] [--next YYYY-MM-DD] [--channels kind=url|followers|date,...] [--reddit url] [--scales a,b] [--scale_note text] [--checked YYYY-MM-DD]",
   set: "doit contact set <id> key=value ...   keys: name types topic email reach genres about special notes status next channels channel reddit scales scale_note checked (special= clears the mark; channel= sets one channel)",
   profile: "doit profile add <project> [--kind game|application|podcast] | doit profile set <project> key=value ...   keys: scale genres platforms stage release needs",
+  game: "doit contact game add <id> <title> --scale a,b --kind played|reviewed|streamed --date YYYY-MM-DD --source <url> [--genre a,b] | doit contact game remove <id> <title>",
   fit: "doit fit <id> <game> <reason> | doit fit <id> <game> --remove",
   touch: "doit touch <id> mail|reply|video [--game g] [--date YYYY-MM-DD]",
 };
@@ -56,16 +57,18 @@ export class ContactsCli {
     if (pos[0] === "import") return this.#import(pos[1]);
     if (pos[0] === "migrate-scale") return this.#migrateScale(flags.apply);
     const list = this.book.list({ type: flags.type, fits: flags.fits, genre: flags.genre, status: flags.status, reach: flags.reach, due: flags.due,
-      scale: flags.scale, relevant: flags.relevant, irrelevant: flags.irrelevant, parked: flags.parked, all: flags.all,
+      scale: flags.scale, nowRelevant: flags["now-relevant"], relevant: flags.relevant, irrelevant: flags.irrelevant, parked: flags.parked, all: flags.all,
       contacted: flags.contacted, notContacted: flags["not-contacted"], noAbout: flags["no-about"] });
     if (flags.json) return this.print(JSON.stringify(list, null, 1));
     if (!list.length) return this.print("No contacts.");
-    for (const c of list) this.print(line(c));
+    const why = flags.relevant || flags["now-relevant"];
+    for (const c of list) this.print(line(c) + (why && c.why ? `  relevant: ${c.why}` : ""));
   }
 
   contact(pos, flags) {
     const [sub, ...rest] = pos;
     if (sub === "show") return this.#show(need(rest[0], USAGE.show), flags);
+    if (sub === "game") return this.#game(rest, flags);
     if (sub === "add") {
       const c = this.book.add({ ...fields({ ...flags, name: need(rest.join(" "), USAGE.add) }), });
       return this.print(`Added contact ${c.id}: ${c.name}`);
@@ -84,7 +87,7 @@ export class ContactsCli {
       if (one !== undefined) c = this.book.setChannel(id, channel(need(one, USAGE.set)));
       return this.print(line(c));
     }
-    throw new Error(`Usage: ${USAGE.show}\n       ${USAGE.add}\n       ${USAGE.set}`);
+    throw new Error(`Usage: ${USAGE.show}\n       ${USAGE.add}\n       ${USAGE.set}\n       ${USAGE.game}`);
   }
 
   fit(pos, flags = {}) {
@@ -141,9 +144,25 @@ export class ContactsCli {
     if (c.scaleNote) this.print(`scale note ${c.scaleNote}`);
     if (c.reddit) this.print(`reddit ${c.reddit}`);
     for (const ch of c.channels) this.print(`${ch.kind} ${ch.url}${ch.followers !== null && ch.followers !== undefined ? `  ${countLabel(ch.followers)} followers` : ""}${ch.active ? `  active ${ch.active}` : ""}`);
+    if (c.why) this.print(`relevant ${c.why}`);
     for (const f of c.fit) this.print(`fits ${f.game}: ${f.reason}`);
+    for (const g of c.games ?? []) this.print(`covered ${g.title}  ${g.scales.join("+")}  ${g.kind} ${g.date}  ${g.source}${g.genres.length ? "  " + g.genres.join(", ") : ""}`);
     for (const t of c.touches) this.print(`${t.date} ${t.kind}${t.game ? " " + t.game : ""}`);
     if (c.notes) this.print(`\n${c.notes}`);
+  }
+
+  /** `game add <id> <title> --scale --kind --date --source [--genre]` and `game remove <id> <title>`. */
+  #game([action, id, ...title], flags) {
+    const t = title.join(" ");
+    if (action === "add") {
+      const c = this.book.addGame(need(id, USAGE.game), { title: need(t, USAGE.game), scales: flags.scale, kind: flags.kind, date: flags.date, source: flags.source, genres: flags.genre });
+      return this.print(`${c.name}: ${c.games.length} covered game${c.games.length === 1 ? "" : "s"}${c.why ? `; relevant: ${c.why}` : ""}`);
+    }
+    if (action === "remove") {
+      const c = this.book.removeGame(need(id, USAGE.game), need(t, USAGE.game));
+      return this.print(`${c.name}: ${c.games.length} covered game${c.games.length === 1 ? "" : "s"}`);
+    }
+    throw new Error(`Usage: ${USAGE.game}`);
   }
 
   #migrateScale(apply) {

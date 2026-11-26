@@ -6,7 +6,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { takeGenreLines } from "../domain/contactImport.js";
 
-const VERSION = 6;
+const VERSION = 7;
 
 const SCHEMA_V1 = `
   CREATE TABLE contacts (
@@ -74,6 +74,15 @@ const V6 = `
   ALTER TABLE channels ADD COLUMN active TEXT NOT NULL DEFAULT '';
 `;
 
+// v7: the games a creator played, reviewed or streamed (one row per contact and title, any case).
+const V7 = `
+  CREATE TABLE games (
+    contact_id INTEGER NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+    title TEXT NOT NULL COLLATE NOCASE, scales TEXT NOT NULL, kind TEXT NOT NULL, date TEXT NOT NULL,
+    source TEXT NOT NULL, genres TEXT NOT NULL DEFAULT '', PRIMARY KEY (contact_id, title)
+  );
+`;
+
 export class MarketingDb {
   constructor(dir) {
     this.dir = dir;
@@ -111,6 +120,7 @@ export class MarketingDb {
       if (v < 4) this.#genresFromNotes();
       if (v < 5) this.db.exec(V5);
       if (v < 6) this.db.exec(V6);
+      if (v < 7) this.db.exec(V7);
       this.db.exec(`PRAGMA user_version = ${VERSION}`);
     });
   }
