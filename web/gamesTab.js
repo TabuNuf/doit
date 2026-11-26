@@ -46,11 +46,17 @@ async function sendGame(req) {
   return refreshGames();
 }
 
+/** Selects an entry; `show` also switches the Marketing pane to Games (a covered game opened from a contact). */
+export function selectGame(key, show = false) {
+  if (show) S.mk.pane = "games";
+  Object.assign(S.gm, { sel: key, detail: null, compOpen: false });
+}
+
 /** A click on a Games control; true when it was one. */
 export function gamesClick(d) {
   const g = S.gm;
-  if (d.gmOpen) { S.mk.pane = "games"; g.sel = d.gmOpen; g.detail = null; g.compOpen = false; redraw(); refreshGames(); return true; }
-  if (d.game) { g.sel = d.game; g.detail = null; g.compOpen = false; redraw(); refreshGames(); return true; }
+  if (d.gmOpen) { selectGame(d.gmOpen, true); redraw(); refreshGames(); return true; }
+  if (d.game) { selectGame(d.game); redraw(); refreshGames(); return true; }
   if (d.gmSort) { g.sort = clickGameSort(g.sort, d.gmSort); try { localStorage.setItem("doit.games.sort", JSON.stringify(g.sort)); } catch { /* storage off */ } redraw(); return true; }
   if ("gmClear" in d) { g.f = { ...EMPTY_GM_FILTERS }; refreshGames(); return true; }
   if ("gmCompOpen" in d) { g.compOpen = true; redraw(); document.getElementById("gm-comp-reason")?.focus(); return true; }

@@ -91,3 +91,14 @@ test("Covered by lists each contact with reach, kind, date, a Source link and a 
   assert.match(html, /<a href="https:\/\/v.test\/1" target="_blank" rel="noopener">Source<\/a>/);
   assert.match(coveredByBlock([]), /No contact covers it yet/);
 });
+
+test("a covered game opens its entry in the Games tab, and a Covered by name opens the contact in Contacts", async () => {
+  const { S } = await import("../web/state.js");
+  const { selectGame } = await import("../web/gamesTab.js");
+  const { entryKey } = await import("../web/contactCovered.js");
+  assert.equal(entryKey("  Tiny   Quest "), "tiny quest");
+  S.mk.pane = "contacts"; S.gm.sel = null; S.gm.detail = { key: "old" }; S.gm.compOpen = true;
+  selectGame("tiny quest", true);
+  assert.deepEqual([S.mk.pane, S.gm.sel, S.gm.detail, S.gm.compOpen], ["games", "tiny quest", null, false]);
+  assert.match(coveredByBlock([{ id: 7, name: "Ada", reach: null, kind: "played", date: "2026-11-01", source: "" }]), /data-contact="7" data-mk-to="contacts"/);
+});

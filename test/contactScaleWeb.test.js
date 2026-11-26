@@ -63,6 +63,7 @@ test("the pane lists covered games with a source link and removes one by title",
   const c = { id: 4, why: "3 covered games in our league", games: [{ title: "Tiny Quest", scales: ["solo"], kind: "reviewed", date: "2026-11-01", source: "https://youtu.be/x", genres: ["rpg"] }] };
   const html = coveredBlock(c);
   assert.match(html, /Tiny Quest/);
+  assert.match(html, /<button class="link" data-gm-open="tiny quest"[^>]*><strong>Tiny Quest<\/strong><\/button>/);
   assert.match(html, /href="https:\/\/youtu.be\/x"/);
   assert.match(html, /relevant: 3 covered games/);
   assert.match(coveredBlock({ id: 1, games: [] }), /None yet/);
