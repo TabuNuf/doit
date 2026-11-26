@@ -20,7 +20,8 @@ const ADA = {
 };
 
 // What a version 5 file lacks.
-const DOWN6 = "DROP TABLE games; ALTER TABLE channels DROP COLUMN dead; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ";
+const DOWN9 = "DROP TABLE comps; DROP TABLE game_entries; ";
+const DOWN6 = DOWN9 + "DROP TABLE games; ALTER TABLE channels DROP COLUMN dead; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ";
 
 test("a contact with channels, fit and touches is read back after reopening", () => {
   const dir = home();
@@ -56,16 +57,16 @@ test("the file and its schema version are made on first open and kept on the nex
   s.close();
   assert.ok(fs.existsSync(path.join(dir, "marketing.db")));
   const b = open(dir);
-  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 8);
+  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 9);
   b.close();
 });
 
 test("a file from a newer schema is refused", () => {
   const dir = home();
   const a = open(dir);
-  a.db.exec("PRAGMA user_version = 9");
+  a.db.exec("PRAGMA user_version = 10");
   a.close();
-  assert.throws(() => open(dir).all(), /version 9/);
+  assert.throws(() => open(dir).all(), /version 10/);
 });
 
 test("update replaces fields and channels and keeps fit and touches; a second fit replaces the reason", () => {
@@ -135,7 +136,7 @@ test("a version 1 file is migrated in place and keeps its contacts and touches",
   const m = new MarketingDb(dir);
   const store = new SqliteContacts(m);
   assert.deepEqual(store.get(1).touches, [{ date: "2026-10-01", kind: "mail", game: "good-box", note: "" }]);
-  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 8);
+  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 9);
   assert.equal(new SqliteDrafts(m).all().length, 0);
   store.addTouch(1, { date: "2026-11-01", kind: "mail", note: "S", ref: "<x@example.com>" });
   assert.equal(store.get(1).touches.length, 2);
@@ -167,7 +168,7 @@ test("a version 2 file is migrated, keeps its contacts and drafts, and reads an 
   const m = new MarketingDb(dir);
   const store = new SqliteContacts(m);
   assert.equal(store.get(1).event, null);
-  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 8);
+  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 9);
   assert.equal(new SqliteDrafts(m).all().length, 1);
   const event = {
     year: 2027, starts: "2027-02-23", ends: "2027-03-02", deadline: "2027-01-15", cost: "free", where: "steam",
@@ -206,10 +207,31 @@ test("a version 4 file is migrated: special appears empty, contacts stay, and a 
   first.close();
   const store = new SqliteContacts(new MarketingDb(dir));
   assert.equal(store.get(1).special, "");
-  assert.equal(store.db.prepare("PRAGMA user_version").get().user_version, 8);
+  assert.equal(store.db.prepare("PRAGMA user_version").get().user_version, 9);
   store.update(1, { ...ADA, special: "Friend since 2019" });
   assert.equal(store.get(1).special, "Friend since 2019");
   store.update(1, { ...ADA, special: "" });
   assert.equal(store.get(1).special, "");
+  store.close();
+});
+
+test("a version 8 file is migrated: one entry per distinct title with the union of scales and genres, and covered games read them from it", () => {
+  const dir = home();
+  const first = new MarketingDb(dir);
+  first.db.exec(DOWN9 + "PRAGMA user_version = 8");
+  first.db.exec("INSERT INTO contacts (name, types) VALUES ('A', 'influencer'), ('B', 'press')");
+  const add = first.db.prepare("INSERT INTO games (contact_id, title, scales, kind, date, source, genres) VALUES (?, ?, ?, 'played', '2026-01-01', 'https://x.example', ?)");
+  add.run(1, "Hades", "indie", "Action,Roguelike");
+  add.run(2, "HADES", "aa,indie", "action,Co-op");
+  add.run(2, "Tunic", "solo", "");
+  first.close();
+  const store = new SqliteContacts(new MarketingDb(dir));
+  assert.equal(store.db.prepare("PRAGMA user_version").get().user_version, 9);
+  assert.deepEqual(store.db.prepare("SELECT key, title, scales, genres FROM game_entries ORDER BY key").all().map(r => ({ ...r })), [
+    { key: "hades", title: "Hades", scales: "indie,aa", genres: "Action,Roguelike,Co-op" },
+    { key: "tunic", title: "Tunic", scales: "solo", genres: "" },
+  ]);
+  const [a, b] = store.all();
+  assert.deepEqual([a.games[0].scales, a.games[0].genres, b.games.find(g => g.title === "HADES").scales], [["indie", "aa"], ["Action", "Roguelike", "Co-op"], ["indie", "aa"]]);
   store.close();
 });

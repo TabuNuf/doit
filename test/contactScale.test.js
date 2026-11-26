@@ -152,7 +152,7 @@ test("an old channels table (kind and url only) keeps its rows when migrated", t
   const book0 = makeContacts({ home: s.home, now: () => s.clock.t });
   book0.add({ name: "Old", types: ["influencer"], channels: [{ kind: "youtube", url: "https://youtube.com/@old" }, { kind: "website", url: "https://old.example" }] });
   book0.source.close();
-  db.exec("DROP TABLE games; ALTER TABLE channels DROP COLUMN dead; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; PRAGMA user_version = 5");
+  db.exec("DROP TABLE comps; DROP TABLE game_entries; DROP TABLE games; ALTER TABLE channels DROP COLUMN dead; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; PRAGMA user_version = 5");
   db.close();
   const book = makeContacts({ home: s.home, now: () => s.clock.t });
   const c = book.get(1);

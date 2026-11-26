@@ -5,8 +5,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { takeGenreLines } from "../domain/contactImport.js";
+import { SCALES } from "../domain/contacts.js";
+import { entryKey } from "../domain/gameEntries.js";
 
-const VERSION = 8;
+const VERSION = 9;
 
 const SCHEMA_V1 = `
   CREATE TABLE contacts (
@@ -86,6 +88,27 @@ const V7 = `
 // v8: the date a channel was seen dead (suspended, deleted); empty: alive.
 const V8 = `ALTER TABLE channels ADD COLUMN dead TEXT NOT NULL DEFAULT '';`;
 
+// v9: one entry per covered game (key: the title trimmed, lower case) owning its scale and genres, and comps: an entry marked as comparable to a game profile.
+// Lists are comma separated; stores, trackers and sources are JSON text; numbers are nullable.
+const V9 = `
+  CREATE TABLE game_entries (
+    key TEXT PRIMARY KEY, title TEXT NOT NULL,
+    developer TEXT NOT NULL DEFAULT '', publisher TEXT NOT NULL DEFAULT '', "release" TEXT NOT NULL DEFAULT '', stage TEXT NOT NULL DEFAULT '',
+    platforms TEXT NOT NULL DEFAULT '', stores TEXT NOT NULL DEFAULT '{}', trackers TEXT NOT NULL DEFAULT '{}',
+    description TEXT NOT NULL DEFAULT '', hook TEXT NOT NULL DEFAULT '', look TEXT NOT NULL DEFAULT '', team TEXT NOT NULL DEFAULT '',
+    dev_time TEXT NOT NULL DEFAULT '', festivals TEXT NOT NULL DEFAULT '', early_access TEXT NOT NULL DEFAULT '', rating_label TEXT NOT NULL DEFAULT '',
+    worked TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', genres TEXT NOT NULL DEFAULT '', keywords TEXT NOT NULL DEFAULT '',
+    modes TEXT NOT NULL DEFAULT '', scales TEXT NOT NULL DEFAULT '',
+    price REAL, launch_price REAL, reviews INTEGER, sales INTEGER, revenue INTEGER, peak_players INTEGER, followers INTEGER, languages INTEGER,
+    rating INTEGER, metacritic INTEGER, opencritic INTEGER, playtime REAL,
+    sales_source TEXT NOT NULL DEFAULT '', demo TEXT NOT NULL DEFAULT '', sources TEXT NOT NULL DEFAULT '[]', checked TEXT NOT NULL DEFAULT ''
+  );
+  CREATE TABLE comps (
+    entry_key TEXT NOT NULL REFERENCES game_entries(key) ON DELETE CASCADE,
+    game TEXT NOT NULL, reason TEXT NOT NULL, PRIMARY KEY (entry_key, game)
+  );
+`;
+
 export class MarketingDb {
   constructor(dir) {
     this.dir = dir;
@@ -125,6 +148,7 @@ export class MarketingDb {
       if (v < 6) this.db.exec(V6);
       if (v < 7) this.db.exec(V7);
       if (v < 8) this.db.exec(V8);
+      if (v < 9) this.#entriesFromGames();
       this.db.exec(`PRAGMA user_version = ${VERSION}`);
     });
   }
@@ -136,5 +160,18 @@ export class MarketingDb {
       const { genres, notes } = takeGenreLines(r.notes);
       if (genres.length) set.run(genres.join(","), notes, r.id);
     }
+  }
+
+  /** One entry per distinct title of `games` (any case): the title as first written, scales and genres the union of its rows. */
+  #entriesFromGames() {
+    this.db.exec(V9);
+    const entries = new Map();
+    for (const r of this.db.prepare("SELECT title, scales, genres FROM games ORDER BY rowid").all()) {
+      const e = entries.get(entryKey(r.title)) ?? entries.set(entryKey(r.title), { title: r.title, scales: new Set(), genres: new Map() }).get(entryKey(r.title));
+      for (const x of r.scales.split(",")) if (x) e.scales.add(x);
+      for (const g of r.genres.split(",")) if (g && !e.genres.has(g.toLowerCase())) e.genres.set(g.toLowerCase(), g);
+    }
+    const add = this.db.prepare("INSERT INTO game_entries (key, title, scales, genres) VALUES (?, ?, ?, ?)");
+    for (const [key, e] of entries) add.run(key, e.title, SCALES.filter(x => e.scales.has(x)).join(","), [...e.genres.values()].join(","));
   }
 }
