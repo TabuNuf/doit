@@ -15,7 +15,7 @@ test("the list puts due contacts first and marks them", async () => {
   const html = listPane(FIXTURE, 1);
   assert.ok(html.indexOf("Overdue &lt;b&gt;") < html.indexOf("Quiet One"), "due first");
   assert.match(html, /<div class="sec-h">Due<span class="c">1<\/span>/);
-  assert.match(html, /pill due late"[^>]*>due /);
+  assert.match(html, /pill due late"[^>]*>2026-01-02</);
   assert.match(html, /data-contact="1" aria-pressed="true"/);
   assert.match(html, /data-contact="2" aria-pressed="false"/);
   assert.doesNotMatch(html, /<b>/);
@@ -24,7 +24,9 @@ test("the list puts due contacts first and marks them", async () => {
 test("a row shows name, types, reach, status and next date", async () => {
   const { contactRow, listPane } = await import("../web/marketingView.js");
   const html = contactRow(FIXTURE[1], null);
-  for (const s of ["press", "blogger", ">950<", ">active<", "2 Jan"]) assert.ok(html.includes(s), s);
+  for (const s of ["press", "blogger", ">950<", ">active<", ">2026-01-02<"]) assert.ok(html.includes(s), s);
+  assert.doesNotMatch(html, /2 Jan/, "no second next-date pill under the name");
+  assert.match(contactRow(FIXTURE[0], null), /<span class="muted">-<\/span>$|<span class="muted">-<\/span><\/button>/, "empty next shows a dash");
   assert.match(listPane([], null, null, null, true), /No contact matches these filters\. <button data-mk-clear>Clear filters<\/button>/);
   assert.match(listPane([], null), /No contacts yet\./);
 });

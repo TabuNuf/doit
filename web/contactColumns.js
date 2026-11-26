@@ -2,13 +2,13 @@
 
 import { esc, fmtDate, compactCount } from "./state.js";
 
-export const COLUMNS = [["name", "Name"], ["type", "Type"], ["reach", "Reach"], ["status", "Status"], ["last", "Last contact"], ["active", "Last active"]];
+export const COLUMNS = [["name", "Name"], ["type", "Type"], ["reach", "Reach"], ["status", "Status"], ["last", "Last contact"], ["next", "Next contact"]];
 /** Text columns sort A to Z first; reach and dates, largest and newest first. */
-const FIRST_DOWN = new Set(["reach", "last", "active"]);
+const FIRST_DOWN = new Set(["reach", "last"]);
 
 const key = {
   name: c => c.name.toLowerCase(), type: c => (c.types[0] || ""), reach: c => c.reach ?? -1,
-  status: c => c.status, last: c => c.last || "", active: c => c.active || "",
+  status: c => c.status, last: c => c.last || "", next: c => c.next || "9999",
 };
 
 /** The sort after a click on a header: a new column starts in its own direction, the same column reverses. */
@@ -36,13 +36,17 @@ const date = (d, what) => d ? `<span class="mono" title="${what}: ${esc(d)}">${e
 /** The mark for a special relationship, its reason as the tooltip; none when the contact has none. */
 export const specialMark = c => c.special ? `<span class="pill special" title="${esc(c.special)}">special</span>` : "";
 
-/** The six cells of a row; the name cell also carries the fit mark, the special mark and the next-contact date. */
+/** The next contact date in full (a parked contact's review date), marked when due; "-" when empty. */
+const nextCell = c => c.next
+  ? `<span class="mono${c.due ? " pill due late" : ""}" title="${c.status === "parked" ? "Review" : "Next contact"} ${esc(c.next)}${c.due ? ", due" : ""}">${esc(c.next)}</span>`
+  : `<span class="muted">-</span>`;
+
+/** The six cells of a row; the name cell also carries the fit mark and the special mark. */
 export function rowCells(c, mark = "") {
-  const next = c.next ? `<span class="pill due ${c.due ? "late" : ""}" title="Next contact ${esc(c.next)}">${c.due ? "due " : ""}${esc(fmtDate(c.next))}</span>` : "";
-  return `<span class="title">${esc(c.name)}<span class="pills">${mark}${next}</span></span>`
+  return `<span class="title">${esc(c.name)}<span class="pills">${mark}</span></span>`
     + `<span class="pills">${c.types.map(t => `<span class="pill">${esc(t)}</span>`).join("")}</span>`
     + `<span class="mono" title="Reach ${esc(c.reach ?? "")}">${c.reach !== null && c.reach !== undefined ? esc(compactCount(c.reach)) : ""}</span>`
     + `<span><span class="pill${c.status === "active" ? "" : " ai"}">${esc(c.status)}</span></span>`
     + date(c.last, "Last contact, the newest mail, reply, video or sent draft logged for this contact")
-    + date(c.active, "Last active, the newest reply or video from this contact");
+    + nextCell(c);
 }
