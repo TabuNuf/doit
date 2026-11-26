@@ -15,7 +15,7 @@ import { campaignsList, campaignsPane, campaignForm, campaignRequest } from "./c
 import { briefPane, briefRequest } from "./campaignBrief.js";
 import { openEpic } from "./epicView.js";
 import { openSettingsFor } from "./projectSettings.js";
-import { gamesPanes, refreshGames, gamesClick, gamesChange, gamesFocusOut, gamesSubmit, gamesKey } from "./gamesTab.js";
+import { gamesPanes, loadGames, gamesClick, gamesChange, gamesFocusOut, gamesSubmit, gamesKey } from "./gamesTab.js";
 import { draftsPane, draftEditRequest, sendQuestion, sweepSummary } from "./draftsPane.js";
 
 export { TYPES, REACH_OPTIONS, contactPath, filterPane, EMPTY_FILTERS, FILTERS } from "./contactFilters.js";
@@ -117,7 +117,7 @@ export async function refreshMarketing() {
   const m = S.mk;
   try {
     [m.profiles, m.contacts, m.parked, m.drafts, m.status, m.genres] = await Promise.all([api("GET", "/api/profiles"), api("GET", contactPath(m.f)), api("GET", parkedPath()), api("GET", "/api/drafts"), api("GET", "/api/mail/status"), api("GET", "/api/genres")]);
-    if (m.pane === "games") await refreshGames();
+    if (m.pane === "games") await loadGames();
     if (m.pane === "overview") m.week = await api("GET", "/api/outreach").catch(() => null);
     if (EVENT_TAB[m.pane]) m.fest = await api("GET", festivalPath(m.game, EVENT_TAB[m.pane]));
     if (m.pane === "campaigns") await loadCampaigns(m);
@@ -150,7 +150,7 @@ async function send(req) {
 /** Handles a click on a Marketing control; true when the click was one. */
 export function marketingClick(d) {
   const m = S.mk;
-  if (m.pane === "games" && gamesClick(d)) return true;
+  if ((m.pane === "games" || d.gmOpen) && gamesClick(d)) return true;
   if (d.taskContact) { S.view = "marketing"; m.pane = "contacts"; m.sel = d.taskContact; m.detail = null; m.touchOpen = false; m.fitOpen = false; redraw(); refreshMarketing(); return true; }
   if (d.contact) { if (d.mkTo) m.pane = d.mkTo; m.sel = d.contact; m.detail = null; m.touchOpen = false; m.fitOpen = false; redraw(); refreshMarketing(); return true; }
   if ("mkParked" in d) { m.parkedOpen = !m.parkedOpen; redraw(); return true; }

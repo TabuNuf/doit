@@ -95,7 +95,7 @@ test("the detail pane shows the title and description, escaped", async () => {
   const html = gameDetailPane(entry("hades", { title: "Hades <1>", description: "Line one\nLine <two>" }));
   assert.match(html, /Hades &lt;1&gt;/);
   assert.match(html, /Line one\nLine &lt;two&gt;/);
-  assert.match(gameDetailPane(entry("x")), /No description yet/);
+  assert.match(gameDetailPane(entry("x")), /<textarea id="gm-f-description"[^>]*placeholder="Description"/);
   const { S } = await import("../web/state.js");
   S.gm.list = [entry("hades")]; S.gm.detail = null; S.mk.profiles = [];
   assert.match(gamesPanes(), /aria-label="Game filters"[\s\S]*aria-label="Games"[\s\S]*aria-label="Game"/);
