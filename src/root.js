@@ -86,9 +86,9 @@ export function makeCli(options = {}) {
   const log = makeActivity(options);
   const board = makeBoard({ ...options, log });
   const readText = file => fs.readFileSync(file, "utf8");
-  const { book, mailroom } = makeMarketing(options);
+  const { book, mailroom, games } = makeMarketing(options);
   const outreach = makeOutreach({ board, book, now: options.now, home: options.home });
-  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now, outreach), book, readText, mailroom, outreach);
+  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now, outreach), book, readText, mailroom, outreach, games);
 }
 
 export function makeServer(options = {}) {

@@ -43,6 +43,14 @@ export const HELP = `doit: the task board, from the command line. Every command 
   doit profile add <project> [--kind k]           write <docs>/Marketing/Profile.md in the project; the game is its id, the kind the project's
   doit profile set <project> key=value ...        keys: scale (solo,indie,triple-i,aa,aaa; empty clears) genres platforms stage release needs; the other fields stay
 
+  doit games [--genre g] [--keyword k] [--scale s] [--stage s] [--store s] [--rating n] [--reviews n] [--covered n] [--comp <game>] [--similar <game>] [--no-facts] [--json]   the covered games, most covered first: genres, scale, rating, reviews, estimated sales (~ = from reviews x 30), contacts covering it, stores; --rating/--reviews/--covered = at least; --comp keeps games marked for that game profile; --similar those sharing a genre or keyword with it, most shared first; --no-facts those not yet checked
+  doit game show <title> [--json]                 one entry with links, estimates, comps and who covered it
+  doit game add <title>                           an entry with nothing filled (covering a game by a contact creates one too)
+  doit game set <title> key=value ...             keys: developer publisher release stage platforms description hook look team dev_time festivals early_access worked notes genres keywords modes scale (solo,indie,triple-i,aa,aaa) price launch_price reviews sales revenue peak_players followers languages rating rating_label metacritic opencritic playtime sales_source demo sources checked, store=kind=url and tracker=kind=url (each may repeat, an empty url removes the kind), stores=kind=url,... and trackers=... (replace all); an empty value clears a key; counts read 12400, 12k or 1.2M; rating 0 to 100; sales and revenue need sales_source (a tracker kind or a URL)
+           Stores: steam epic gog itch playstation xbox switch appstore googleplay humble other. Trackers: gamalytic steamdb vgchartz steamspy steamcharts metacritic opencritic howlongtobeat igdb other. Stage: unreleased demo early-access released. The title is every word before the first key=value.
+  doit game comp <title> <game> <reason>          mark the entry as a comp of a game profile, with a one-line reason
+  doit game comp <title> <game> --remove          drop the mark
+
   doit festivals [--fits <game>] [--deadline-within <days>] [--state s] [--json]   festivals and conferences by deadline with days left; past ones hidden unless --state past; --fits keeps those matching the game's profile (and not past their deadline), --deadline-within n those due in n days
   doit festival upsert <name> --year <yyyy> [--type festival,conference] [--topic] [--starts d] [--ends d] [--deadline d] [--cost] [--where steam|epic|gog|itch|physical|online]
            [--genres a,b] [--stages demo,...] [--platforms a,b] [--url] [--notes] [--state s]   add, or update the one of that name and year; fields not given stay

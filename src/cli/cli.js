@@ -6,11 +6,13 @@ import { ContactsCli } from "./contactsCli.js";
 import { MailCli } from "./mailCli.js";
 import { FestivalsCli } from "./festivalsCli.js";
 import { CampaignCli } from "./campaignCli.js";
+import { GamesCli } from "./gamesCli.js";
+import { parse } from "./parse.js";
 
 export class Cli {
   /** `contacts` is the ContactBook and `readText(path)` reads a file; the contact commands need both.
    *  `mailroom` is the Mailroom behind the mail commands. `run` returns the exit code, or a promise of it for `mail sweep`. */
-  constructor(board, out, err, claude = null, contacts = null, readText = null, mailroom = null, outreach = null) {
+  constructor(board, out, err, claude = null, contacts = null, readText = null, mailroom = null, outreach = null, games = null) {
     this.book = contacts;
     this.board = board;
     this.claude = claude;
@@ -18,6 +20,7 @@ export class Cli {
     this.festivalCommands = contacts && new FestivalsCli(contacts, s => this.print(s));
     this.mailCommands = mailroom && new MailCli(mailroom, s => this.print(s));
     this.campaignCommands = outreach && new CampaignCli(outreach, s => this.print(s));
+    this.gameCommands = games && new GamesCli(games, s => this.print(s));
     this.out = out;
     this.err = err;
   }
@@ -178,6 +181,8 @@ const COMMANDS = {
   profile(pos, flags) { this.delegate("profile", pos, flags); },
   campaign(pos, flags) { return this.delegateCampaign("campaign", pos, flags); },
   outreach(pos, flags) { return this.delegateCampaign("outreachPlan", pos, flags); },
+  games(pos, flags) { this.gameCommands.games(pos, flags); },
+  game(pos, flags) { this.gameCommands.game(pos, flags); },
   festivals(pos, flags) { this.delegateFestival("festivals", pos, flags); },
   festival(pos, flags) { this.delegateFestival("festival", pos, flags); },
   templates(pos, flags) { return this.delegateMail("templates", pos, flags); },
@@ -199,17 +204,4 @@ function brief(t) {
 function need(v, what) {
   if (v === undefined || v === "") throw new Error(`Missing ${what}`);
   return v;
-}
-
-function parse(argv) {
-  const pos = [], flags = {};
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i];
-    if (a.startsWith("--")) {
-      const key = a.slice(2);
-      if (["json", "due", "remove", "no-about", "relevant", "irrelevant", "parked", "all", "apply", "now-relevant"].includes(key)) flags[key] = true;
-      else flags[key] = argv[++i];
-    } else pos.push(a);
-  }
-  return { pos, flags };
 }
