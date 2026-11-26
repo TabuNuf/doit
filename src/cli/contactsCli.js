@@ -18,14 +18,14 @@ const USAGE = {
 const need = (v, usage) => { if (v === undefined || v === "") throw new Error(`Usage: ${usage}`); return v; };
 const csv = v => String(v ?? "").split(",").map(s => s.trim()).filter(Boolean);
 
-/** One channel from `kind=url` or `kind=url|followers|date` (followers 12400, 12k or 1.2M; an empty part is unknown). */
+/** One channel from `kind=url` or `kind=url|followers|date|dead` (dead: `dead` = seen dead today, a date, or `alive` to clear; followers 12400, 12k or 1.2M; an empty part is unknown). */
 function channel(p) {
   const i = p.indexOf("=");
-  if (i < 1) throw new Error(`Expected kind=url or kind=url|followers|date, got: ${p}`);
-  const [url, followers = "", active = ""] = p.slice(i + 1).split("|").map(x => x.trim());
+  if (i < 1) throw new Error(`Expected kind=url or kind=url|followers|date|dead, got: ${p}`);
+  const [url, followers = "", active = "", dead = ""] = p.slice(i + 1).split("|").map(x => x.trim());
   const n = followers && followers !== "-" ? reachOf(followers) : null;
   if (followers && followers !== "-" && n === null) throw new Error(`Followers must be a count like 12400, 12k or 1.2M: ${followers}`);
-  return { kind: p.slice(0, i).trim(), url, followers: n, active };
+  return { kind: p.slice(0, i).trim(), url, followers: n, active, dead };
 }
 
 /** "youtube=https://a|4.7M|2026-11-26,twitch=https://b" as channels. */
@@ -143,7 +143,7 @@ export class ContactsCli {
     else if (c.checked) this.print(`checked ${c.checked}`);
     if (c.scaleNote) this.print(`scale note ${c.scaleNote}`);
     if (c.reddit) this.print(`reddit ${c.reddit}`);
-    for (const ch of c.channels) this.print(`${ch.kind} ${ch.url}${ch.followers !== null && ch.followers !== undefined ? `  ${countLabel(ch.followers)} followers` : ""}${ch.active ? `  active ${ch.active}` : ""}`);
+    for (const ch of c.channels) this.print(`${ch.kind} ${ch.url}${ch.followers !== null && ch.followers !== undefined ? `  ${countLabel(ch.followers)} followers` : ""}${ch.active ? `  active ${ch.active}` : ""}${ch.dead ? `  DEAD since ${ch.dead}` : ""}`);
     if (c.why) this.print(`relevant ${c.why}`);
     for (const f of c.fit) this.print(`fits ${f.game}: ${f.reason}`);
     for (const g of c.games ?? []) this.print(`covered ${g.title}  ${g.scales.join("+")}  ${g.kind} ${g.date}  ${g.source}${g.genres.length ? "  " + g.genres.join(", ") : ""}`);

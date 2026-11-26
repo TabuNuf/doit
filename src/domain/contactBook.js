@@ -60,12 +60,15 @@ export class ContactBook {
   /** Every genre in use, for the Genre filter. */
   genres() { return genresOf(this.source.all()); }
 
-  add(input) { return this.get(this.source.insert(makeContact(input))); }
+  /** A channel's `dead` of "dead" is today; "alive" clears it. */
+  #dated(channels) { return (channels ?? []).map(c => (c.dead === "dead" ? { ...c, dead: this.today() } : c.dead === "alive" ? { ...c, dead: "" } : c)); }
+
+  add(input) { return this.get(this.source.insert(makeContact({ ...input, channels: this.#dated(input.channels) }))); }
 
   /** Changes named fields; the result is checked as a whole contact before it is written. */
   update(id, changes) {
     const c = this.get(id);
-    this.source.update(c.id, makeContact({ ...plain(c), ...changes }));
+    this.source.update(c.id, makeContact({ ...plain(c), ...changes, ...(changes.channels ? { channels: this.#dated(changes.channels) } : {}) }));
     return this.get(c.id);
   }
 
@@ -74,7 +77,8 @@ export class ContactBook {
     const c = this.get(id);
     const key = linkKey(channel.url);
     const known = c.channels.find(x => linkKey(x.url) === key);
-    const given = { ...channel, followers: channel.followers ?? known?.followers ?? null, active: channel.active || known?.active || "" };
+    const dead = channel.dead === "alive" ? "" : channel.dead || known?.dead || "";
+    const given = { ...channel, followers: channel.followers ?? known?.followers ?? null, active: channel.active || known?.active || "", dead: dead === "dead" ? this.today() : dead };
     const channels = known ? c.channels.map(x => (x === known ? { ...known, ...given } : x)) : [...c.channels, given];
     return this.update(c.id, { channels });
   }

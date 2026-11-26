@@ -64,7 +64,8 @@ function checkChannels(list) {
     const url = text(c?.url);
     if (!url) throw new ContactError("A channel needs a url");
     const active = c?.active ? checkDate(c.active, "Channel last active date") : "";
-    return { kind: oneOf(c?.kind, CHANNEL_KINDS, "channel kind"), url, followers: checkReach(c?.followers), active };
+    const dead = c?.dead ? checkDate(c.dead, "Channel dead date") : "";
+    return { kind: oneOf(c?.kind, CHANNEL_KINDS, "channel kind"), url, followers: checkReach(c?.followers), active, dead };
   });
 }
 
