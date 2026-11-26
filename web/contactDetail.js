@@ -6,6 +6,7 @@ import { channelsBlock, channelEdit } from "./contactChannels.js";
 import { historyList, lastContactOf } from "./contactHistory.js";
 import { specialMark } from "./contactColumns.js";
 import { gamesBlock } from "./contactGames.js";
+import { coveredBlock } from "./contactCovered.js";
 
 export { channelHref } from "./contactChannels.js";
 
@@ -49,6 +50,7 @@ export function detailPane(c, profiles, touchOpen, now, log = null, fitOpen = fa
     </dl>
     ${channelsBlock(c.channels)}
     ${gamesBlock(c, profiles, fitOpen)}
+    ${coveredBlock(c)}
     <div class="sect">About</div>
     <textarea id="mk-about" class="desc-in" aria-label="About: who the contact is and what they cover" placeholder="Who they are and what they cover.">${esc(c.about ?? "")}</textarea>
     <div class="sect">Notes<span id="saved"></span></div>

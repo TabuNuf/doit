@@ -22,6 +22,7 @@ export class SqliteContacts {
     };
     const channels = by("SELECT contact_id, kind, url, followers, active FROM channels ORDER BY position");
     const fit = by("SELECT contact_id, game, reason FROM fit ORDER BY game");
+    const games = by("SELECT contact_id, title, scales, kind, date, source, genres FROM games ORDER BY date DESC, title");
     const touches = by("SELECT contact_id, date, kind, game, note FROM touches ORDER BY date DESC, id DESC");
     const events = new Map(this.db.prepare("SELECT * FROM events").all().map(r => [r.contact_id, toEvent(r)]));
     return this.db.prepare("SELECT * FROM contacts ORDER BY id").all().map(r => ({
@@ -30,6 +31,7 @@ export class SqliteContacts {
       reddit: r.reddit, scales: split(r.scales), scaleNote: r.scale_note, checked: r.checked,
       channels: (channels.get(r.id) ?? []).map(({ kind, url, followers, active }) => ({ kind, url, followers, active })),
       fit: (fit.get(r.id) ?? []).map(({ game, reason }) => ({ game, reason })),
+      games: (games.get(r.id) ?? []).map(g => ({ title: g.title, scales: split(g.scales), kind: g.kind, date: g.date, source: g.source, genres: split(g.genres) })),
       touches: (touches.get(r.id) ?? []).map(({ date, kind, game, note }) => ({ date, kind, game, note })),
       event: events.get(r.id) ?? null,
     }));
@@ -63,6 +65,14 @@ export class SqliteContacts {
     this.db.prepare("INSERT INTO fit (contact_id, game, reason) VALUES (?, ?, ?) ON CONFLICT (contact_id, game) DO UPDATE SET reason = excluded.reason")
       .run(id, game, reason);
   }
+
+  /** Adds the covered game, or updates the one with that title (any case). */
+  setGame(id, g) {
+    this.db.prepare("INSERT INTO games (contact_id, title, scales, kind, date, source, genres) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT (contact_id, title) DO UPDATE SET title = excluded.title, scales = excluded.scales, kind = excluded.kind, date = excluded.date, source = excluded.source, genres = excluded.genres")
+      .run(id, g.title, g.scales.join(","), g.kind, g.date, g.source, g.genres.join(","));
+  }
+
+  removeGame(id, title) { this.db.prepare("DELETE FROM games WHERE contact_id = ? AND title = ?").run(id, title); }
 
   removeFit(id, game) { this.db.prepare("DELETE FROM fit WHERE contact_id = ? AND game = ?").run(id, game); }
 

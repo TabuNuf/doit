@@ -32,6 +32,9 @@ export const HELP = `doit: the task board, from the command line. Every command 
            Scales (contact scales and a profile's scale): solo = made primarily by one developer, may still use purchased assets, freelancers or publishing support; indie = independent development, often a small team, not a precise measure of budget or team size;
            triple-i (III) = independently funded, ambitious scope or production values approaching AAA, the team may include developers from large studios; aa = mid-sized production between indie and AAA in budget, team size and scope, the boundary is informal;
            aaa = blockbuster scale, large budgets, teams and marketing. The labels describe production scale, funding, ownership or team structure, not quality, and a creator or game can carry several.
+  doit contact game add <id> <title> --scale a,b --kind played|reviewed|streamed --date YYYY-MM-DD --source <url> [--genre a,b]   a game the creator played, reviewed or streamed; the date and a source URL (their own video, stream or post) are required, the same title again updates it
+  doit contact game remove <id> <title>           drop a covered game
+           Relevant = a fit, OR scales sharing a label with a game profile's scale, OR at least 3 distinct covered games whose scale shares a label with a profile's (same league); scale alone does not decide fit. --relevant prints why. doit contacts --parked --now-relevant lists parked contacts that became relevant (read only, nothing is unparked).
   doit contacts migrate-scale [--apply]           one-off: move a notes first line "Indie fit: ..." into scales, scale_note and checked, retype website channels of a known host (kick, reddit, rumble...), copy a reddit link to the reddit field; without --apply only lists
   doit fit <id> <game> <reason>                   the contact fits a game (a profile's file name)
   doit fit <id> <game> --remove                   drop the contact's fit for that game

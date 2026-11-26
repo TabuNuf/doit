@@ -6,7 +6,7 @@ import { DatabaseSync } from "node:sqlite";
 import { setup } from "./helpers.js";
 import { cliFor } from "./contactsCli.test.js";
 import { makeContacts } from "../src/root.js";
-import { checkScales, isRelevant, contactFilter, makeContact, countLabel, ContactError } from "../src/domain/contacts.js";
+import { checkScales, isRelevant, contactFilter, makeContact, countLabel, checkGame, relevance, whyText, COVERED_GAMES_MIN, ContactError } from "../src/domain/contacts.js";
 import { pickContacts } from "../src/domain/outreachPlan.js";
 import { takeIndieFit } from "../src/domain/scaleNotes.js";
 import { channelKind } from "../src/domain/contactImport.js";
@@ -152,7 +152,7 @@ test("an old channels table (kind and url only) keeps its rows when migrated", t
   const book0 = makeContacts({ home: s.home, now: () => s.clock.t });
   book0.add({ name: "Old", types: ["influencer"], channels: [{ kind: "youtube", url: "https://youtube.com/@old" }, { kind: "website", url: "https://old.example" }] });
   book0.source.close();
-  db.exec("ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; PRAGMA user_version = 5");
+  db.exec("DROP TABLE games; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; PRAGMA user_version = 5");
   db.close();
   const book = makeContacts({ home: s.home, now: () => s.clock.t });
   const c = book.get(1);
@@ -185,4 +185,68 @@ test("contacts migrate-scale: a dry run changes nothing, --apply sets the fields
   assert.deepEqual(c.channels.map(x => x.kind), ["kick", "reddit", "website"]);
   assert.equal(JSON.parse(run("contact", "show", "2", "--json").out).notes, "Hello");
   assert.match(run("contacts", "migrate-scale").out, /^0 contacts with an Indie fit line/);
+});
+
+const GAME = (title, scale = "solo", extra = {}) => ["contact", "game", "add", "1", title, "--scale", scale, "--kind", "reviewed", "--date", "2026-11-01", "--source", "https://youtu.be/" + title.replace(/\W/g, ""), ...Object.entries(extra).flatMap(([k, v]) => ["--" + k, v])];
+
+test("covered games: entry is checked, same title updates, remove works", () => {
+  assert.throws(() => checkGame({ title: "T", scales: "solo", kind: "played", date: "2026-11-01" }), /source/);
+  assert.throws(() => checkGame({ title: "T", scales: "solo", kind: "played", source: "https://x.test/v" }), /date/);
+  assert.throws(() => checkGame({ title: "T", scales: "", kind: "played", date: "2026-11-01", source: "https://x.test/v" }), /scale/);
+  assert.throws(() => checkGame({ title: "T", scales: "solo", kind: "watched", date: "2026-11-01", source: "https://x.test/v" }), ContactError);
+  assert.equal(COVERED_GAMES_MIN, 3);
+});
+
+test("relevant by covered games: 2 in our league no, 3 yes, 3 of another scale no, repeats of one title count once", () => {
+  const ours = [{ game: "bb", scale: ["solo", "indie"] }];
+  const g = (title, scales) => ({ title, scales, kind: "played", date: "2026-11-01", source: "https://x.test/v", genres: [] });
+  const c = games => ({ fit: [], scales: [], games });
+  assert.deepEqual(relevance(c([g("a", ["solo"]), g("b", ["indie"])]), ours), []);
+  assert.deepEqual(relevance(c([g("a", ["solo"]), g("b", ["indie"]), g("c", ["solo", "aa"])]), ours), [{ kind: "games", count: 3 }]);
+  assert.deepEqual(relevance(c([g("a", ["aaa"]), g("b", ["aaa"]), g("c", ["aa"])]), ours), []);
+  assert.deepEqual(relevance(c([g("a", ["solo"]), g("A", ["solo"]), g("b", ["indie"])]), ours), []);
+  assert.equal(whyText(relevance({ fit: [{ game: "bb" }], scales: ["indie"], games: [] }, ours)), "fit bb; scale indie");
+});
+
+test("CLI: covered games drive relevance, --relevant says why, --now-relevant lists parked ones only, nothing is unparked", t => {
+  const { run } = world(t);
+  run("profile", "set", "bb", "scale=solo,indie", "stage=demo");
+  run("contact", "add", "Ada", "--type", "influencer");
+  run("contact", "add", "Bo", "--type", "influencer", "--status", "parked");
+  run("contact", "add", "Cy", "--type", "influencer", "--scales", "indie");
+  assert.equal(run(...GAME("Tiny Quest", "solo", { genre: "rpg,cozy" })).code, 0);
+  run(...GAME("Pixel Farm", "indie"));
+  assert.match(run(...GAME("pixel farm", "indie", { genre: "farm" })).out, /Ada: 2 covered games$/m, "same title updates");
+  assert.equal(run(...GAME("Big Shooter", "aaa")).out.includes("relevant"), false);
+  assert.match(run(...GAME("Moon Cafe", "solo")).out, /relevant: 3 covered games in our league/);
+  assert.equal(run("contact", "game", "add", "1", "X", "--scale", "solo", "--kind", "played").code, 1, "no date and source");
+  const show = run("contact", "show", "1").out;
+  assert.match(show, /relevant 3 covered games in our league/);
+  assert.match(show, /covered Tiny Quest  solo  reviewed 2026-11-01  https:\/\/youtu.be\/TinyQuest  rpg, cozy/);
+  const rel = run("contacts", "--relevant").out;
+  assert.match(rel, /Ada.*relevant: 3 covered games in our league/);
+  assert.match(rel, /Cy.*relevant: scale indie/);
+  const json = JSON.parse(run("contact", "show", "1", "--json").out);
+  assert.equal(json.games.length, 4);
+  assert.equal(json.games.find(x => x.title === "pixel farm").genres[0], "farm");
+  // Bo is parked and gets 3 games: now relevant, still parked.
+  for (const n of ["a", "b", "c"]) run("contact", "game", "add", "2", n, "--scale", "indie", "--kind", "played", "--date", "2026-11-01", "--source", "https://x.test/" + n);
+  assert.match(run("contacts", "--parked", "--now-relevant").out, /Bo.*parked/);
+  assert.doesNotMatch(run("contacts", "--parked", "--now-relevant").out, /Ada|Cy/);
+  assert.match(run("contact", "show", "2").out, /parked/);
+  assert.match(run("contact", "game", "remove", "1", "moon cafe").out, /3 covered games/);
+  assert.equal(run("contact", "game", "remove", "1", "nope").code, 1);
+});
+
+test("campaign suggest ranks by genre overlap and names the games; the league is not a gate", t => {
+  const { run } = world(t);
+  run("profile", "set", "bb", "genres=cozy,farm", "stage=demo");
+  run("contact", "add", "Ada", "--type", "influencer", "--reach", "900");
+  run("contact", "add", "Bo", "--type", "influencer", "--reach", "100");
+  for (const id of ["1", "2"]) run("fit", id, "bb", "plays it");
+  run("contact", "game", "add", "2", "Farm Days", "--scale", "solo", "--kind", "played", "--date", "2026-11-01", "--source", "https://x.test/f", "--genre", "Farm");
+  const id = run("campaign", "add", "bb", "Push", "--game", "bb").out.match(/EPIC-\d+/)[0];
+  const out = run("campaign", "suggest", "bb", id).out;
+  assert.ok(out.indexOf("Bo") < out.indexOf("Ada"), out);
+  assert.match(out, /Bo.*covered like it: Farm Days/);
 });

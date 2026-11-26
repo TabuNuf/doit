@@ -2,11 +2,11 @@
 //
 // The ContactSource it is given (the store's port):
 //   all() -> contacts, get(id) -> contact | null, insert(contact) -> id, update(id, contact) (fields and channels),
-//   setFit(id, game, reason), removeFit(id, game), addTouch(id, {date, kind, game, note, ref}) (a touch whose non-empty ref is already logged is not added again);
+//   setFit(id, game, reason), removeFit(id, game), setGame(id, game) (by title), removeGame(id, title), addTouch(id, {date, kind, game, note, ref}) (a touch whose non-empty ref is already logged is not added again);
 //   a contact carries id, fit [{game, reason}], touches [{date, kind, game, note}] newest first.
 // The ProfileShelf it is given: list() -> profiles, has(game) -> bool.
 
-import { makeContact, contactFilter, byReach, isDue, isRelevant, checkDate, checkTouchKind, lastContact, lastActive, genresOf, ContactError } from "./contacts.js";
+import { makeContact, contactFilter, byReach, isDue, relevance, whyText, checkGame, checkDate, checkTouchKind, lastContact, lastActive, genresOf, ContactError } from "./contacts.js";
 import { mapStreamers, mergeNotes } from "./contactImport.js";
 import { EventMatch } from "./eventMatch.js";
 import { takeIndieFit } from "./scaleNotes.js";
@@ -19,7 +19,7 @@ const day = d => {
 };
 
 /** The input fields of a stored contact: what `makeContact` takes, without the facts the book adds. */
-const plain = ({ fit, touches, due, id, last, active, relevant, ...fields }) => fields;
+const plain = ({ fit, games, touches, due, id, last, active, relevant, why, nowRelevant, ...fields }) => fields;
 
 /** Channel kinds that name one person; a shared Discord server or a website does not. */
 const PERSONAL = new Set(["youtube", "twitch", "kick", "tiktok", "bluesky", "x", "instagram", "facebook", "reddit", "patreon", "rumble", "linktree", "steam"]);
@@ -51,9 +51,10 @@ export class ContactBook {
     return this.#facts(c, this.today(), this.shelf.list());
   }
 
-  /** The contact with the facts the book adds: due, last, active and relevant (a festival is never relevant). */
+  /** The contact with the facts the book adds: due, last, active relevant, why (the paths, see `relevance`) and nowRelevant (parked yet relevant); a festival is never relevant. */
   #facts(c, today, profiles) {
-    return { ...c, due: isDue(c, today), last: lastContact(c.touches), active: lastActive(c.touches), relevant: !c.event && isRelevant(c, profiles) };
+    const paths = c.event ? [] : relevance(c, profiles);
+    return { ...c, due: isDue(c, today), last: lastContact(c.touches), active: lastActive(c.touches), relevant: paths.length > 0, why: whyText(paths), nowRelevant: c.status === "parked" && paths.length > 0 };
   }
 
   /** Every genre in use, for the Genre filter. */
@@ -92,6 +93,21 @@ export class ContactBook {
       if (apply) this.source.update(c.id, makeContact({ ...plain(c), notes: got.notes, scales: got.scales, scaleNote: got.scaleNote, checked: got.checked, channels, reddit }));
     }
     return out;
+  }
+
+  /** Adds a covered game (see `checkGame`) or updates the one with that title. */
+  addGame(id, game) {
+    const c = this.get(id);
+    this.source.setGame(c.id, checkGame(game));
+    return this.get(c.id);
+  }
+
+  removeGame(id, title) {
+    const c = this.get(id);
+    const t = String(title ?? "").trim().toLowerCase();
+    if (!c.games.some(g => g.title.toLowerCase() === t)) throw new ContactError(`Contact ${c.id} has no covered game "${title}"`);
+    this.source.removeGame(c.id, c.games.find(g => g.title.toLowerCase() === t).title);
+    return this.get(c.id);
   }
 
   setFit(id, game, reason) {

@@ -57,3 +57,30 @@ test("the Parked section is folded until opened, shows a count and review dates,
   assert.match(open, /Not relevant to any game/);
   assert.equal(parkedSection([], true, null), "");
 });
+
+import { coveredBlock, gameRemove } from "../web/contactCovered.js";
+test("the pane lists covered games with a source link and removes one by title", () => {
+  const c = { id: 4, why: "3 covered games in our league", games: [{ title: "Tiny Quest", scales: ["solo"], kind: "reviewed", date: "2026-11-01", source: "https://youtu.be/x", genres: ["rpg"] }] };
+  const html = coveredBlock(c);
+  assert.match(html, /Tiny Quest/);
+  assert.match(html, /href="https:\/\/youtu.be\/x"/);
+  assert.match(html, /relevant: 3 covered games/);
+  assert.match(coveredBlock({ id: 1, games: [] }), /None yet/);
+  assert.deepEqual(gameRemove(c, "0"), { method: "DELETE", path: "/api/contacts/4/games/Tiny%20Quest" });
+});
+
+test("routes: add and remove a covered game, now-relevant filter", async t => {
+  const s = setup(); t.after(s.cleanup);
+  const book = makeContacts({ home: s.home, now: () => s.clock.t });
+  book.add({ name: "Ada", types: ["influencer"] });
+  book.source.close();
+  const server = makeServer({ home: s.home, now: () => s.clock.t });
+  const port = await server.listen(0);
+  t.after(() => server.close());
+  const api = (p, method = "GET", body) => fetch(`http://127.0.0.1:${port}${p}`, { method, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) }).then(async r => ({ status: r.status, body: await r.json() }));
+  const g = { title: "Tiny Quest", scales: ["solo"], kind: "played", date: "2026-11-01", source: "https://youtu.be/x" };
+  assert.equal((await api("/api/contacts/1/games", "POST", g)).body.games.length, 1);
+  assert.equal((await api("/api/contacts/1/games", "POST", { ...g, source: "" })).status, 400);
+  assert.equal((await api("/api/contacts/1/games/tiny%20quest", "DELETE")).body.games.length, 0);
+  assert.equal((await api("/api/contacts?nowRelevant=1")).body.length, 0);
+});

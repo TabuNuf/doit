@@ -20,7 +20,7 @@ const ADA = {
 };
 
 // What a version 5 file lacks.
-const DOWN6 = "ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ";
+const DOWN6 = "DROP TABLE games; ALTER TABLE contacts DROP COLUMN reddit; ALTER TABLE contacts DROP COLUMN scales; ALTER TABLE contacts DROP COLUMN scale_note; ALTER TABLE contacts DROP COLUMN checked; ALTER TABLE channels DROP COLUMN followers; ALTER TABLE channels DROP COLUMN active; ";
 
 test("a contact with channels, fit and touches is read back after reopening", () => {
   const dir = home();
@@ -28,6 +28,9 @@ test("a contact with channels, fit and touches is read back after reopening", ()
   const id = a.insert(ADA);
   a.setFit(id, "bunny-bunker", "plays co-op");
   a.setFit(id, "good-box", "likes puzzles");
+  const G = { title: "Tiny Quest", scales: ["solo"], kind: "reviewed", date: "2026-11-02", source: "https://youtu.be/x", genres: ["rpg"] };
+  a.setGame(id, G);
+  a.setGame(id, { ...G, title: "tiny quest", kind: "played" });
   a.addTouch(id, { date: "2026-11-01", kind: "mail", game: "bunny-bunker" });
   a.addTouch(id, { date: "2026-11-05", kind: "reply", game: "bunny-bunker" });
   a.addTouch(id, { date: "2026-11-05", kind: "video", game: "" });
@@ -37,6 +40,7 @@ test("a contact with channels, fit and touches is read back after reopening", ()
   assert.deepEqual(c, {
     ...ADA, id,
     fit: [{ game: "bunny-bunker", reason: "plays co-op" }, { game: "good-box", reason: "likes puzzles" }],
+    games: [{ ...G, title: "tiny quest", kind: "played" }],
     touches: [{ date: "2026-11-05", kind: "video", game: "", note: "" }, { date: "2026-11-05", kind: "reply", game: "bunny-bunker", note: "" }, { date: "2026-11-01", kind: "mail", game: "bunny-bunker", note: "" }],
   });
   assert.deepEqual(b.get(id), c);
@@ -52,16 +56,16 @@ test("the file and its schema version are made on first open and kept on the nex
   s.close();
   assert.ok(fs.existsSync(path.join(dir, "marketing.db")));
   const b = open(dir);
-  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 6);
+  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version, 7);
   b.close();
 });
 
 test("a file from a newer schema is refused", () => {
   const dir = home();
   const a = open(dir);
-  a.db.exec("PRAGMA user_version = 7");
+  a.db.exec("PRAGMA user_version = 8");
   a.close();
-  assert.throws(() => open(dir).all(), /version 7/);
+  assert.throws(() => open(dir).all(), /version 8/);
 });
 
 test("update replaces fields and channels and keeps fit and touches; a second fit replaces the reason", () => {
@@ -131,7 +135,7 @@ test("a version 1 file is migrated in place and keeps its contacts and touches",
   const m = new MarketingDb(dir);
   const store = new SqliteContacts(m);
   assert.deepEqual(store.get(1).touches, [{ date: "2026-10-01", kind: "mail", game: "good-box", note: "" }]);
-  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 6);
+  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 7);
   assert.equal(new SqliteDrafts(m).all().length, 0);
   store.addTouch(1, { date: "2026-11-01", kind: "mail", note: "S", ref: "<x@example.com>" });
   assert.equal(store.get(1).touches.length, 2);
@@ -163,7 +167,7 @@ test("a version 2 file is migrated, keeps its contacts and drafts, and reads an 
   const m = new MarketingDb(dir);
   const store = new SqliteContacts(m);
   assert.equal(store.get(1).event, null);
-  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 6);
+  assert.equal(m.db.prepare("PRAGMA user_version").get().user_version, 7);
   assert.equal(new SqliteDrafts(m).all().length, 1);
   const event = {
     year: 2027, starts: "2027-02-23", ends: "2027-03-02", deadline: "2027-01-15", cost: "free", where: "steam",
@@ -202,7 +206,7 @@ test("a version 4 file is migrated: special appears empty, contacts stay, and a 
   first.close();
   const store = new SqliteContacts(new MarketingDb(dir));
   assert.equal(store.get(1).special, "");
-  assert.equal(store.db.prepare("PRAGMA user_version").get().user_version, 6);
+  assert.equal(store.db.prepare("PRAGMA user_version").get().user_version, 7);
   store.update(1, { ...ADA, special: "Friend since 2019" });
   assert.equal(store.get(1).special, "Friend since 2019");
   store.update(1, { ...ADA, special: "" });

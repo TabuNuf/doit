@@ -67,7 +67,7 @@ export class CampaignCli {
     const found = this.outreach.suggest(project, need(rest[1], USAGE.suggest), flags.limit === undefined ? 20 : flags.limit);
     if (flags.json) return this.print(JSON.stringify(found, null, 1));
     this.print(`Contacts (${found.contacts.length})`);
-    for (const c of found.contacts) this.print(`  ${c.id}  ${c.name}  reach ${c.reach}  ${c.game}: ${c.reason || "-"}  last about it ${c.lastAbout || "never"}`);
+    for (const c of found.contacts) this.print(`  ${c.id}  ${c.name}  reach ${c.reach}  ${c.game}: ${c.reason || "-"}  last about it ${c.lastAbout || "never"}${c.similar?.length ? `  covered like it: ${c.similar.join(", ")}` : ""}`);
     this.print(`Festivals (${found.festivals.length})`);
     for (const f of found.festivals) this.print(`  ${f.id}  ${f.name} ${f.year}  deadline ${f.deadline || "-"}  ${f.games.join(", ")}`);
   }
