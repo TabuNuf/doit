@@ -24,6 +24,9 @@ Design: Architecture.md
 - [ ] T-022.16 One key=value reader in the CLI: contactsCli.js (contact set) and gamesCli.js (changesOf) each write the loop with its repeated-key refusal One function in cli/parse.js reads key=value words with the keys that may repeat; both commands use it; npm test passes
 - [ ] T-022.17 Domain helpers once: gameEntries.js count and contactImport.js reachOf both read 12k and 1.2M, and line() is written in gameEntries.js and gameCatalog.js One count reader and one line() in the domain, used by contacts and games; npm test passes
 - [ ] T-022.18 A covered game carries its entry key from the server: web/state.js entryKey repeats the rule of domain/gameEntries.js The contact's covered games come with key, contactCovered.js uses it, entryKey is gone from web/state.js; npm test passes
+- [ ] T-022.19 A list registers its columns with the picker once: columnEvents.js imports every list's columns, a list left out half works, the task table builds its own header row, and COLUMNS and GM_COLUMNS have no reader A list hands its columns to the picker in one place, the shared module imports no list, headerRow serves the task table too, the two unread exports are gone; npm test passes with a test of columnEvents.js
+- [ ] T-022.20 style.css is 310 lines against the 300-line rule, and the guard in test/web.test.js counts only .js The guard counts the page's CSS too and style.css is split under the line; npm test passes
+- [ ] T-022.21 Column picker storage: its key prefix doit.columns.<list> is shared with resize.js pane widths, a tick does nothing with storage off, and each row reads the saved choice again The picker's keys cannot meet the pane widths' keys, a tick holds for the visit when storage is off, and a redraw reads the choice once per list; npm test passes
 
 ## Test plan
 
