@@ -125,5 +125,7 @@ The stack layer says where each piece lives and which test holds it (Unity: `Uni
 - Comments state intent, one or two lines. Never restate the code.
 - A document names what the code holds, never its current number: a schema version, a migration list or a file's line count is read from the code.
   Why: an architecture file gave a database's schema version in two module lines, and at a close audit one was four versions behind and the other five.
+- A task that narrows what a query returns by default (a list that now leaves out one status) reads every caller of that query and decides, per caller, whether it wants the narrow list or the whole one.
+  Why: a contact list began leaving out parked contacts, and a mail sweep that called it without a filter stopped filing their replies; no test failed, and a close audit found it.
 - Design hooks: prepare only cheap hooks for the next iteration (a struct instead of an enum, a version number in a save), listed in a table in `Architecture.md` with why the later iteration needs them. Do not build ahead on guesses.
   Why: a guess built ahead is code to read and keep for a feature that may never come; a cheap hook keeps the later change small.

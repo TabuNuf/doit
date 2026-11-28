@@ -27,6 +27,11 @@ Design: Architecture.md
 - [ ] T-022.19 A list registers its columns with the picker once: columnEvents.js imports every list's columns, a list left out half works, the task table builds its own header row, and COLUMNS and GM_COLUMNS have no reader A list hands its columns to the picker in one place, the shared module imports no list, headerRow serves the task table too, the two unread exports are gone; npm test passes with a test of columnEvents.js
 - [ ] T-022.20 style.css is 310 lines against the 300-line rule, and the guard in test/web.test.js counts only .js The guard counts the page's CSS too and style.css is split under the line; npm test passes
 - [ ] T-022.21 Column picker storage: its key prefix doit.columns.<list> is shared with resize.js pane widths, a tick does nothing with storage off, and each row reads the saved choice again The picker's keys cannot meet the pane widths' keys, a tick holds for the visit when storage is off, and a redraw reads the choice once per list; npm test passes
+- [ ] T-022.22 profile set on a project with no Profile.md fails on its empty stage instead of saying add one first A new test runs profile set scale=indie on a project with a kind and no Profile.md and gets the add-one-first refusal; npm test passes
+- [ ] T-022.23 Arrow keys in the Contacts list ignore the open Parked rows: with a parked row selected either arrow jumps to the top of the main list A new test selects a parked row with the section open and moves up and down through both lists; npm test passes
+- [ ] T-022.24 Channel kinds and contact statuses are written in the domain and again in web/ with no parity test, and the kinds also in ContactBook PERSONAL and contactImport KIND_OF A test fails when a kind or status is in one list and not the other, and each further list says in a comment why it differs; npm test passes
+- [ ] T-022.25 The iii alias for triple-i is written twice: contacts.js checkScales and profileShelf.js parseProfile The store reads a Scale line through checkScales; npm test passes
+- [ ] T-022.26 Remove the one-off migrate-scale once Tabu confirms it has run: ContactBook.migrateScale, scaleNotes.js, the CLI command, its help and the apply switch Tabu has confirmed the migration ran on the real data, the five places are gone, Architecture.md and the class diagram follow; npm test passes
 
 ## Test plan
 

@@ -3,7 +3,8 @@
 In short: influencer contacts carry the fields the research routine needs, and contacts that suit none of Tabu's games sit in a parked list.
 Why it exists: the first research run (contact 50, 2026-11-26) stuffed scale, check date and Reddit into `notes`, and every contact stays in the outreach pool. Quality over quantity: only creators that suit a game get worked.
 
-Status: Active
+Status: Done
+Closed: 2026-11-28
 Design: Design.md, section Marketing (scale labels, relevant, parked, per-channel facts)
 
 ## Findings
