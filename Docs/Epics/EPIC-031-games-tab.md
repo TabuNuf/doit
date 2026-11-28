@@ -35,6 +35,7 @@ Design: Design.md, section Marketing, step 6 (Games)
 - [x] T-031.10 Links between a contact's covered games and the entries (done when: tests pass: a covered game in the contact pane carries the control that opens its entry in the Games tab, and a Covered by name opens the contact in the Contacts tab)
 - [ ] T-031.11 Check in play: the Games tab (done when: Tabu has tried the four items under Check in play in the epic and each works or has a bug task)
 - [x] T-031.12 Game pane groups and filter labels follow the design (done when: tests pass: Price, Launch price and Playtime sit under Success, Demo and Languages under How it got there; the filters read Comparable to and Not researched)
+- [x] T-031.13 Research run: which sources can be read, in Marketing-Claude.md (done when: Marketing-Claude.md names what Steam, Gamalytic, SteamSpy, SteamCharts, SteamDB and VGChartz gave in the first run)
 
 ## Test plan
 
@@ -54,6 +55,10 @@ Design: Design.md, section Marketing, step 6 (Games)
 ## Notes
 
 Decisions and deviations, newest first.
+
+- 2026-11-28, first research run, started by Tabu: all 25 entries have `checked`. 22 Steam games carry store and tracker links and Gamalytic's sales and revenue (18 released, 4 unreleased with followers only); Pokémon Pokopia and the Zelda remake carry Nintendo's sales figure through VGChartz; Kingdom Hearts Collection has no tracker page and no total. Left empty everywhere: `launch_price` and `rating_label` (no page read gave them). OpenCritic scores are written only where its page was opened (4 games); the others have the link alone. Four comps set as a first pass (T-031.13 records which sources can be read). The database was copied to `marketing.db.before-031-research` first.
+- 2026-11-28, `SALES_PER_REVIEW` checked: Gamalytic's copies sold divided by its review count, for the 18 released Steam games, has a median of 34 and runs from 15 to 66. 30 is kept. Gamalytic's own estimate leans on reviews, so this is a check of scale, not an independent measurement.
+- 2026-11-28, to decide by Tabu: the entry Cauldron Chaos was matched to Cauldron Chaos: Brew Potions & Tidy Up among four Steam games of that name; Village in the Shade (Nippon Ichi Software) and Moonlight Peaks (published by XSEED) carry the scale `indie` from the contact's row.
 
 - 2026-11-26, page check after Batch C, on a copy of the data on port 4399 (never the real data folder): the tab lists the 25 entries; a store link, a tracker link, reviews (`1.2k` read as 1200) and price were saved from the pane; the estimates showed (reviews x 30, sales x price); a comp to Bunny Bunker was saved and found by the Comparable to filter; a Covered by name opened the contact and a covered game opened its entry; no console errors. Found: fields under the wrong headings and two filter labels off the design's words, fixed in T-031.12.
 - 2026-11-26: Development ran after each batch: 464, 476 and 485 tests, all passing. Audit has not run; it belongs to the close, which waits for T-031.11.
