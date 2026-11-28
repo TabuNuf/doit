@@ -20,10 +20,10 @@ Design: Design.md, section Look (Columns)
 
 ## Tasks
 
-- [ ] T-032.1 Shared column picker module (done when: test/columnPicker.test.js passes: visible columns from a saved choice, the first column cannot be hidden, grid template from visible widths, unreadable storage shows all; no web file over 300 lines)
-- [ ] T-032.2 Contacts and Games lists use the picker (done when: tests pass: right click on the header row and the corner button open the dropdown; unticking Genre removes it from the Games header and rows; Contacts the same; the choice survives a reload)
-- [ ] T-032.3 Epic page task table uses the picker (done when: tests pass: the task table on the epic page hides Who or Model and effort when unticked, and Task stays)
-- [ ] T-032.4 Design, architecture and standard note (done when: Architecture.md names columnPicker in web with its users; Docs/Standard App notes that a list with column headers uses the shared picker)
+- [x] T-032.1 Shared column picker module (done when: test/columnPicker.test.js passes: visible columns from a saved choice, the first column cannot be hidden, grid template from visible widths, unreadable storage shows all; no web file over 300 lines)
+- [x] T-032.2 Contacts and Games lists use the picker (done when: tests pass: right click on the header row and the corner button open the dropdown; unticking Genre removes it from the Games header and rows; Contacts the same; the choice survives a reload)
+- [x] T-032.3 Epic page task table uses the picker (done when: tests pass: the task table on the epic page hides Who or Model and effort when unticked, and Task stays)
+- [x] T-032.4 Design, architecture and standard note (done when: Architecture.md names columnPicker in web with its users; Docs/Standard App notes that a list with column headers uses the shared picker)
 - [ ] T-032.5 Check in play: column picker (done when: Tabu has hidden and shown columns in Contacts, Games and an epic's task table, and each works or has a bug task)
 
 ## Test plan
