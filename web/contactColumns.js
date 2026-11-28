@@ -1,4 +1,4 @@
-// The Contacts list as columns: header row, row cells and the sort a header click sets. Pure apart from the saved choice.
+// The Contacts list as columns: header row, row cells and the sort a header click sets. Pure apart from the saved choice and the open dropdown (S.colMenu).
 
 import { S, esc, fmtDate, compactCount } from "./state.js";
 import { headerRow as pickerHeader, visibleColumns } from "./columnPicker.js";

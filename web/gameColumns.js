@@ -1,4 +1,4 @@
-// The Games list as columns: header row, row cells, the order and the sort a header click sets. Pure.
+// The Games list as columns: header row, row cells, the order and the sort a header click sets. Pure apart from the saved column choice and the open dropdown (S.colMenu).
 
 import { S, esc, compactCount } from "./state.js";
 import { headerRow, visibleColumns } from "./columnPicker.js";

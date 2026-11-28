@@ -1,5 +1,6 @@
 // The epic page's lists: findings, the tasks table, the test plan and the folded end sections.
 // Each takes `open`, the map of opened rows (S.epicOpen), and `scope`, the epic's key prefix.
+// The tasks table also reads the saved column choice and the open dropdown (S.colMenu).
 
 import { S, esc } from "./state.js";
 import { visibleColumns, cornerButton, columnMenu } from "./columnPicker.js";
