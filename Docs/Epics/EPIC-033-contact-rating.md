@@ -41,7 +41,7 @@ What Doit does when the epic is done. `Decided` items come from Tabu; `Proposed`
 ## Tasks
 
 - [x] T-033.1 Decide the rating's open points (done when: Each of the five points has an answer in a comment on this task.)
-- [ ] T-033.2 Draft the game type list and the player-type scoring guide (done when: `GameTypes.md` lists at most 25 types whose neighbours are all types in the list, and `Marketing-Claude.md` defines 0 to 3 for each of the six scores.)
+- [x] T-033.2 Draft the game type list and the player-type scoring guide (done when: `GameTypes.md` lists at most 25 types whose neighbours are all types in the list, and `Marketing-Claude.md` defines 0 to 3 for each of the six scores.)
 - [ ] T-033.3 Trim the game type list (done when: `GameTypes.md` is as Tabu wants it, and a comment on this task names Bunny Bunker's one or two types.)
 - [ ] T-033.4 Architecture and design for the rating (done when: `Architecture.md` names every new module with its port and its place in the class diagram, and Design.md step 7 has no open point that T-033.1 answered.)
 - [ ] T-033.5 Read the game type list from GameTypes.md (done when: `npm test` passes with new tests for `parseGameTypes`, `checkTypes`, `typeWeight` and a missing file, and `doit game-types` prints the list.)

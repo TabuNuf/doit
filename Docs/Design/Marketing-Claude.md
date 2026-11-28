@@ -32,6 +32,25 @@ The Games tab compares Tabu's games with the games the contacts covered. This ru
 7. Mark comparisons: `doit profiles` lists Tabu's games, then `doit game comp "<title>" <game> "<reason in one line: the shared genre, scale or audience>"`. `doit game comp "<title>" <game> --remove` drops one.
 8. Close each entry with `doit game set "<title>" checked=<today>`. Finish with `doit games --no-facts` to confirm the batch is gone from it, and report how many were researched, which sites had no page for which game, and which numbers were left empty.
 
+## Type and score a covered game
+
+The contact rating (`Design.md`, Marketing, step 7) reads two things from a covered game: its types and six player-type scores. Both are judged from the store page read in the run above, never from memory. The commands that write them arrive with EPIC-033 (T-033.6); until then this section is the guide to score by.
+
+**Types.** One or two from `GameTypes.md` in the Polyspice Marketing docs. Take the type that says what the player does most of the time. Add a second only when the game is as much that as the first. A type that is not in the list is never written.
+
+**Scores.** Six whole numbers from 0 to 3. Score the game as it is sold today, and take the lower number when two fit. All six are written, also the zeros.
+
+| Score | 0 | 1 | 2 | 3 | Low and high example |
+|---|---|---|---|---|---|
+| achiever | Nothing to finish: a toy or a sandbox | Goals the player may ignore | Goals carry the game: levels, quests, unlocks | Mastery is the point: difficulty tiers, scores, full clears | Sandcastle 0, Balatro 3 |
+| explorer | Everything is shown from the start | A few unlocks or hidden things | Finding places, secrets or systems is a main draw | Discovery is the game | Book Nook 0, Blue Prince 3 |
+| socialiser | Played alone, nothing shared | Friendships with characters, or sharing outside play | Optional co-op, or a community inside the game | Built around playing together | Balatro 0, Among Us 3 |
+| killer | No other player to beat | Leaderboards or other indirect rivalry | Optional play against other players | Built around beating other players | Winter Burrow 0, ARC Raiders 3 |
+| pressure | Nothing can go wrong: no fail state, no timer | Gentle: a mistake costs little | A real threat or a clock, with an easy setting | Punishing: losing progress is normal | Woodo 0, Darkest Dungeon 3 |
+| creation | Nothing is built or made | Light customising | Building or making is a main part of play | Building is the game, or it has tools to make and share content | Balatro 0, Minecraft 3 |
+
+Achiever, explorer, socialiser and killer are Bartle's player types. Socialiser and killer are about other players, so most single-player games score 0 or 1 on both. Pressure and creation are Doit's own.
+
 ## Create and fill a campaign from a release or an event
 
 1. Find the occasion. A release: the project's profile (`doit profiles`) gives stage and release date. An event: `doit festivals --fits <game> --deadline-within 60` lists open events with days left; take its id.
