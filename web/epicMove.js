@@ -4,8 +4,8 @@ import { S, api, act } from "./state.js";
 import { toggleFold } from "./epicList.js";
 
 const ASK = {
-  completed: id => `Close ${id}? Its tasks move to the archive and it moves to Completed.`,
-  archived: id => `Close ${id}? Its tasks move to the archive and it goes straight to Archived.`,
+  completed: id => `Close ${id}? Its completed tasks move to the archive, its open tasks are hidden, and it moves to Completed.`,
+  archived: id => `Close ${id}? Its completed tasks move to the archive, its open tasks are hidden, and it goes straight to Archived.`,
 };
 
 /** Moves the epic `key` ("project/EPIC-nnn") to `to`; Completed and Archived ask first. Returns the pending request. */

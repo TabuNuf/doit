@@ -318,3 +318,15 @@ test("closing an epic archives its done tasks and hides the open ones, which com
   s.board.moveEpic("game", id, "open");
   assert.deepEqual(s.board.list({ project: "game", epic: id }).map(x => `${x.id}:${x.state}`), [`${a}:todo`, `${b}:progress`, `${c}:backlog`]);
 });
+
+test("a hidden task whose file is moved to the archive by hand reads as archived and not hidden", t => {
+  const s = setup(); t.after(s.cleanup);
+  s.board.update("game/T-016.1", { owner: "human" });
+  assert.equal(s.board.get("game/T-016.1").hidden, true);
+  const docs = path.join(s.game, "GameDocs"), arch = path.join(docs, "Archive", "Tasks");
+  fs.mkdirSync(arch, { recursive: true });
+  fs.renameSync(path.join(docs, "Epics", "Tasks", "T-016.1.md"), path.join(arch, "T-016.1.md"));
+  const moved = s.board.get("game/T-016.1");
+  assert.deepEqual([moved.state, moved.hidden], ["archived", false]);
+  assert.ok(s.board.list({ state: "archived" }).some(x => x.id === "T-016.1"));
+});

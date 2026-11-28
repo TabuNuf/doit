@@ -11,18 +11,18 @@ export class EpicMoves {
     this.write = write;
   }
 
-  /** Archives every task of an epic not archived yet (the sweep's path), then completes the epic. Returns how many tasks. */
+  /** Archives the epic's done tasks (the sweep's path), leaves its open ones hidden, then completes the epic. Returns how many tasks. */
   close(project, epicId, archived, { epics, tasks }) {
     if (!epics.some(e => e.id === epicId && !e.completed)) throw new Error(`No open epic ${epicId} in ${project}`);
     const epic = epics.find(e => e.id === epicId);
     const wait = epic.check && tasks.find(t => t.id === epic.check);
     if (wait && wait.state !== "done" && wait.state !== "archived") throw new Error(`${epicId} waits for ${wait.id}, Check in play. Finish it, then close.`);
     // Open tasks stay as they are and are hidden; only completed ones go to the archive.
-    const open = tasks.filter(t => t.epic === epicId && t.state === "done");
-    for (const task of open) this.write({ ...task, state: "archived", archived: `Epic ${epicId} closed` }, `archived: Epic ${epicId} closed`);
+    const done = tasks.filter(t => t.epic === epicId && t.state === "done");
+    for (const task of done) this.write({ ...task, state: "archived", archived: `Epic ${epicId} closed` }, `archived: Epic ${epicId} closed`);
     const today = this.#today();
     this.source.completeEpic(project, epicId, today, archived ? today : null);
-    return open.length;
+    return done.length;
   }
 
   /** Moves the epic to open, parked, completed or archived; `loaded` holds every epic and task, archived ones too. */

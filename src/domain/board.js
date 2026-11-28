@@ -76,7 +76,7 @@ export class Board {
     return { project, ...doc };
   }
 
-  /** Archives the epic's tasks and completes it; archived also writes its Archived line. Returns how many tasks. */
+  /** Archives the epic's done tasks and completes it; archived also writes its Archived line. Returns how many tasks. */
   closeEpic(project, epicId, archived = false) {
     this.#requireProject(project);
     return this.moves.close(project, epicId, archived, this.#load(project, false));

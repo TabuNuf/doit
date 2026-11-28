@@ -32,6 +32,7 @@ Order: after EPIC-028
 - [x] T-026.5 The page keeps hidden tasks out of the Open tab, the due badge and the waiting list (done when: npm test passes with tests: GET /api/board returns a parked epic's open task with hidden true; visible() leaves it out with no epic selected and keeps it with its epic selected; dueSoonTasks() and waiting() leave it out)
 - [x] T-026.6 The list says why when the selected epic is parked, completed or archived (done when: npm test passes with a page test: the list pane shows the line for a selected parked epic that has a hidden task, with the epic id and the word parked, and shows no line for an open epic or with no epic selected)
 - [x] T-026.7 Check in play (done when: Every check in the description is confirmed in the running board, or its failure is a task in EPIC-026)
+- [x] T-026.8 Close audit: a task forced to archived is not hidden, the drag confirm and three comments state the new close rule, and Architecture.md names epicIsOpen and what applyChanges recomputes (done when: A new test moves a parked epic's task file to Archive/ by hand and reads it as archived and not hidden; web/epicMove.js says completed tasks are archived and open ones hidden; npm test passes)
 
 ## Touches
 
@@ -66,8 +67,28 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
-Filled when the epic closes.
+Closed 2026-11-28. Main was merged into the branch first (`EPIC-026: merge main`): one conflict, in the Modules list of `Docs/Architecture.md`, resolved to main's side with the branch's three wordings put back; every `src/`, `web/` and `test/` file merged by itself. Development (504) and Audit (505) tests pass on the merged branch. Read: `git diff main...HEAD` before the merge, against `Architecture.md`, `Core/03-Design.md`, `App/README.md` and `Design.md`, section Epics, and every reader of board tasks that main gained since the branch was cut. No forbidden import, no event carries a live object, and nothing on main lists open tasks past the hiding rule: the server-side readers go through `Board.view` or `Board.list`, and what main added (the Games tab, the column picker, contact scale) reads no board tasks.
+
+Fix now (T-026.8):
+
+- `src/domain/taskLoader.js` (bug): a task whose file lies in `Archive/` is forced to archived after `makeTask` set `hidden` from the file's old state, so a parked epic's task moved there by hand read as archived and hidden, and `list --state archived` left it out. Fixed with a test.
+- `web/epicMove.js`: the confirm of a drag to Completed or Archived still said every task is archived; the epic changed that sentence only in `web/epicView.js`. Corrected, with the comments above `EpicMoves.close` and `Board.closeEpic` and the list named `open` that held the done tasks.
+- `Docs/Architecture.md`: `epicIsOpen` was not named, and the `taskEdit.js` line did not say that an edit sets `hidden` again. Added.
+
+Fix before release (EPIC-022):
+
+- `web/epicView.js` (bug, older than this epic and handed to this audit by the Notes): Close epic shows on a parked epic's page. T-022.36.
+- `src/domain/task.js`, `src/domain/epicMoves.js`, `src/domain/board.js`: is-this-epic-open is written twice with two answers. T-022.37.
+- `src/domain/board.js`, `web/state.js`, `web/projectPage.js`: leave-hidden-out is written four times. T-022.38.
+- `web/projectPage.js`, `src/domain/docs.js`: a hidden task no longer blocks a designer's task, and a document's Linked tasks leave hidden tasks out. The design names neither. T-022.39, which needs Tabu's answer.
+
+Deliberate, each already written down:
+
+- The page, not `Board.view`, keeps hidden tasks out of the Open tab, the due badge and the waiting list, since `/api/board` sends them for the selected epic. Which tasks are hidden is decided in the domain. Written in the `server/server.js` line of `Architecture.md`; no Departures row.
+- A task with no task file comes back as Backlog when its epic is reopened (Notes, Batch A).
+- The sweep still archives a hidden task past its deadline (`Design.md`, section Epics, and the Departures row for `Board.view` and `Board.list`).
+- `listPane` in `web/render.js` is exported only for its test (Notes, Batch B).
 
 ## For the standard
 
-Filled when the epic closes.
+Nothing new. The rule this close leans on is already there: `Core/01-Tasks.md`, Branches, merge main into the branch at the start of each batch. This branch was 46 commits behind main at its close, which cost one doc conflict.
