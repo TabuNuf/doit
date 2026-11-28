@@ -3,7 +3,8 @@
 In short: a contact's covered games decide relevance beside fit and scale, and Tabu's games get their scale.
 Why it exists: Tabu (2026-11-26): scale alone must not decide fit; creators who play games in the same league as ours are a fit too, shown by a list with sources.
 
-Status: Active
+Status: Done
+Closed: 2026-11-28
 Design: Design.md, section Marketing (covered games, why relevant)
 
 ## Findings

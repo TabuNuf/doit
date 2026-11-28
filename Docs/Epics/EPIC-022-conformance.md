@@ -16,6 +16,9 @@ Design: Architecture.md
 - [ ] T-022.8 One comma-list helper: splitGames in rules.js is a fifth copy of the comma-split helper; fold them into one (done when: one helper, used by rules.js, contactsCli.js and the others; npm test passes)
 - [ ] T-022.9 Split Board: it sits at its 220-line guard after EPIC-025 compressed it (done when: board.js is under 200 lines with its comments restored, a piece moved to its own module; structure test passes)
 - [ ] T-022.10 One effort list: web/assignment.js keeps its own copy of the domain's EFFORTS (done when: npm test passes and grep finds the five effort names in one source file only)
+- [ ] T-022.11 Contact pane shows Last active, as Design.md says: since T-030.9 nothing reads ContactBook's active fact (done when: The contact pane shows the newest reply or video date with a test, or Tabu drops the line from Design.md and the fact from ContactBook)
+- [ ] T-022.12 The parked-and-relevant rule lives once: ContactBook #facts and contactFilter in contacts.js each write it (done when: One function in contacts.js answers nowRelevant and both callers use it; npm test passes)
+- [ ] T-022.13 Split ContactBook: 278 lines, 22 under the 300-line mark, after EPIC-030 added covered games and the dead flag (done when: The festival methods live in their own class, the class diagram matches, npm test passes)
 
 ## Test plan
 
