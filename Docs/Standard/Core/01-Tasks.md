@@ -6,7 +6,7 @@ Work exists only in the epic queue. A design idea, a playtest finding or a revie
 
 | File | Job | Who changes it |
 |---|---|---|
-| `<Docs>/Design/GameDesign.md` | What the game is now. Source of truth for what gets built. Ends with a Changelog. | Updated first whenever design input arrives |
+| `<Docs>/Design/GameDesign.md` | What the game is now. Source of truth for what gets built. Opens with an `In short:` line (below). Ends with a Changelog. | Updated first whenever design input arrives |
 | `<Docs>/Design/<Later>.md` | Ideas for a later iteration. Context only, never built from. | `<Designer>` |
 | `<Docs>/Architecture.md` | Module rules, folder structure, class diagram, "Keeping the boundaries" | Before coding any task that adds or changes a class |
 | `<Docs>/Epics/` | Planned and active epics, one file each | Planning and closing tasks |
@@ -17,6 +17,9 @@ Work exists only in the epic queue. A design idea, a playtest finding or a revie
 
 Code and design doc never disagree silently. When they differ, one of them is changed in the same commit, and the Changelog says which.
 
+The design doc opens, directly under its title, with `In short: <one or two sentences>`: what the project is. An optional second line, `Now testing: <the question this iteration answers>`, may stand under it. The doc is `<Docs>/Design/GameDesign.md` in a Unity game and `<Docs>/Design/Design.md` in an app. The board shows both lines on the project's page.
+Why: the design doc is the source of truth for what the project is, it is in git, and its Changelog already records such a change. A field on the board's project would live in the board's settings file, outside the repo.
+
 ## The board
 
 Every project on the standard is registered on Doit, the local board that shows every project's epics and tasks to `<Designer>` and Claude. It reads and writes the files above in place and keeps no copy, so the files stay the record and git keeps their history.
@@ -25,7 +28,7 @@ Why: one board shows what Claude is doing in each project and what is left for t
 - **Register** on adoption: `node <doit>/bin/doit.js project add <Name> <project folder> --docs <Docs>`. A project already on the standard that `doit projects` does not list is registered at its next standard pull.
 - **Claude reaches tasks through the CLI only**: list, add, change state, comment, close an epic (`node <doit>/bin/doit.js help`). It never reads task files or the epic checklist directly.
   Why: the CLI returns the slice asked for (one project, one epic, open tasks) and keeps the checklist, the task files and their timestamps in step; a hand edit to one leaves the others wrong.
-- **Epic text is written as a file**: the goal, Test plan, Notes, Close audit and For the standard sections are edited in the epic file like any doc. The tasks in its checklist are added with `doit add`, never written into the checklist by hand.
+- **Epic text is written as a file**: the header, Findings, Test plan, Notes, Close audit and For the standard sections are edited in the epic file like any doc. The tasks in its checklist are added with `doit add`, never written into the checklist by hand.
   Why: the board makes a task of every checklist line it finds, so an epic file written with its task lines and then `doit add` held every task twice, and the board has no delete; the five duplicates had to be closed with a comment.
 - **The archive is never read** (`<Docs>/Archive/`, archived tasks, closed epics) unless `<Designer>` asks.
   Why: it is history, and reading it costs a session's context for nothing it will act on.
@@ -41,28 +44,62 @@ Why: one board shows what Claude is doing in each project and what is left for t
 5. **Test per batch.** The batch's last task runs the Development tests only (Audit in an away run). Audit runs when the epic closes, and every category in the release (`02-Working.md`, Tests). A failing batch is fixed before the next batch starts; the suspects are that batch's commits.
 6. **Close the task.** `doit set <doit-id>/T-<nnn>.<n> state=done`, which ticks it in the epic file. Any deviation from the plan goes under Notes, newest first.
 7. **Update the standard.** Before the epic is set to `Done`, read its Notes for anything the next game would need, move it into `<Docs>/Standard/` with a `CHANGELOG.md` line, and fill the epic's "For the standard" section. Writing "nothing" is a valid answer; leaving the section empty is not. Rules in `<Docs>/Standard/README.md`, Keeping it current.
-8. **Close the epic.** After its last task, follow Closing an epic (below): run the Audit tests, audit the epic against the architecture, fix what must be fixed, then close it on the board. An epic in a worktree also merges main in first and is merged to main by `worktree.py close`.
+8. **Close the epic.** After its last build task, follow Closing an epic (below): run the Audit tests, audit the epic against the architecture, fix what must be fixed, then close it on the board once its Check in play task is done (Epic rules). An epic in a worktree also merges main in first and is merged to main by `worktree.py close`.
 9. **Rebuild generated docs** (structure map, class lists) when a task added, moved or removed a class or changed a module's boundary (in Unity, an asmdef), and commit them with the task.
 
 ## Epic rules
 
 - One file per epic: `EPIC-<nnn>-<short-name>.md`. Numbers only go up.
+- Every epic opens, under its title, with two lines: `In short:`, the goal in one sentence (what the player or user gets), and `Why it exists:`, what was seen or asked for, when, and what replaces it. `In short:` takes the place of a `Goal:` line. A campaign epic the board makes (`doit campaign add`) keeps its `Goal:` brief line and gets no `In short:` line.
+  Why: a reader decides in the first lines whether to read on, and weeks later the designer no longer knows what prompted an epic. In Box Trainer EPIC-135 that context was spread over the Status line, a free paragraph and the first finding. Two lines saying the goal would drift apart.
+- After a blank line come the facts, one `Key: value` line each (Template, below). `Status` holds one word: `Parked`, `Planned`, `Active` or `Done`. Dates and planning notes are never written into it. `Design` is always written. `Order`, `Source` and the related epics are written only when they have something to say. `Order` names the epic it follows as `after EPIC-<nnn>`. The key of the related line may say what ties the epics together (`Same playtest:`), or be plain `Related:`.
+  Why: the board reads the first word of Status and replaces the whole line when the status changes; in Box Trainer EPIC-135, 17 words of planning notes after the status word were gone from the file once it was set `Active`. The board shows the facts as a grid and lists epics in build order from the `Order` line, so it needs one form it can read. As prose in the header the facts had to be read to be found, an empty fact is a row the reader scans for nothing, and "related" alone does not say whether the other epics must be read.
+- The header holds no free paragraph. Text that is not In short, Why it exists or a fact goes under Notes, and a planning note is a dated line there. The close date stays in the `Closed:` line the board writes.
+  Why: a paragraph between the facts and the first section is the wall of text the header is there to prevent.
 - One epic is `Active` at a time, built on main. A second runs beside it only on `<Designer>`'s yes, in a worktree (Branches and Parallel work, below), and never a third; the conformance epic counts as one. An epic's tasks are worked top to bottom.
   Why: the docs merge as text, but a scene or asset that both epics change merges badly, and a designer can follow two queues of questions at most.
+- An epic whose only open task is its Check in play task (below) keeps Status `Active` until that task is done, and does not count towards the limit. The open-work list (Parallel work) still names it. Claude reports it as waiting for the designer's check, and the next epic needs no yes because of it.
+  Why: the next epic must not wait for the designer to play the last one. The list keeps naming it so an unchecked epic stays in sight.
 - A second epic's plan has a **Touches** list: the files it will change that merge badly as text, which the stack layer names (in Unity: scenes, prefabs, UXML and USS, config assets and asmdefs). An item that is also on the first epic's Touches list, or already changed by its task commits (`git log --format= --name-only --grep='^T-<first>\.'`), blocks the second epic until the first closes. Design docs, the class diagram and source code files are not on the list.
   Why: text merges mechanically and a scene conflict costs more than a few days' wait; the check is one git command at planning time.
 - Generated docs (the structure map, class lists) are never merged by hand: after a merge that touched them, rebuild and commit them (The flow, step 9).
   Why: two rebuilt copies of a generated file always conflict, and a hand merge of one is always wrong.
 - A task fits in one sitting and ends in one commit.
-- Every task has a "done when" that can be checked: a test that passes, or something visible in the running game or app, which goes on the epic's "Check in play" list for `<Designer>` (`02-Working.md`, Tests). "Works" is not a check.
+- Every task has a "done when" that can be checked: a test that passes, or something visible in the running game or app, which becomes a check in the epic's Check in play task for `<Designer>` (the next rule; `02-Working.md`, Tests). "Works" is not a check.
+- What `<Designer>` checks by hand in the running game or app is one task, never a section of the epic file: owner human, titled "Check in play", the last task of the epic. Its description lists each check with the task ids it covers. An epic with nothing to check has no such task.
+  Why: a list in the epic file shows on none of the board's task lists. Box Trainer closed two epics in a row "unchecked in play" (EPIC-134, EPIC-126), and the checks could be found only by opening each closed epic.
+- The Check in play task follows the designer task shape (below): the story, then each check as a numbered step ending with its task ids in brackets. Its "done when" reads: every check is confirmed, or its failure is a task in this epic. The half-minute limit does not hold for it: its length is its number of checks.
+  Why: the designer works through the checks one by one, and the ids on a check say which task a failure goes back to. A reading limit would drop checks.
+- The planner writes the checks when the epic is planned. A check that comes up during the build is added as a comment on the task (`doit comment`), never by editing its description.
+  Why: descriptions are written by the planner alone (the rule on who writes, below), and the designer reads a task's comments on the same page.
+- The planner sets `blocks` on the epic's last build task, naming the Check in play task: `doit set <project>/<T-id> blocks=<T-id>`. The board counts a designer task as waiting only when no open task blocks it, so the task shows under the designer's waiting tasks once the build is done.
+  Why: the field exists, so the board needs no new field and no rule tied to a task's title.
 - A task's title is one short line, under about 90 characters, saying what changes. The spec (what was seen, the cause, the files, the source and its time in a recording) goes in its description: `doit add <project> <EPIC-nnn> "<title>" --description "<spec>" --done-when "<check>"`, or `doit set <project>/<T-id> description=...` later. The "done when" stays in its own field.
   Why: across twelve projects, the ones whose rules named no description packed the whole spec into the title (39 of 47 titles over 90 characters in one game, no descriptions at all), which makes the checklist line, the board's rows and the commit subjects unreadable.
-- A task for `<Designer>` (owner human) opens its description with a user story in one sentence ("As <who>, I want <what>, so that <why>"), then "What to do:" in two to four sentences: where to go, what to decide, what happens after. Then source links and the facts the task rests on (deadlines, ids, requirements). Short enough to read in half a minute, and doable without opening another file. A task for Claude gets no story: it follows the rules below.
-  Why: a title and a check say when a task is done but not why it matters or where to start; a project whose board held only titles and checks left the designer unable to tell what a task asked of them. An agent needs the spec, and a story line only adds reading.
+- A task for `<Designer>` (owner human) has a description in separate markdown lines, never one paragraph: the user story on three lines, then "What to do" as numbered steps, then, when it helps, "Today" (how it works now), then `Source:`.
+
+  ```markdown
+  As <who>,
+  I want <what>,
+  so that <why>.
+
+  ### What to do
+  1. <where to go>
+  2. <what to decide or do>
+  3. <what happens after>
+
+  ### Today
+  <how it works now>
+
+  Source: <the finding, doc section or recording and its time>
+  ```
+
+  A fact the task rests on (an id, a requirement) goes in the step that needs it. A deadline goes in the task's deadline field (`--deadline`), never in the text. Short enough to read in half a minute, and doable without opening another file. The text is passed to `doit add --description` as one quoted argument with real line breaks. A task for Claude gets no story: it follows the rules below.
+  Why: a title and a check say when a task is done but not why it matters or where to start; a project whose board held only titles and checks left the designer unable to tell what a task asked of them. The designer reads a task to learn where to start, and in a 102-word paragraph the two choices to make sat in the middle. A fact is read where it is used, and a deadline in its field is one the board can sort and sweep by. An agent needs the spec, and a story line only adds reading.
 - Documents, epics and tasks are written by Fable 5.2 at high effort, and it alone sets each task's agent, model and effort. Fable plans and describes; it never builds: no code, no assets, no commits of a task. That covers the design doc, `Architecture.md`, `Playtest.md`, a rule for the standard, an epic's text and every task description. A session on another model that needs a new task or a changed plan hands it to a Fable sub-agent or asks `<Designer>` for a Fable session. A diagram or a generated doc updated inside a build task stays with that task's agent.
   Why: the plan is the one place where a wrong call costs every task after it, and the builders are only as good as the description they get. Anthropic's guide names Fable as the planner for other models, so the dearest model is spent on the text every builder reads.
-- A task for Claude (owner ai) names its agent, model and effort in the board's three fields, never in its description: `doit add <project> <EPIC-nnn> "<title>" --agent batch-builder --model "Sonnet 5.5" --effort medium`, or `doit set <project>/<T-id> agent=batch-builder model="Sonnet 5.5" effort=medium` later (an empty value clears one). `doit show` and `doit list --json` return them. The board refuses an effort that is not in the table below; agent and model are free text, written as in the model table. For a task owned by `<Designer>` the board leaves the three out and keeps what is stored.
-  Why: as a `For:` line in the description the three could not be listed, filtered or checked, and every coordinator had to pick them out of prose.
+- A task for Claude (owner ai) names its agent, model and effort in the board's three fields, never in its description: `doit add <project> <EPIC-nnn> "<title>" --agent batch-builder --model "Sonnet 5.5" --effort medium`, or `doit set <project>/<T-id> agent=batch-builder model="Sonnet 5.5" effort=medium` later (an empty value clears one). `doit show` and `doit list --json` return them. The board refuses an effort that is not in the table below; agent and model are free text, written as in the model table. A `For:` line is never written; one still standing in an old description is legacy. Both kinds of task use the same page on the board, the same fields in the same order, and only the description differs. On a task owned by `<Designer>` the page shows the three greyed and keeps the stored values; the CLI's plain `show` leaves them out, and `--json` carries them.
+  Why: as a `For:` line in the description the three could not be listed, filtered or checked, and every coordinator had to pick them out of prose. A task changes owner, and a page that changed shape with it would move every control.
 - The model is the lowest row that will finish the task:
 
   | Model | Its tasks |
@@ -84,16 +121,40 @@ Why: one board shows what Claude is doing in each project and what is left for t
   | max | Never set by the planner. Only when `<Designer>` asks for it. | |
 
   Why: effort decides how much the model thinks and how many tool calls it makes, so it is most of a task's cost after the model. Anthropic's guides put most of the gain at or below high (Opus 5.5 at medium beats the model before it at high; Sonnet 5.5 is meant to run at medium for agentic coding) and call the gains above high uneven. The default differs per model (Opus and Haiku medium, Sonnet and Fable high), so an unset effort means a different thing on each. At low and medium the cheaper models skip checks more often, which is why their descriptions end with the check (below).
-- Every Claude task description holds, in this order: the goal in one sentence with its why; the files, classes or methods it touches; the facts the agent cannot find in the repo (the design section, a decision, the source and its time in a recording); what not to change; and the command whose output proves the "done when". Nothing the agent can find by reading the code goes in. Keep it under about 150 words.
-  Why: in a study of 3,180 agent pull requests, a stated expected behaviour, a suggested fix and a scope of one change each raised the merge rate, and long bodies and step-by-step reproduction notes written for people lowered it. High-quality issues merged 77% of the time, low-quality ones 46% (arXiv 2512.21426).
-- The description's shape follows the tier:
-  - **Haiku and Sonnet** get the fix direction and the steps, and end with "Run <check> and report its output. The task is done only when it passes."
+- Every Claude task description is labelled markdown sections, each label a `###` heading, in this order:
+
+  | Label | Holds |
+  |---|---|
+  | Goal | The goal in one sentence with its why |
+  | Decided | The facts the agent cannot find in the repo: the decisions and their numbers. For Haiku and Sonnet also the fix direction and the steps. For Opus and Fable what is approved, each approval naming the action |
+  | Files | The files, classes or methods it touches, one per line, a new file marked "new" |
+  | Design | The design doc section, and the source with its time in a recording |
+  | Leave alone | What not to change. A "never" carries its exception in the same sentence |
+  | Check | The command whose output proves the "done when", in a code block |
+
+  Every label is written; one with nothing to say holds "nothing". Decided and Files are lists. Nothing the agent can find by reading the code goes in. Keep it under about 150 words.
+  Why: in a study of 3,180 agent pull requests, a stated expected behaviour, a suggested fix and a scope of one change each raised the merge rate, and long bodies and step-by-step reproduction notes written for people lowered it. High-quality issues merged 77% of the time, low-quality ones 46% (arXiv 2512.21426). An agent needs the spec in a fixed order, and the designer checking a task needs to see which part is missing: in the one-paragraph form of Box Trainer T-135.5 nobody saw that "what not to change" had never been written. An empty label is a decision the planner made, and a missing one is a gap nobody saw.
+- What stands under the labels follows the tier:
+  - **Haiku and Sonnet** get the fix direction and the steps, as a list under Decided. Their Check ends, after the command, with "Run <check> and report its output. The task is done only when it passes."
     Why: at low and medium effort both models sometimes report a change as done without running a check, or stop to check in before the work is finished (Anthropic's Sonnet 5.5 and Haiku 5.5 prompting guides).
-  - **Opus and Fable** get the goal, the limits and what is approved, but no steps. An approval names the action ("may move `ScoreRules` into the domain module"). A "never" carries its exception inside the same sentence. "You own this code and its design" goes in only when a restructure is wanted.
+  - **Opus and Fable** get the goal, the limits and what is approved, but no steps. An approval stands under Decided and names the action ("may move `ScoreRules` into the domain module"). A "never" stands under Leave alone and carries its exception inside the same sentence. "You own this code and its design" goes in only when a restructure is wanted.
     Why: these models follow written rules literally. A bare "never" stops them taking a step the designer approved elsewhere. The ownership line makes Fable merge repeated code in about three of four tries instead of under one in ten, but it also makes changes nobody asked for and uses about 1.7 times the output (Anthropic's Fable 5.2 prompting guide).
 - A task that turns out bigger than planned is split in the file before work continues.
-- An epic merged into another or dissolved goes to `Completed/` with a status saying where its scope went.
-- An epic is written as a specification: each item says what the game does when done, tagged `Decided` or `Proposed`. No quotes from sessions, no "X said".
+- An epic merged into another or dissolved goes to `Completed/` with Status `Done` and a `Moved to: EPIC-<nnn>` line among its facts.
+  Why: a sentence in Status saying where the scope went breaks the one-word rule.
+- An epic is written as a specification. Its numbered items stand in one `## Findings` section above `## Tasks`: a playtest finding, a review finding, or a spec item of a feature epic (tagged `[design]`). No section of another name, such as `## Specification`, holds them.
+  Why: the template had no place for the specification, so each project named its own section, and the board can fold only a section it knows.
+- Each finding opens with one line: a kind tag (`[design]` or `[bug]`), a short bold title under about 60 characters, and `Decided` or `Proposed`. Its detail follows in labelled lines, never one paragraph: Seen, Cause, Decided, the labels that apply, in that order. A finding that is not decided yet ends with a `Proposed:` line in place of `Decided:`, and its opening line carries `Proposed`.
+
+  ```markdown
+  1. `[design]` **<short title>** `Decided`
+     - Seen: <what happened, and where>
+     - Cause: <why, once it is known>
+     - Decided: <what the game or app does when done>
+  ```
+
+  Why: the board folds each finding to its opening line, so the designer scans sixteen lines and opens the two that matter, and the title has to fit one row beside its number, tag and chip. What was seen, why it happened and what was decided are three questions; in one paragraph the decision sat at the end of up to 112 words. A nested list reads the same in every markdown viewer.
+- Each finding says what the game or app does when done. No quotes from sessions, no "X said".
 
 ### Test plan
 
@@ -101,7 +162,10 @@ Tasks are grouped into batches of 3 to 5 consecutive tasks that touch the same m
 
 Why batches: running the full suite per task cost a 25-task epic 20 minutes of test time; per batch it costs about 6, and a failure still points at 3 to 5 commits.
 
-**Build all, then test once** is an option for a findings round, when `<Designer>` asks for it: every task is built with zero errors and committed with its tests written but not run, then one test pass runs Development at the end, and the play checks go on the "Check in play" list. Each task's note says what it left for the pass ("tests written, not run", "the screenshot in play is left for the test pass"), and the pass is logged in Notes with each check, its result and its capture, and every bug found with the commit that fixed it.
+The Test plan's last line names the designer's check task: `- Check in play: T-<nnn>.<n>`, or `- Check in play: none`. The board finds the task by this line.
+Why: with no Check in play section in the file, an epic with nothing to check and an epic whose check task was forgotten would look the same.
+
+**Build all, then test once** is an option for a findings round, when `<Designer>` asks for it: every task is built with zero errors and committed with its tests written but not run, then one test pass runs Development at the end, and the play checks go in the epic's Check in play task. Each task's note says what it left for the pass ("tests written, not run", "the screenshot in play is left for the test pass"), and the pass is logged in Notes with each check, its result and its capture, and every bug found with the commit that fixed it.
 
 **A removal finds its tests in the same task.** In a build-all round, a task that removes, retires or renumbers something (a palette entry, a skill, a button, a lesson step) searches the test folders for its name and updates those tests in its own commit.
 Why: with tests unrun until the end, an old test that asserts the removed thing fails only at the pass; in one findings round, seven of ten failures at the close were of this kind.
@@ -112,24 +176,32 @@ Why: a round of fifteen small, mostly independent findings was built in one sitt
 ```markdown
 # EPIC-<nnn>: <Name>
 
+In short: <the goal in one sentence: what the player or user gets>
+Why it exists: <what was seen or asked for, when, and what replaces it>
+
 Status: Parked | Planned | Active | Done
-Goal: <one sentence, player-facing outcome>
-Design: GameDesign.md, section <name>
+Design: <design doc>, section <name>
+Order: after EPIC-<nnn>; EPIC-<nnn> builds on it
+Source: <the playtest, review or request, its date, where its files are>
+Related: <EPIC-<nnn> <name>>
+
+## Findings
+
+1. `[design]` **<short title>** `Decided`
+   - Seen: <what happened, and where>
+   - Cause: <why, once it is known>
+   - Decided: <what the game or app does when done>
 
 ## Tasks
 
-- [ ] T-<nnn>.1 <what, short> (done when: <check>)   (the spec goes in the task description, a Claude task's agent, model and effort in its fields, Epic rules)
-- [ ] T-<nnn>.2 ...
+Added with `doit add`, never by hand (The board). The last one is "Check in play" for <Designer>, when there is anything to check; the last build task blocks it.
 
 ## Test plan
 
 - Batch A: T-<nnn>.1 to .3 (<modules touched>): development
 - Batch B: T-<nnn>.4 to .7 (<modules touched>): development
 - Performance: <the measurements a task changes, or "none">
-
-## Check in play
-
-What `<Designer>` checks by hand in the editor (the epic's worktree editor when it runs in one): each item with its task. "Nothing" is a valid answer.
+- Check in play: T-<nnn>.<n>, or "none"
 
 ## Notes
 
@@ -176,6 +248,7 @@ Why: worktrees hide work from each other. Each session sees only its own checkou
 - One yes covers the session. Work that appears on the list later in the session asks again.
   Why: a question on every Quick fix gets answered without being read.
 - Continuing the work this session was started for needs no yes: the next task of the epic it was asked to build.
+- An `Active` epic on the list whose only open task is its Check in play task needs no yes either. Claude names it as waiting for the designer's check and goes on (Epic rules).
 - Work with no commit for over a week, or uncommitted files in the main checkout that no session claims, is named the same way as leftover. `<Designer>` decides whether to finish it, park it or drop it.
   Why: an abandoned epic still counts towards the limit, and an abandoned worktree still conflicts at the next merge.
 - The stack's worktree tool enforces the limit: it makes a worktree only when told which epic on main the designer said yes to running beside (Unity: `worktree.py new <nnn>-<short-name> --beside <first nnn>`), and refuses a second worktree always. Claude passes that flag only after the yes.
@@ -191,7 +264,8 @@ Why: worktrees hide work from each other. Each session sees only its own checkou
    - **Deliberate:** the code leaves the architecture on purpose. It goes to `<Designer>` as a question with a recommendation: change `Architecture.md` to match the code, or keep the departure as a row in its Departures table with its reason and an end. It is never left silent.
    Why: the check before each task sees one task; drift away from the architecture only shows across a whole epic, and a game that slides a little each epic ends far from its design.
 4. **Update the standard** (The flow, step 7).
-5. **Close.** `doit epic close <doit-id> EPIC-<nnn>` sets status `Done`, archives its task files and moves the epic into `Completed/`; commit those moves in one commit, staged by path. On main that ends the close.
+5. **Close.** Steps 1 to 4 run when the last build task is done. This step waits until the Check in play task is done, and the board refuses the close before that, naming the task. A failed check becomes a task in this epic, built and tested before the close. Then `doit epic close <doit-id> EPIC-<nnn>` sets status `Done`, archives its completed task files and moves the epic into `Completed/`; commit those moves in one commit, staged by path. On main that ends the close.
+   Why: the close hides every open task of the epic, so a check the designer had not done yet would leave their waiting list at the close.
    An epic in a worktree commits them on its branch, quits the worktree's editor if the stack has one, then from the main checkout runs `python3 Tools/Worktree/worktree.py close <nnn>-<short-name>` (or its steps by hand where the stack has no tool): it merges `--no-ff` into main, removes the worktree, deletes the branch locally and prints the push commands for `<Designer>`. It refuses when main has moved since step 1: merge main in again and start over from step 2.
    Why: the Audit run proved the branch with main in it; a main that moved since makes a different merge.
 
@@ -212,9 +286,9 @@ Why: drift left for "later" piles up across releases; a list that must be empty 
   Why: chats named only with an epic number could not be told apart in the session list without opening each one.
 - A session on an epic that runs in a worktree is started in that worktree, never in the main checkout.
   Why: a session works on the files of the folder it starts in, and in Unity its MCP binding, and so the editor it drives, comes from that folder too (`Unity/02-Project.md`, Worktrees).
-- `<Designer>` tries an epic's work in the main editor or a build from it. An epic in a worktree is tried in its worktree's editor until it merges: playtest rounds on it, its "Check in play" list, tuning a config asset.
+- `<Designer>` tries an epic's work in the main editor or a build from it. An epic in a worktree is tried in its worktree's editor until it merges: playtest rounds on it, its Check in play task, tuning a config asset.
   Why: a worktree's work exists nowhere else until the merge.
-- **Speed mode**, when `<Designer>` asks for it: one `batch-builder` sub-agent per test batch (`02-Working.md`, Session cost), strictly one after another, each from one shared brief in the scratchpad (rules to read, the epic, the boundaries, how to compile (in Unity, through the bridge), the commit format, a code map of the epic's areas). Each task is still one commit. Agents do not ask; an unclear point gets the simplest choice that fits the epic and a Notes line. No play screenshots: a "done when" that asks for one is covered by tests that run without the game or app (in Unity: EditMode tests and a UXML load check) and noted "unchecked in play". Agents run only their own classes' tests; the coordinator runs Development after each batch, under the test lock while a worktree exists, and Closing an epic before Done. The close copies every "unchecked in play" item to the epic's "Check in play" list for the designer's playtest.
+- **Speed mode**, when `<Designer>` asks for it: one `batch-builder` sub-agent per test batch (`02-Working.md`, Session cost), strictly one after another, each from one shared brief in the scratchpad (rules to read, the epic, the boundaries, how to compile (in Unity, through the bridge), the commit format, a code map of the epic's areas). Each task is still one commit. Agents do not ask; an unclear point gets the simplest choice that fits the epic and a Notes line. No play screenshots: a "done when" that asks for one is covered by tests that run without the game or app (in Unity: EditMode tests and a UXML load check) and noted "unchecked in play". Agents run only their own classes' tests; the coordinator runs Development after each batch, under the test lock while a worktree exists, and Closing an epic before Done. The close adds every "unchecked in play" item to the epic's Check in play task as a comment (`doit comment`), for the designer's playtest.
   Why: a per-task agent rereads the docs every time and play captures cost 10 to 20 minutes per UI task; the designer playtests the result anyway, and the code map saves each agent the search.
 - **Quick implement**, when `<Designer>` asks for it by name: write the change, build once and read the errors (in Unity: refresh and read the console), commit it as `Quick: <summary>`. No epic, no docs, no tests, no play check; the designer checks it by hand. The next batch's Development run and the next epic catch up on docs and tests, found through the `Quick:` commits.
   Why: for small changes the designer will try at once, the workflow's waits cost more than the checks find; a compile check stays because a broken editor stops the hand check too.
@@ -224,7 +298,7 @@ Why: drift left for "later" piles up across releases; a list that must be empty 
 A playtest produces a findings epic, not fixes.
 
 1. `<Designer>` plays (the main editor, a build, an epic's worktree editor when it runs in one, or a release) and reports, loosely and often by voice.
-2. Each report becomes a numbered finding in that round's epic: tag `[bug]` or `[design]`, a proposed fix, and open questions asked in chat.
+2. Each report becomes a numbered finding in that round's epic, in the finding shape (Epic rules): the tag `[bug]` or `[design]`, a short bold title and `Proposed`, then a Seen line and a `Proposed:` line with the fix. Open questions are asked in chat.
 3. The epic file is committed after each batch of findings, so nothing is lost.
 4. Nothing is fixed until `<Designer>` closes the list. Then `GameDesign.md` is updated, tasks are planned and the whole round is built.
 5. Everything from one round stays in that round's epic, even a feature-sized item.

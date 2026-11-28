@@ -1,5 +1,7 @@
 # <Product>: Design
 
+In short: <one or two sentences: what the app is and who it is for>
+
 <date> · <Designer>
 
 What the app is now. The source of truth for what gets built. When code and this document disagree, one of them changes in the same commit and the Changelog says which.
