@@ -118,6 +118,7 @@ const COMMANDS = {
     if (flags.json) return this.print(JSON.stringify(t, null, 1));
     this.print(`${t.project}/${t.id} ${t.title}`);
     this.print(`epic ${t.epic} (${t.epicName}) · ${t.state} · ${t.owner} · ${t.type} · rank ${t.rank}${t.deadline ? " · due " + t.deadline : ""}`);
+    if (t.hidden) this.print(`hidden: ${t.epic} is not open (parked, completed or archived). doit list leaves it out unless --epic names the epic.`);
     if (assignmentLine(t)) this.print(assignmentLine(t));
     if (t.archived && t.state === "archived") this.print(`archived: ${t.archived}`);
     if (t.source) this.print(`source: ${t.source}`);
@@ -197,8 +198,8 @@ function row(t) {
 }
 
 function brief(t) {
-  const { project, id, epic, title, state, owner, type, rank, deadline, doneWhen, agent, model, effort } = t;
-  return { ref: `${project}/${id}`, epic, title, state, owner, type, rank, deadline, doneWhen, agent, model, effort };
+  const { project, id, epic, title, state, owner, type, rank, deadline, doneWhen, agent, model, effort, hidden } = t;
+  return { ref: `${project}/${id}`, epic, title, state, owner, type, rank, deadline, doneWhen, agent, model, effort, hidden };
 }
 
 function need(v, what) {

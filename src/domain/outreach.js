@@ -109,7 +109,7 @@ export class Outreach {
   }
 
   #taken(project, epicId) {
-    return this.board.view({ project, archived: true }).tasks.filter(t => t.epic === epicId && t.contact).map(t => t.contact);
+    return this.board.view({ project, archived: true, hidden: true }).tasks.filter(t => t.epic === epicId && t.contact).map(t => t.contact);
   }
 
   #campaign(project, epicId) {

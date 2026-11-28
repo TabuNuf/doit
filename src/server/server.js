@@ -26,7 +26,7 @@ export class HttpServer {
     this.server = http.createServer((req, res) => this.#handle(req, res));
     this.routes = [
       ["GET", /^\/api\/version$/, () => ({ commit: this.commit })],
-      ["GET", /^\/api\/board$/, (q) => this.board.view({ project: q.get("project") || "all", archived: q.get("archived") === "1" })],
+      ["GET", /^\/api\/board$/, (q) => this.board.view({ project: q.get("project") || "all", archived: q.get("archived") === "1", hidden: true })],
       ["POST", /^\/api\/projects$/, (q, b) => this.board.addProject(b)],
       ["PATCH", /^\/api\/projects\/([^/]+)$/, (q, b, m) => "kind" in b ? this.board.setProjectKind(m[1], b.kind) : "marketed" in b ? this.board.setProjectMarketed(m[1], b.marketed) : this.board.starProject(m[1], b.starred)],
       ["GET", /^\/api\/epics\/([^/]+)\/([^/]+)$/, (q, b, m) => this.board.epicDocument(m[1], m[2])],

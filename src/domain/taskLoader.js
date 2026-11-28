@@ -12,7 +12,8 @@ export function loadTasks(source, projectId, archived) {
       if (!archived && epic.completed && !files.has(line.id)) continue;
       const task = makeTask(projectId, epic, line, files.get(line.id) || null);
       // The Archive/ folder decides: a file moved there by hand still says its old state.
-      if (archivedIds.has(line.id) && task.state !== "archived") { task.state = "archived"; task.archived ||= "Moved to the archive"; }
+      // An archived task is never hidden, whatever its epic.
+      if (archivedIds.has(line.id) && task.state !== "archived") { task.state = "archived"; task.archived ||= "Moved to the archive"; task.hidden = false; }
       tasks.push(task);
     }
   }

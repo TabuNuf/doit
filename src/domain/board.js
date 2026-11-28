@@ -76,7 +76,7 @@ export class Board {
     return { project, ...doc };
   }
 
-  /** Archives the epic's tasks and completes it; archived also writes its Archived line. Returns how many tasks. */
+  /** Archives the epic's done tasks and completes it; archived also writes its Archived line. Returns how many tasks. */
   closeEpic(project, epicId, archived = false) {
     this.#requireProject(project);
     return this.moves.close(project, epicId, archived, this.#load(project, false));
@@ -89,7 +89,7 @@ export class Board {
   }
 
   /** Everything the board page shows for one project or "all". */
-  view({ project = "all", archived = false } = {}) {
+  view({ project = "all", archived = false, hidden = false } = {}) {
     const ids = this.#projectIds(project);
     this.sweep(ids);
     const today = stamp(this.now()).slice(0, 10);
@@ -99,7 +99,7 @@ export class Board {
       for (const e of this.source.closedEpics(id)) closedEpics.push({ project: id, ...e, archived: !!e.archivedOn || epicArchived(e.closed, today, keep) });
       const loaded = this.#load(id, archived);
       for (const e of loaded.epics.filter(x => !x.completed)) (e.parked ? parkedEpics : epics).push({ project: id, id: e.id, name: e.name, status: e.status, game: e.game ?? null, games: splitGames(e.game), event: e.event ?? null, after: e.after ?? null, brief: e.brief, done: e.lines.filter(l => l.ticked).length, total: e.lines.length });
-      tasks.push(...loaded.tasks.filter(t => archived || t.state !== "archived"));
+      tasks.push(...loaded.tasks.filter(t => (archived || t.state !== "archived") && (hidden || !t.hidden)));
     }
     tasks.sort(byRank);
     closedEpics.sort((a, b) => (b.closed || "").localeCompare(a.closed || "") || b.id.localeCompare(a.id));
@@ -109,7 +109,7 @@ export class Board {
   /** Tasks matching a filter; state: open (default), active, backlog, done, archived or one state. */
   list({ project = "all", epic, state = "open", owner } = {}) {
     const archived = state === "archived";
-    const { tasks } = this.view({ project, archived });
+    const { tasks } = this.view({ project, archived, hidden: Boolean(epic) });
     return tasks.filter(t =>
       (!epic || t.epic === epic) &&
       (!owner || t.owner === owner) &&

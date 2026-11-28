@@ -7,7 +7,7 @@ import { setup } from "./helpers.js";
 test("open tasks follow epic status; ticked and completed epics stay out", t => {
   const s = setup(); t.after(s.cleanup);
   const tasks = s.board.list({ project: "game" });
-  assert.deepEqual(tasks.map(x => `${x.id}:${x.state}`), ["T-009.1:todo", "T-014.2:todo", "T-014.3:todo", "T-016.1:backlog"]);
+  assert.deepEqual(tasks.map(x => `${x.id}:${x.state}`), ["T-009.1:todo", "T-014.2:todo", "T-014.3:todo"]);
   assert.equal(tasks[0].type, "bug");
   const epics = s.board.view({ project: "game" }).epics;
   assert.deepEqual(epics.map(e => `${e.id} ${e.done}/${e.total}`), ["EPIC-009 0/1", "EPIC-014 1/3"]);
@@ -149,7 +149,7 @@ test("move places a task between neighbours, across sections and at the top", t 
   assert.deepEqual(order("active"), ["T-009.1", "T-014.3", "T-014.2"]);
   const moved = s.board.move("game/T-014.2", { section: "backlog" });
   assert.equal(moved.state, "backlog");
-  assert.deepEqual(order("backlog"), ["T-014.2", "T-016.1"]);
+  assert.deepEqual(order("backlog"), ["T-014.2"]);
   assert.throws(() => s.board.move("game/T-014.2", { section: "done" }), /section must be/);
   assert.throws(() => s.board.move("game/T-014.2", { section: "active", before: "game/T-099.1" }), /No task|not in/);
 });
@@ -220,7 +220,7 @@ test("completed, archived and back: Archived line, tasks restored by their close
   s.board.moveEpic("game", "EPIC-014", "archived");
 
   const r = s.board.moveEpic("game", "EPIC-014", "open");
-  assert.equal(r.restoredTasks, 2);
+  assert.equal(r.restoredTasks, 1);
   assert.equal(placeOf(s, "EPIC-014"), "open");
   const text = s.read("Epics/EPIC-014-online-lobby.md");
   assert.match(text, /^Status: Planned$/m);
@@ -235,7 +235,7 @@ test("completed, archived and back: Archived line, tasks restored by their close
 test("archiving an open epic closes it with both lines; an epic archived by date cannot be un-archived by line", t => {
   const s = setup(); t.after(s.cleanup);
   const r = s.board.moveEpic("game", "EPIC-014", "archived");
-  assert.equal(r.archivedTasks, 2);
+  assert.equal(r.archivedTasks, 0, "open tasks are hidden, not archived");
   assert.match(s.read("Epics/Completed/EPIC-014-online-lobby.md"), /^Status: Done\nClosed: 2026-11-20\nArchived: 2026-11-20\n/m);
   assert.equal(placeOf(s, "EPIC-014"), "archived");
   assert.throws(() => s.board.moveEpic("game", "EPIC-013", "completed"), /archived by date/);
@@ -260,14 +260,14 @@ test("closing an epic waits for its open Check in play task, by close and by mov
   assert.equal(s.board.get("game/T-014.2").state, "todo", "nothing archived by a refused close");
   assert.ok(s.exists("Epics/EPIC-014-online-lobby.md") && !s.exists("Archive/Tasks/T-014.2.md"));
   s.board.update("game/T-014.3", { state: "done" });
-  assert.equal(s.board.closeEpic("game", "EPIC-014"), 2);
+  assert.equal(s.board.closeEpic("game", "EPIC-014"), 1);
 });
 
 test("an epic whose Check in play line says none closes as before", t => {
   const s = setup(); t.after(s.cleanup);
   const file = path.join(s.game, "GameDocs", "Epics", "EPIC-014-online-lobby.md");
   fs.writeFileSync(file, fs.readFileSync(file, "utf8") + "- Check in play: none\n");
-  assert.equal(s.board.closeEpic("game", "EPIC-014"), 2);
+  assert.equal(s.board.closeEpic("game", "EPIC-014"), 0);
 });
 
 test("a sibling EPIC-nnn-name.notes.md file is in no epic list, whichever folder it is in", t => {
@@ -279,4 +279,54 @@ test("a sibling EPIC-nnn-name.notes.md file is in no epic list, whichever folder
   const ids = [...v.epics, ...v.parkedEpics, ...v.closedEpics].map(e => e.id);
   assert.deepEqual(ids.sort(), ["EPIC-009", "EPIC-013", "EPIC-014", "EPIC-016"]);
   assert.ok(![...v.epics, ...v.parkedEpics, ...v.closedEpics].some(e => /notes/.test(e.title)));
+});
+
+test("open tasks of a parked epic are hidden from view and list, found by epic and get, and back after reopening", t => {
+  const s = setup(); t.after(s.cleanup);
+  const id = s.board.addEpic("game", "Side quest", "Planned");
+  const todo = s.board.addTask({ project: "game", epic: id, title: "Sketch it", state: "todo" });
+  const back = s.board.addTask({ project: "game", epic: id, title: "Later", state: "backlog" });
+  s.board.moveEpic("game", id, "parked");
+  const ids = () => s.board.view({ project: "game" }).tasks.map(x => x.id);
+  for (const state of ["open", "active", "backlog"]) {
+    assert.ok(!s.board.list({ project: "game", state }).some(x => x.epic === id), state);
+  }
+  assert.ok(!ids().includes(todo.id) && !ids().includes(back.id));
+  assert.equal(s.board.view({ project: "game", hidden: true }).tasks.find(x => x.id === todo.id).hidden, true);
+  assert.deepEqual(s.board.list({ project: "game", epic: id }).map(x => `${x.id}:${x.state}:${x.hidden}`), [`${todo.id}:todo:true`, `${back.id}:backlog:true`]);
+  assert.equal(s.board.get(`game/${todo.id}`).hidden, true);
+  s.board.moveEpic("game", id, "open");
+  assert.ok(ids().includes(todo.id) && ids().includes(back.id));
+  assert.equal(s.board.get(`game/${back.id}`).state, "backlog");
+  assert.equal(s.board.get(`game/${back.id}`).hidden, false);
+});
+
+test("closing an epic archives its done tasks and hides the open ones, which come back as they were", t => {
+  const s = setup(); t.after(s.cleanup);
+  const id = s.board.addEpic("game", "Wrap up", "Active");
+  const mk = (title, state) => s.board.addTask({ project: "game", epic: id, title, state }).id;
+  const [a, b, c, d] = [mk("A", "todo"), mk("B", "todo"), mk("C", "backlog"), mk("D", "todo")];
+  s.board.update(`game/${b}`, { state: "progress" });
+  s.board.update(`game/${d}`, { state: "done" });
+  assert.equal(s.board.closeEpic("game", id), 1);
+  for (const x of [a, b, c]) {
+    assert.ok(s.exists(`Epics/Tasks/${x}.md`) && !s.exists(`Archive/Tasks/${x}.md`), `${x} stays unarchived`);
+    assert.equal(s.board.get(`game/${x}`).hidden, true);
+  }
+  assert.ok(s.exists(`Archive/Tasks/${d}.md`));
+  assert.ok(!s.board.list({ project: "game" }).some(x => x.epic === id));
+  s.board.moveEpic("game", id, "open");
+  assert.deepEqual(s.board.list({ project: "game", epic: id }).map(x => `${x.id}:${x.state}`), [`${a}:todo`, `${b}:progress`, `${c}:backlog`]);
+});
+
+test("a hidden task whose file is moved to the archive by hand reads as archived and not hidden", t => {
+  const s = setup(); t.after(s.cleanup);
+  s.board.update("game/T-016.1", { owner: "human" });
+  assert.equal(s.board.get("game/T-016.1").hidden, true);
+  const docs = path.join(s.game, "GameDocs"), arch = path.join(docs, "Archive", "Tasks");
+  fs.mkdirSync(arch, { recursive: true });
+  fs.renameSync(path.join(docs, "Epics", "Tasks", "T-016.1.md"), path.join(arch, "T-016.1.md"));
+  const moved = s.board.get("game/T-016.1");
+  assert.deepEqual([moved.state, moved.hidden], ["archived", false]);
+  assert.ok(s.board.list({ state: "archived" }).some(x => x.id === "T-016.1"));
 });

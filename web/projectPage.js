@@ -8,7 +8,7 @@ const IN_PLAY = /^check in play/i;
 
 /** The designer's open tasks of a project that no open task blocks. */
 export function waiting(project, data = S.data) {
-  const open = data.tasks.filter(t => t.project === project && isOpen(t));
+  const open = data.tasks.filter(t => t.project === project && isOpen(t) && !t.hidden);
   return open.filter(t => t.owner === "human" && !open.some(b => b.blocks === t.id));
 }
 

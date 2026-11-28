@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { makeCli } from "../src/root.js";
-import { morningReport } from "../src/domain/claude.js";
+import { morningReport, ClaudeView } from "../src/domain/claude.js";
 import { setup } from "./helpers.js";
 
 /** Every file under a folder, relative path -> text. */
@@ -44,7 +44,7 @@ test("the report block has each of its five parts right", t => {
     "2026-11-23 07:00  morning  Morning report 2026-11-23",
     "2026-11-23 07:00  morning  Swept 1: game/T-014.6",
     "2026-11-23 07:00  morning  In progress 1: game/T-014.2 Host migration",
-    "2026-11-23 07:00  morning  Up next, top 3 of 4: game/T-009.1 Menu music restarts; game/T-014.3 Show ping; game/T-016.1 Capsule art brief",
+    "2026-11-23 07:00  morning  Up next 3: game/T-009.1 Menu music restarts; game/T-014.3 Show ping; game/T-009.2 Second bug",
     "2026-11-23 07:00  morning  Blocked on you 1: game/T-014.4 Pick the relay region (blocks T-014.3)",
     "2026-11-23 07:00  morning  Due within 7 days 2: game/T-014.4 Pick the relay region (due 2026-11-27); game/T-014.5 Sign the form (due 2026-11-30)",
     "2026-11-23 07:00  morning  Outreach this week: nothing",
@@ -69,4 +69,25 @@ test("an empty part says none", () => {
   assert.deepEqual(morningReport({ swept: [], tasks: [], today: "2026-11-23" }).slice(1), [
     "Swept: none", "In progress: none", "Up next: none", "Blocked on you: none", "Due within 7 days: none",
   ]);
+});
+
+test("the morning report names no open task of a parked epic, and names them once it is open", t => {
+  const s = setup(); t.after(s.cleanup);
+  const b = s.board;
+  const id = b.addEpic("game", "Side quest", "Planned");
+  const add = (title, extra = {}) => b.addTask({ project: "game", epic: id, title, ...extra }).id;
+  const doing = add("Doing");
+  b.update(`game/${doing}`, { state: "progress" });
+  const next = add("Next");
+  const blocker = add("Pick", { owner: "human" });
+  b.update(`game/${blocker}`, { blocks: next });
+  const due = add("Sign", { owner: "human", deadline: "2026-11-23" });
+  const view = new ClaudeView(b, { record() {} }, () => s.clock.t);
+  const mine = () => view.morning().filter(l => l.includes(`game/T-${id.slice(5)}.`));
+  b.moveEpic("game", id, "parked");
+  assert.deepEqual(mine(), []);
+  b.moveEpic("game", id, "open");
+  const text = mine().join("\n");
+  // Up next shows only the top three, so the To-do task is not required here.
+  for (const x of [doing, blocker, due]) assert.ok(text.includes(`game/${x}`), x);
 });

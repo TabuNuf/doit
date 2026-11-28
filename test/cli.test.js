@@ -42,18 +42,19 @@ test("errors go to stderr with exit code 1", t => {
 test("epic close moves the epic's task files to the archive", t => {
   const s = setup(); t.after(s.cleanup);
   const b = s.board;
-  run(b, "set", "game/T-014.2", "state=progress");
+  run(b, "set", "game/T-014.2", "state=done");
+  run(b, "set", "game/T-014.3", "state=progress");
   run(b, "set", "game/T-009.1", "state=progress");
   assert.ok(s.exists("Epics/Tasks/T-014.2.md"));
-  assert.match(run(b, "epic", "close", "game", "EPIC-014").out, /Archived 2 task files of EPIC-014/);
-  for (const id of ["T-014.1", "T-014.2", "T-014.3"]) assert.ok(!s.exists(`Epics/Tasks/${id}.md`), `${id} left in Epics/Tasks`);
-  for (const id of ["T-014.2", "T-014.3"]) assert.ok(s.exists(`Archive/Tasks/${id}.md`), `${id} not archived`);
+  assert.match(run(b, "epic", "close", "game", "EPIC-014").out, /Archived 1 task files of EPIC-014/);
+  assert.ok(!s.exists("Epics/Tasks/T-014.2.md") && s.exists("Archive/Tasks/T-014.2.md"), "the done task is archived");
+  assert.ok(s.exists("Epics/Tasks/T-014.3.md") && !s.exists("Archive/Tasks/T-014.3.md"), "the open task is left, hidden");
   assert.ok(s.exists("Epics/Tasks/T-009.1.md"), "another epic's task is untouched");
   assert.ok(!s.exists("Epics/EPIC-014-online-lobby.md"), "epic file left in Epics/");
   assert.match(s.read("Epics/Completed/EPIC-014-online-lobby.md"), /^Status: Done$/m);
   assert.equal(s.board.epicDocument("game", "EPIC-014").completed, true);
   assert.equal(run(b, "epic", "close", "game", "EPIC-099").code, 1);
-  assert.match(run(b, "help").out, /doit epic close/);
+  assert.match(run(b, "help").out, /doit epic close.*completed task files, leave open ones hidden/);
 });
 
 test("set blocks= round-trips through the task file, and an empty value clears it", t => {
@@ -91,4 +92,17 @@ test("agent, model and effort: flags, keys, check, owner hiding, help", t => {
   assert.match(run(b, "show", ref).out, /^model Sonnet 5.5 · effort medium$/m);
   assert.equal(JSON.parse(run(b, "list", "--json").out).find(x => x.ref === "game/T-014.2").agent, null);
   assert.match(run(b, "help").out, /--agent a\] \[--model m\] \[--effort[\s\S]*keys:.* agent model effort/);
+});
+
+test("a parked epic's task is left out of list, listed by --epic, and shown with a hidden line", t => {
+  const s = setup(); t.after(s.cleanup);
+  const id = s.board.addEpic("game", "Side quest", "Planned");
+  const task = s.board.addTask({ project: "game", epic: id, title: "Sketch it" });
+  s.board.moveEpic("game", id, "parked");
+  assert.doesNotMatch(run(s.board, "list", "--project", "game").out, /Sketch it/);
+  assert.match(run(s.board, "list", "--epic", id).out, /Sketch it/);
+  assert.match(run(s.board, "show", `game/${task.id}`).out, new RegExp(`hidden: ${id} is not open \\(parked, completed or archived\\)\\. doit list leaves it out unless --epic names the epic\\.`));
+  assert.equal(JSON.parse(run(s.board, "list", "--epic", id, "--json").out)[0].hidden, true);
+  assert.doesNotMatch(run(s.board, "show", "game/T-014.2").out, /hidden:/);
+  assert.match(run(s.board, "help").out, /only with --epic\)/);
 });

@@ -18,6 +18,9 @@ test("the API reads and changes tasks, and serves the page", async t => {
   const view = await api("/api/board?project=game");
   assert.equal(view.status, 200);
   assert.equal(view.body.tasks.length, 4);
+  const parkedTask = view.body.tasks.find(x => x.epic === "EPIC-016");
+  assert.equal(parkedTask.hidden, true);
+  assert.equal(view.body.tasks.filter(x => x.hidden).length, 1);
 
   const patched = await api("/api/tasks/game/T-014.2", send("PATCH", { state: "progress" }));
   assert.equal(patched.body.state, "progress");
@@ -67,7 +70,7 @@ test("POST /api/epics/<project>/<id>/move to completed closes an open epic; a se
   const post = (p, body) => fetch(`http://127.0.0.1:${port}${p}`, { method: "POST", body: JSON.stringify(body) }).then(async r => ({ status: r.status, body: await r.json() }));
   const first = await post("/api/epics/game/EPIC-014/move", { to: "completed" });
   assert.equal(first.status, 200);
-  assert.equal(first.body.archivedTasks, 2);
+  assert.equal(first.body.archivedTasks, 0);
   assert.ok(s.exists("Epics/Completed/EPIC-014-online-lobby.md"));
   const second = await post("/api/epics/game/EPIC-014/move", { to: "completed" });
   assert.equal(second.status, 200);

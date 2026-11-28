@@ -81,6 +81,7 @@ test("closing with the archive flag and reopening happen in the worktree, not in
   assert.match(text, /^Status: Planned$/m);
   assert.doesNotMatch(text, /Closed:|Archived:/);
   assert.ok(!fs.existsSync(path.join(s.wt, "GameDocs/Epics/Completed/EPIC-014-online-lobby.md")));
-  assert.equal(s.board.get("game/T-014.2").state, "todo");
-  assert.ok(fs.existsSync(path.join(s.wt, "GameDocs/Epics/Tasks/T-014.2.md")));
+  // The close wrote nothing to the open task, so a file-less one takes the default of the reopened Planned epic.
+  assert.equal(s.board.get("game/T-014.2").state, "backlog");
+  assert.ok(!fs.existsSync(path.join(s.wt, "GameDocs/Archive/Tasks/T-014.2.md")));
 });
