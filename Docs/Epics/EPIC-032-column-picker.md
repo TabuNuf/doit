@@ -3,7 +3,7 @@
 In short: every list with column headers in Doit lets Tabu hide and show its columns, from a right click on the headers or a small button in their top left corner.
 Why it exists: on 2026-11-28 Tabu found the Games list too crowded (seven columns, genres wrapping to three lines) and asked for column choice as a default for every table in Doit.
 
-Status: Planned
+Status: Active
 Design: Design.md, section Look (Columns)
 
 ## Specification
