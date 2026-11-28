@@ -31,7 +31,7 @@ Order: after EPIC-028
 - [x] T-026.4 Tests hold the hiding rule for the Claude view, the morning report and the weekly outreach (done when: npm test passes with new tests: no pane of ClaudeView.panes, no line of morning() and no campaign step of Outreach.week names an open task of a parked epic, and each names it again after the epic is moved to open)
 - [x] T-026.5 The page keeps hidden tasks out of the Open tab, the due badge and the waiting list (done when: npm test passes with tests: GET /api/board returns a parked epic's open task with hidden true; visible() leaves it out with no epic selected and keeps it with its epic selected; dueSoonTasks() and waiting() leave it out)
 - [x] T-026.6 The list says why when the selected epic is parked, completed or archived (done when: npm test passes with a page test: the list pane shows the line for a selected parked epic that has a hidden task, with the epic id and the word parked, and shows no line for an open epic or with no epic selected)
-- [ ] T-026.7 Check in play (done when: Every check in the description is confirmed in the running board, or its failure is a task in EPIC-026)
+- [x] T-026.7 Check in play (done when: Every check in the description is confirmed in the running board, or its failure is a task in EPIC-026)
 
 ## Touches
 
