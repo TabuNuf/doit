@@ -23,6 +23,11 @@ Why: three Core rules read literally would fight most app frameworks. Decided by
 - **Module-level mutable state that other files import is a mutable static.** A client, a store or a cache created at import time (`export const db = ...`) is created in the composition root and passed in, or provided through the framework's own mechanism (a provider, the container). Constants and pure functions are exported freely (`Core/03-Design.md`, Which statics are allowed).
   Why: every module in JavaScript and Python is a singleton, so the ban would mean nothing there without this line, and an imported global cannot be swapped in a test or removed with its feature.
 
+## Lists with column headers
+
+- **A list with column headers uses one shared column picker, never its own.** A right click on the header row, or a corner button in it, opens a dropdown with a checkbox per column; the first column cannot be hidden; the choice is kept per list in the browser; every column shows until changed; the grid template is built from the shown columns, so rows and header drop the same cells.
+  Why: each list that grew its own picker would differ in where it opens and what it keeps, and the first column is what tells rows apart.
+
 ## Versions
 
 - The version source is the ecosystem's package file (`package.json`, `pyproject.toml`, `Cargo.toml`), in its own format, usually three parts. No `VERSION.txt` beside it. Minor releases lead to the next major as `Core/02-Working.md`, Versions and releases, says; the third number is for a release that only fixes.
