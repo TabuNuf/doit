@@ -18,8 +18,10 @@ Design: Design.md, sections Projects, Epics, Tasks and Look (T-028.1 brings them
 - [x] T-028.10 Project page: In short line, epics in build order, parked row, document links (done when: projectPage.test.js passes: build order for a fixture with two Order lines and an epic without tasks, the parked row folded and open, one link per document that exists, and In short read from the design doc)
 - [x] T-028.11 doit epic add writes the new epic header: In short and Why it exists above Status (done when: npm test passes: a new epic's file opens with In short and Why it exists placeholder lines, a blank line, then Status and Design, and a campaign epic is written as today)
 - [x] T-028.12 Closing an epic waits for its open Check in play task (done when: npm test passes with new tests: a close by CLI and by move is refused with the task named while the Check in play task is open, nothing is archived by the refused close, and it goes through once the task is done or the epic has no such line)
-- [ ] T-028.13 Check in play (done when: Every check in the description is confirmed in the running board, or its failure is a task in EPIC-028)
+- [x] T-028.13 Check in play (done when: Every check in the description is confirmed in the running board, or its failure is a task in EPIC-028)
 - [x] T-028.14 A sibling notes file is not listed as an epic (done when: npm test passes with a new test: a file EPIC-<nnn>-<name>.notes.md whose heading reads '# EPIC-<nnn>: <name>, notes' is in no epic list (doit epics, the board's epic cards, the project page), in Epics/, Parked/ and Completed/, and the epic's own file still is)
+- [x] T-028.15 Epic page reads easily: facts as rows with inline code, paragraph and list spacing, one text size (done when: npm test passes and the Ghosts epic's page shows facts as rows with code styled, a blank line between paragraphs and list items, and code at body size)
+- [x] T-028.16 Close audit: Architecture.md names taskProps.js and describes assignment.js, projectPage.js and epicView.js as they are (done when: The web line names taskProps.js, says assignment.js serves both owners, lists what the project page shows and that loadProjectPage fetches, and names Open file on the epic view)
 
 ## Specification
 
@@ -168,8 +170,32 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
-Filled when the epic closes.
+Closed 2026-11-28. Development (495) and Audit (496) tests pass on main. Read: the fourteen task commits against `Architecture.md`, `Core/03-Design.md`, `App/README.md` and `Design.md`, then every touched file whole at HEAD. No forbidden import, `web/` only talks HTTP, no event carries a live object, and the class diagram needs no change (the epic added no class or public method in `src/`). Four of the bugs below were reproduced on made-up data; none was checked in a browser.
+
+Fix now (T-028.16, docs only):
+
+- `Docs/Architecture.md`, the `web/` line: `taskProps.js` was not named; `assignment.js` was described as only for a Claude task while it serves both owners; `projectPage.js` was called pure and lacked the In short line, the build order, the parked row and the document links, while `loadProjectPage` fetches and writes page state; `epicView.js` lacked Open file. Corrected.
+
+Fix before release (EPIC-022), bugs:
+
+- `web/projectPage.js` (`buildOrder`): an epic placed after an epic that is itself moved lands at the end. T-022.27.
+- `web/epicPage.js`: a completed epic's page reads 0 of 0 tasks done and shows its checklist as checkboxes, since the close archives the tasks and the page counts from the board's tasks. T-022.28.
+- `web/epicView.js`: Open file is missing until the project's Docs tree has loaded. T-022.29.
+- `web/epicPage.js` (`factValue`): an epic id inside a link or inline code becomes a button and breaks the markup. T-022.30.
+- `web/epicPage.js`, `web/epicDoc.js`: a second section whose heading starts with Findings shows the first one's findings. T-022.31.
+- `web/detail.css`: its `.chip` rule overrides the top bar's project chips and the Marketing tabs. T-022.32.
+
+Fix before release (EPIC-022), drift:
+
+- `web/projectPage.js`, `web/epicPage.js`: `waiting`, `activeEpic`, `buildOrder` and `afterOf` are board rules in a view, and the page finds the Check in play task by title while the domain reads the Test plan line. T-022.33.
+- The placeholder test, the template sentences, `isOpen`, the progress bar and the docs tree request are each written two or three times. T-022.34.
+- `findDoc` in `projectPage.js`, `S.pp` outside `state.js`, a fold key that can repeat, `Board`'s port comment, the toggle width. T-022.35.
+
+Deliberate, both already written down, so no Departures row:
+
+- `web/epicDoc.js` is a parser in the interface tier and a second reader of the epic header beside `parseEpic` in the store. `Architecture.md` names it as a pure web module with its own tests.
+- `web/detail.css` holds the six Detail column tokens in a second file. `Design.md`, section Look, says so and `test/style.test.js` pins it.
 
 ## For the standard
 
-Filled when the epic closes. The rule changes that go with this epic are specified in `standard-readable-board-pages.md`.
+The rule changes that go with this epic are specified in `standard-readable-board-pages.md` (ClaudeStandards, `Docs/Requirements/`). They have not landed: Tabu decided on 2026-11-28 to close the epic first and land them in a session of their own in ClaudeStandards, where the four items still marked Proposed are put to Tabu. The reason they were tied to this close, that the board must draw the new shapes first, is met. Nothing else from the close.
