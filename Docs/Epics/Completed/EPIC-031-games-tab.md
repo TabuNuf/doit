@@ -3,7 +3,8 @@
 In short: Marketing gets a Games tab where every game a contact has covered is one entry with its stores, tracker links, facts, success numbers and coverage, compared against Tabu's own games.
 Why it exists: covered games were only lines inside a contact's pane (EPIC-030), so there was nothing to compare Tabu's games with: no description, no numbers, no view across contacts.
 
-Status: Active
+Status: Done
+Closed: 2026-11-28
 Design: Design.md, section Marketing, step 6 (Games)
 
 ## Specification

@@ -6,6 +6,7 @@ One line per change: date, project, file, what changed and why. Newest first wit
 
 Every game that uses the standard adds its lines here when it pushes (`README.md`, Syncing). The version closes when the designer names it (`README.md`, Versions).
 
+- 2026-11-28, Doit EPIC-031, `App/README.md` Pages over local files: a request path is decoded once, by the server; a route with a free-text last part matches the rest of the path. Why: a second decode in a handler threw on a title with `%`, and a pattern stopping at `/` missed a title with one.
 - 2026-11-28, Doit EPIC-030, `Core/03-Design.md` Code: a document names what the code holds, never its current number (schema version, migration list, line count). Why: an architecture file's schema version was four and five versions behind at a close audit.
 - 2026-11-28, Doit EPIC-032, `App/README.md` Lists with column headers: one shared column picker (right click or corner button, first column fixed, choice kept per list). Why: three lists needed the same control and a per-list copy would drift.
 - 2026-11-21, Doit EPIC-025, `Core/03-Design.md` Size is a smell: a size guard is met by splitting the file, never by merging lines or trimming comments. Why: a builder compressed a facade to pass its line guard, hiding the growth the guard measures.

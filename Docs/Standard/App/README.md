@@ -54,6 +54,8 @@ Why: three Core rules read literally would fight most app frameworks. Decided by
   Why: contact lists are personal data that must stay out of every repo and are read as filtered slices; the built-in driver keeps the app free of packages, and a version from day one makes the first migration a step instead of a guess.
 - **A local server checks every write request: the Host header must be the loopback name, and an `Origin` header, when sent, must equal `http://<host>`.** Reads stay open. Tests send a foreign Origin and a foreign Host.
   Why: binding to 127.0.0.1 does not stop another site's page in the same browser from posting to it; once a route sent mail, one cross-site form could have sent a draft nobody approved.
+- **A request path is decoded once, where the server reads it; a route handler takes its parts as they are.** A route whose last part is free text (a title) matches the rest of the path, slashes included. Tests send a name with `%` and one with `/`.
+  Why: a handler that decoded a part the server had already decoded threw on a title with `%`, and a pattern that stopped at `/` found no route for a title with one; neither failed until such a title was in the data.
 - **A store client for a network protocol (SMTP, IMAP, any socket) takes its `connect` function as an argument.** Tests pass one that opens a plain socket to a scripted server on 127.0.0.1 and check the exact dialogue; nothing in the Development run reaches the real service.
   Why: a fake at the protocol level tests the parser and the error paths a mocked method would skip, with no account and no network.
 - **A hand check against made-up data sets the data-folder override once for the whole shell or script, never as a prefix on each command.**

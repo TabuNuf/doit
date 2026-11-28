@@ -19,6 +19,11 @@ Design: Architecture.md
 - [ ] T-022.11 Contact pane shows Last active, as Design.md says: since T-030.9 nothing reads ContactBook's active fact (done when: The contact pane shows the newest reply or video date with a test, or Tabu drops the line from Design.md and the fact from ContactBook)
 - [ ] T-022.12 The parked-and-relevant rule lives once: ContactBook #facts and contactFilter in contacts.js each write it (done when: One function in contacts.js answers nowRelevant and both callers use it; npm test passes)
 - [ ] T-022.13 Split ContactBook: 278 lines, 22 under the 300-line mark, after EPIC-030 added covered games and the dead flag (done when: The festival methods live in their own class, the class diagram matches, npm test passes)
+- [ ] T-022.14 One header sort and one arrow-key step for lists: contactColumns.js and gameColumns.js each hold clickSort and the ordering, marketingView.js nextContact and gameColumns.js nextGame the same step One module holds the sort click, the ordering with empty values last and the next-row step; the Contacts and Games lists use it; npm test passes
+- [ ] T-022.15 The game lists live once in web/: gameFilters.js GM_STORES and gameLinks.js STORE_KINDS are the same list, beside the stage, scale and tracker lists One web module exports the store, tracker, stage and scale lists and the Games files import them; npm test passes
+- [ ] T-022.16 One key=value reader in the CLI: contactsCli.js (contact set) and gamesCli.js (changesOf) each write the loop with its repeated-key refusal One function in cli/parse.js reads key=value words with the keys that may repeat; both commands use it; npm test passes
+- [ ] T-022.17 Domain helpers once: gameEntries.js count and contactImport.js reachOf both read 12k and 1.2M, and line() is written in gameEntries.js and gameCatalog.js One count reader and one line() in the domain, used by contacts and games; npm test passes
+- [ ] T-022.18 A covered game carries its entry key from the server: web/state.js entryKey repeats the rule of domain/gameEntries.js The contact's covered games come with key, contactCovered.js uses it, entryKey is gone from web/state.js; npm test passes
 
 ## Test plan
 
