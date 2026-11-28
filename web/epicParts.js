@@ -1,7 +1,8 @@
 // The epic page's lists: findings, the tasks table, the test plan and the folded end sections.
 // Each takes `open`, the map of opened rows (S.epicOpen), and `scope`, the epic's key prefix.
 
-import { esc } from "./state.js";
+import { S, esc } from "./state.js";
+import { visibleColumns, cornerButton, columnMenu } from "./columnPicker.js";
 import { renderMarkdown } from "./markdown.js";
 import { whoChip } from "./chips.js";
 
@@ -30,15 +31,20 @@ export function findingsBlock(scope, parts, open) {
 
 const num = t => Number(t.id.split(".")[1]);
 
-/** The tasks as a table; a row selects its task. `afterOf(t)` gives " after .n" or "". */
+export const TASK_COLS = [{ id: "task", label: "Task", width: "auto" }, { id: "title", label: "Title", width: "auto" }, { id: "who", label: "Who", width: "auto" }, { id: "model", label: "Model and effort", width: "auto" }];
+
+/** The tasks as a table; a row selects its task. `afterOf(t)` gives " after .n" or "". The last, unnamed column (the human's wait) is always shown and not in the picker. */
 export function tasksTable(tasks, afterOf) {
   if (!tasks.length) return "";
+  const cols = new Set(visibleColumns("epic-tasks", TASK_COLS).map(c => c.id));
   const rows = [...tasks].sort((a, b) => num(a) - num(b)).map(t => {
     const done = t.state === "done" || t.state === "archived";
     const last = t.owner === "human" ? (done ? esc(t.completed || "done") : esc(afterOf(t).trim())) : "";
-    return `<tr class="ep-trow${done ? " muted" : ""}" data-id="${esc(`${t.project}/${t.id}`)}"><td class="mono">${esc(t.id)}</td><td>${esc(t.title)}</td><td>${whoChip(t.owner === "human" ? "human" : "ai")}</td><td>${esc([t.model, t.effort].filter(Boolean).join(" · "))}</td><td>${last}</td></tr>`;
+    const td = { task: `<td class="mono">${esc(t.id)}</td>`, title: `<td>${esc(t.title)}</td>`, who: `<td>${whoChip(t.owner === "human" ? "human" : "ai")}</td>`, model: `<td>${esc([t.model, t.effort].filter(Boolean).join(" · "))}</td>` };
+    return `<tr class="ep-trow${done ? " muted" : ""}" data-id="${esc(`${t.project}/${t.id}`)}">${TASK_COLS.filter(c => cols.has(c.id)).map(c => td[c.id]).join("")}<td>${last}</td></tr>`;
   }).join("");
-  return `<section class="ep-sec"><h2>Tasks</h2><table class="ep-tasks"><thead><tr><th>Task</th><th>Title</th><th>Who</th><th>Model and effort</th><th></th></tr></thead><tbody>${rows}</tbody></table></section>`;
+  const th = TASK_COLS.filter(c => cols.has(c.id)).map((c, i) => `<th${i === 0 ? ' class="col-first"' : ""}>${i === 0 ? cornerButton("epic-tasks") : ""}${c.label}${i === 0 && S.colMenu === "epic-tasks" ? columnMenu("epic-tasks", TASK_COLS) : ""}</th>`).join("");
+  return `<section class="ep-sec"><h2>Tasks</h2><table class="ep-tasks"><thead><tr data-col-head="epic-tasks">${th}<th></th></tr></thead><tbody>${rows}</tbody></table></section>`;
 }
 
 const BATCH = /^[-*][ \t]+(Batch [A-Z\d]+):[ \t]*(T-\d+\.\d+(?:[ \t]+to[ \t]+\.\d+)?)[ \t]*(?:\((.*?)\))?[ \t]*:?[ \t]*(.*)$/;

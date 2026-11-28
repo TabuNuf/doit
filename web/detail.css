@@ -37,7 +37,7 @@
 .ep-detail { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0 }
 .ep-detail dt { opacity: .7 } .ep-detail dd { margin: 0 }
 .ep-tasks, .ep-plan { width: 100%; border-collapse: collapse }
-.ep-tasks th { text-align: left; font-weight: normal; opacity: .6; font-size: .85em }
+.ep-tasks th { text-align: left; font-weight: normal; color: var(--muted); font-size: .85em }
 .ep-tasks td, .ep-plan td { padding: 6px 8px 6px 0; border-bottom: 1px dashed var(--line); vertical-align: top }
 .ep-trow { cursor: pointer } .ep-trow:hover { background: var(--fill) } .ep-trow.muted { opacity: .55 }
 .ep-tier { opacity: .65 }
