@@ -7,7 +7,8 @@ import { gameRemove } from "./contactCovered.js";
 import { EMPTY_FILTERS, FILTERS, contactPath, parkedPath, filterPane } from "./contactFilters.js";
 import { fitRequest, unfitRequest } from "./contactGames.js";
 import { channelRemove, channelAdd } from "./contactChannels.js";
-import { clickSort, orderContacts, headerRow, rowCells, specialMark } from "./contactColumns.js";
+import { clickSort, orderContacts, headerRow, rowCells, specialMark, shownContactCols } from "./contactColumns.js";
+import { gridStyle } from "./columnPicker.js";
 import { festivalPath, eventsInfoPane, festivalsPane } from "./festivalsPane.js";
 import { eventPane, eventEditRequest } from "./eventDetail.js";
 import { overviewPanes } from "./weekPane.js";
@@ -33,7 +34,8 @@ export function fitMark(c, game) {
 }
 
 export function contactRow(c, sel, game = null) {
-  return `<button class="mk-row mk-cols" data-contact="${esc(c.id)}" aria-pressed="${String(sel) === String(c.id)}">${rowCells(c, specialMark(c) + fitMark(c, game))}</button>`;
+  const cols = shownContactCols();
+  return `<button class="mk-row mk-cols" data-contact="${esc(c.id)}" aria-pressed="${String(sel) === String(c.id)}" ${gridStyle(cols)}>${rowCells(c, specialMark(c) + fitMark(c, game), cols)}</button>`;
 }
 
 /** The list column: a header row, then (with no sort chosen) a Due group when any contact is due and the rest, or one list in the chosen order. */

@@ -1,8 +1,15 @@
 // The Games list as columns: header row, row cells, the order and the sort a header click sets. Pure.
 
-import { esc, compactCount } from "./state.js";
+import { S, esc, compactCount } from "./state.js";
+import { headerRow, visibleColumns } from "./columnPicker.js";
 
-export const GM_COLUMNS = [["title", "Title"], ["genre", "Genre"], ["scale", "Scale"], ["rating", "Rating"], ["reviews", "Reviews"], ["sales", "Est. sales"], ["covered", "Covered by"]];
+export const GAME_COLS = [
+  { id: "title", label: "Title", width: "minmax(8em, 2fr)" }, { id: "genre", label: "Genre", width: "minmax(5em, 1.2fr)" }, { id: "scale", label: "Scale", width: "5em" },
+  { id: "rating", label: "Rating", width: "4em" }, { id: "reviews", label: "Reviews", width: "4.5em" }, { id: "sales", label: "Est. sales", width: "5em" }, { id: "covered", label: "Covered by", width: "5em" },
+];
+export const GM_COLUMNS = GAME_COLS.map(c => [c.id, c.label]);
+/** The columns shown now, from the saved choice. */
+export const shownGameCols = () => visibleColumns("games", GAME_COLS);
 /** Text columns sort A to Z first; figures, largest first. */
 const FIRST_DOWN = new Set(["rating", "reviews", "sales", "covered"]);
 
@@ -30,24 +37,27 @@ export function orderGames(list, sort) {
 }
 
 export function gameHeaderRow(sort) {
-  return `<div class="mk-head gm-cols" role="row">${GM_COLUMNS.map(([id, label]) => {
+  return headerRow({ list: "games", columns: GAME_COLS, cls: "gm-cols", open: S.colMenu === "games", cell: ({ id, label }) => {
     const on = sort && sort.key === id;
     return `<button class="mk-col" data-gm-sort="${id}" aria-sort="${on ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}" title="Sort by ${label}">${label}${on ? (sort.dir === "asc" ? " ▲" : " ▼") : ""}</button>`;
-  }).join("")}</div>`;
+  } });
 }
 
 const mono = (text, title) => text === "" ? `<span class="muted">-</span>` : `<span class="mono" title="${esc(title)}">${esc(text)}</span>`;
 
-/** The seven cells of a row: the title carries a pill for each store (and `comp` when marked for the game `comp`), the rating its label, the sales estimate its source. */
-export function gameCells(e, comp = "") {
+/** The cells of a row, only for the shown columns: the title carries a pill for each store (and `comp` when marked for the game `comp`), the rating its label, the sales estimate its source. */
+export function gameCells(e, comp = "", cols = shownGameCols()) {
   const from = e.estimates.salesFrom || "";
-  return `<span class="title">${esc(e.title)}<span class="pills">${comp && (e.comps ?? []).some(c => c.game === comp) ? `<span class="pill comp" title="Marked comparable to ${esc(comp)}">comp</span>` : ""}${Object.keys(e.stores).map(k => `<span class="pill">${esc(k)}</span>`).join("")}</span></span>`
-    + `<span>${e.genres.length ? esc(e.genres.join(", ")) : `<span class="muted">-</span>`}</span>`
-    + `<span>${e.scales.length ? esc(e.scales.join("+")) : `<span class="muted">-</span>`}</span>`
-    + mono(e.rating === null ? "" : `${e.rating}%`, e.ratingLabel || "Rating")
-    + mono(e.reviews === null ? "" : compactCount(e.reviews), `Reviews ${e.reviews ?? ""}`)
-    + mono(e.estimates.sales === null ? "" : `${from.startsWith("reviews") ? "~" : ""}${compactCount(e.estimates.sales)}`, from ? `From ${from}` : "Est. sales")
-    + mono(String(e.coverage.count), `Covered by ${e.coverage.count} contact${e.coverage.count === 1 ? "" : "s"}, reach ${e.coverage.reach}`);
+  const cell = {
+    title: `<span class="title">${esc(e.title)}<span class="pills">${comp && (e.comps ?? []).some(c => c.game === comp) ? `<span class="pill comp" title="Marked comparable to ${esc(comp)}">comp</span>` : ""}${Object.keys(e.stores).map(k => `<span class="pill">${esc(k)}</span>`).join("")}</span></span>`,
+    genre: `<span>${e.genres.length ? esc(e.genres.join(", ")) : `<span class="muted">-</span>`}</span>`,
+    scale: `<span>${e.scales.length ? esc(e.scales.join("+")) : `<span class="muted">-</span>`}</span>`,
+    rating: mono(e.rating === null ? "" : `${e.rating}%`, e.ratingLabel || "Rating"),
+    reviews: mono(e.reviews === null ? "" : compactCount(e.reviews), `Reviews ${e.reviews ?? ""}`),
+    sales: mono(e.estimates.sales === null ? "" : `${from.startsWith("reviews") ? "~" : ""}${compactCount(e.estimates.sales)}`, from ? `From ${from}` : "Est. sales"),
+    covered: mono(String(e.coverage.count), `Covered by ${e.coverage.count} contact${e.coverage.count === 1 ? "" : "s"}, reach ${e.coverage.reach}`),
+  };
+  return cols.map(k => cell[k.id]).join("");
 }
 
 /** The key above or below `sel` in `keys` (`dir` ArrowUp or ArrowDown); the first when none is selected, the same at either end. */

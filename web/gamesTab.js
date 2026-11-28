@@ -2,7 +2,8 @@
 
 import { S, esc, api, redraw, toast } from "./state.js";
 import { EMPTY_GM_FILTERS, GM_FILTERS, gamePath, filterPane } from "./gameFilters.js";
-import { clickGameSort, orderGames, gameHeaderRow, gameCells, nextGame } from "./gameColumns.js";
+import { clickGameSort, orderGames, gameHeaderRow, gameCells, nextGame, shownGameCols } from "./gameColumns.js";
+import { gridStyle } from "./columnPicker.js";
 import { gameDetailPane, gameEditRequest } from "./gameDetail.js";
 import { compRequest, uncompRequest } from "./gameCompare.js";
 import { linkAdd, linkRemove } from "./gameLinks.js";
@@ -10,7 +11,8 @@ import { linkAdd, linkRemove } from "./gameLinks.js";
 export { gameDetailPane };
 
 export function gameRow(e, sel, comp = "") {
-  return `<button class="mk-row gm-cols" data-game="${esc(e.key)}" aria-pressed="${sel === e.key}">${gameCells(e, comp)}</button>`;
+  const cols = shownGameCols();
+  return `<button class="mk-row gm-cols" data-game="${esc(e.key)}" aria-pressed="${sel === e.key}" ${gridStyle(cols)}>${gameCells(e, comp, cols)}</button>`;
 }
 
 /** The list column: a header row, then the games in the chosen order. */

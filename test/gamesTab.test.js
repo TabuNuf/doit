@@ -43,7 +43,7 @@ test("the list has seven sortable headers and a row per game with its cells", as
   const heads = html.match(/data-gm-sort="(\w+)"/g).map(s => s.slice(14, -1));
   assert.deepEqual(heads, ["title", "genre", "scale", "rating", "reviews", "sales", "covered"]);
   for (const h of ["Title", "Genre", "Scale", "Rating", "Reviews", "Est. sales", "Covered by"]) assert.ok(html.includes(`>${h}</button>`), h);
-  assert.match(html, /<button class="mk-row gm-cols" data-game="hades" aria-pressed="true">/);
+  assert.match(html, /<button class="mk-row gm-cols" data-game="hades" aria-pressed="true"[ >]/);
   assert.match(html, /<span class="pill">steam<\/span>/);
   assert.match(html, /title="Overwhelmingly Positive">93%</);
   assert.match(html, />12k</);

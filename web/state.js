@@ -11,7 +11,7 @@ export const S = {
   view: "board", claude: null, mk: { contacts: null, parked: [], parkedOpen: false, profiles: [], game: "", f: { type: "", reach: "", status: "", genre: "", fits: "", contacted: "" }, genres: [], sel: null, detail: null, history: null, touchOpen: false, fitOpen: false, pane: "campaigns", newCampaign: false, newEvent: "", campaign: null, suggest: null, events: [], fest: null, campaigns: null, drafts: null, status: null, sweep: "", week: null, sort: null }, show: { epics: true, docs: true }, docs: { project: null, trees: {}, active: false, path: null, doc: null, linked: [], open: {}, editing: false, draft: "", linkedClosed: false },
   gm: { list: null, tags: { genres: [], keywords: [] }, f: { genre: "", keyword: "", scale: "", stage: "", store: "", rating: "", reviews: "", covered: "", comp: "", similar: "", noFacts: "" }, sort: null, sel: null, detail: null, compOpen: false },
   settings: { open: false, profiles: [], msg: "" },
-  sel: null, descEdit: null, font: 15, newProj: false, newTask: false, newEpic: null, projectPage: null, epicView: null, epicFold: {}, epicOpen: {}, data: null, npErr: "",
+  colMenu: "", sel: null, descEdit: null, font: 15, newProj: false, newTask: false, newEpic: null, projectPage: null, epicView: null, epicFold: {}, epicOpen: {}, data: null, npErr: "",
 };
 try { S.mk.sort = JSON.parse(localStorage.getItem("doit.contacts.sort") || "null"); } catch { /* storage off or unreadable */ }
 try { S.gm.sort = JSON.parse(localStorage.getItem("doit.games.sort") || "null"); } catch { /* storage off or unreadable */ }
@@ -53,7 +53,7 @@ const NON_TEXT = ["checkbox", "radio", "range", "button", "submit", "reset", "fi
 export function reloadHeld(state, active, dragging = false) {
   const tag = active && active.tagName;
   const typing = tag === "TEXTAREA" || (tag === "INPUT" && !NON_TEXT.includes(active.type));
-  return Boolean(typing || dragging || state.newProj || state.newTask || state.newEpic !== null || state.fOpen || state.projOpen
+  return Boolean(typing || dragging || state.newProj || state.newTask || state.newEpic !== null || state.fOpen || state.projOpen || state.colMenu
     || (state.view === "board" && state.docs.active && state.docs.editing) || (state.view === "marketing" && (state.mk.touchOpen || state.mk.fitOpen || state.mk.newCampaign)));
 }
 
