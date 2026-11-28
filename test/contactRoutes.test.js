@@ -109,3 +109,15 @@ test("PATCH sets and clears a contact's special reason", async t => {
   assert.equal((await api("/api/contacts")).body[0].special, "Friend");
   assert.equal((await api("/api/contacts/1", "PATCH", { special: "" })).body.special, "");
 });
+
+test("a covered game with % or / in its title is removed through the route", async t => {
+  const { s, api } = await serve(t);
+  const book = makeContacts({ home: s.home, now: () => s.clock.t });
+  book.add({ name: "Ada Plays", types: ["influencer"] });
+  for (const title of ["100% Orange Juice", "Fate/stay night"]) {
+    book.addGame(1, { title, scales: "indie", kind: "played", date: "2026-11-01", source: "https://v.test/a" });
+    const gone = await api(`/api/contacts/1/games/${encodeURIComponent(title)}`, "DELETE");
+    assert.equal(gone.status, 200, `${title}: ${JSON.stringify(gone.body)}`);
+    assert.deepEqual(gone.body.games, []);
+  }
+});
