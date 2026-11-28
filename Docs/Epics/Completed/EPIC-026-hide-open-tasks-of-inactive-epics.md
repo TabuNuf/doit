@@ -3,7 +3,8 @@
 In short: Open tasks of a parked, completed or archived epic leave every list and report, untouched, and come back in the state they had when the epic is open again.
 Why it exists: parking an epic left its tasks in the Backlog and in `doit list`, so work nobody wants now was still offered to Tabu and to Claude (on 2026-11-22 the two tasks of the parked EPIC-009 were in this project's Backlog).
 
-Status: Active
+Status: Done
+Closed: 2026-11-28
 Design: Design.md, section Epics, "Open tasks of an epic that is not open are hidden"
 Order: after EPIC-028
 
