@@ -163,3 +163,14 @@ test("a mailbox error comes back as a result, and a second sweep during one gets
   assert.deepEqual(await a, { ok: false, replies: [], labeled: 0, error: "Login refused: check the app password" });
   assert.equal(r.mailbox.sessions, 1);
 });
+
+test("the sweep files a reply from a parked contact", async t => {
+  const r = room(); t.after(() => r.db.close());
+  const s = await r.mailroom.approveAndSend(pitch(r).id);
+  r.mailbox.sentIds.add(s.messageId);
+  r.book.update(r.ada, { status: "parked" });
+  r.mailbox.inbox = [{ uid: 7, from: "ada@example.com", subject: "Re: Bunny Bunker for Ada", date: "2026-11-21T22:30:00.000Z", messageId: "<re1@example.com>", inReplyTo: s.messageId }];
+  const out = await r.mailroom.sweep();
+  assert.deepEqual(out.replies, [{ contact: "Ada", subject: "Re: Bunny Bunker for Ada" }]);
+  assert.deepEqual(r.mailbox.moved, [7]);
+});

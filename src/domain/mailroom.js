@@ -133,7 +133,8 @@ export class Mailroom {
   async #sweep() {
     const account = await this.account.read();
     if (!account) return { ok: false, skipped: "Mail is not set up" };
-    const byMail = new Map(this.book.list().filter(c => c.email).map(c => [c.email.trim().toLowerCase(), c]));
+    // Every contact, parked ones too: a reply from a parked contact is still a reply.
+    const byMail = new Map(this.book.list({ all: true }).filter(c => c.email).map(c => [c.email.trim().toLowerCase(), c]));
     const replies = [];
     let labeled = 0;
     const r = await this.mailbox.session(account, async box => {
