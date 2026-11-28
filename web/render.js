@@ -16,6 +16,7 @@ import { contactButton, ensureContactNames } from "./contactNames.js";
 import { renderMarkdown, inline } from "./markdown.js";
 import { headline } from "./headline.js";
 import { PROJECT_KINDS, settingsShown, settingsHtml } from "./projectSettings.js";
+import { keepScroll } from "./scrollKeep.js";
 
 export { PROJECT_KINDS };
 
@@ -26,6 +27,12 @@ export function render() {
   if (S.data.tasks.some(t => t.contact)) ensureContactNames();
   document.documentElement.style.setProperty("--fs", S.font + "px");
   renderTop();
+  const restoreScroll = keepScroll($("#panes"));
+  renderPanes();
+  restoreScroll();
+}
+
+function renderPanes() {
   const docLayout = S.view === "board" && S.docs.active;
   setLayout(docLayout ? "docs" : S.view, docLayout && S.docs.linkedClosed);
   if (docLayout) { $("#panes").innerHTML = leftPane() + docsPanes(fontCtl()); return; }
@@ -174,11 +181,11 @@ function detailPane() {
   const t = S.sel && task(S.sel);
   if (!t && S.epicView) return epicViewPane(fontCtl());
   const pp = !t && pageProject();
-  if (pp) return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b detail">${projectPage(pp)}</div></section>`;
+  if (pp) return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b detail" data-scroll="project:${esc(pp.id)}">${projectPage(pp)}</div></section>`;
   if (!t) return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b"><div class="empty">Select a task.</div></div></section>`;
   const where = t.state === "archived" ? "Archive/Tasks" : "Epics/Tasks";
   const { head, rest } = headline(t.title);
-  return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b detail">
+  return `<section class="pane"><div class="pane-h">Detail${fontCtl()}</div><div class="pane-b detail" data-scroll="task:${esc(keyOf(t))}">
     <div class="mono muted">${t.id} · ${esc(t.epicName)}</div>
     <h2>${inline(head)}</h2>
     <div class="pills" style="justify-content:flex-start"><span class="pill"><span class="tdot ${t.type}"></span>${t.type === "bug" ? "Bug" : "Task"}</span>${whoChip(t.owner)}<span class="pill"><span class="dot" style="background:${color(t.project)}"></span>${esc(proj(t.project).name)}</span></div>

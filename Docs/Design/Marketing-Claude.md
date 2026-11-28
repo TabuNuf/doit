@@ -11,6 +11,46 @@ The exact CLI steps Claude follows for the two recurring jobs. `doit` is `node /
 5. Remove a wrong fit: `doit fit <id> <game> --remove`. Check existing fits of every contact in the batch, not only the new ones.
 6. Finish with `doit contacts --no-about` to confirm the batch is gone from it, and report how many were researched, fitted and skipped.
 
+## Research a batch of covered games
+
+The Games tab compares Tabu's games with the games the contacts covered. This run fills each entry from the sites that track games. Never write a number from memory: every figure comes from a page opened in this run.
+
+1. List the next batch: `doit games --no-facts --json`. Take 10 to 15, most covered first.
+2. For each game, find its pages. Stores: Steam, Epic, GOG, itch and the console stores. Trackers: `https://gamalytic.com/` and `https://steamdb.info/` for a Steam game, `https://www.vgchartz.com/gamedb/` for a console one, and SteamSpy, SteamCharts, Metacritic, OpenCritic, HowLongToBeat and IGDB where they have the game.
+   What can be read (found in the first run, 2026-11-28):
+   - Steam's own API answers without a key: `https://store.steampowered.com/api/storesearch/?term=<title>&cc=us&l=en` finds the app id, `https://store.steampowered.com/api/appdetails?appids=<id>&cc=us&l=en` gives developer, publisher, release date, base price, platforms, languages, demo and the Metacritic score.
+   - Gamalytic is read as a page in the browser pane, `https://gamalytic.com/game/<app id>`: copies sold, gross revenue, reviews, review score, followers and tags. Its API needs a paid key; do not call it.
+   - SteamSpy (`https://steamspy.com/api.php?request=appdetails&appid=<id>`) gives median playtime in minutes. SteamCharts (`https://steamcharts.com/app/<id>`) gives the all-time peak.
+   - SteamDB answers an automated reader with a bot check. Never work around it: set its link (`https://steamdb.info/app/<id>/`) for Tabu to click and take no number from it.
+   - VGChartz has console games; its sales articles quote the publisher's figure. A consent banner covers its pages: read the text behind it and accept nothing.
+   - A title may match several Steam games, or name a product loosely (a collection, a remake). Match by developer, release date and the date of the creator's video, and say in `notes` what the real title is and how it was matched.
+   - `price` is Steam's base price today. Leave `launch_price` and `rating_label` empty unless a page states them.
+3. Write the links first, one key per link: `doit game set "<title>" store=steam=<url> store=gog=<url> tracker=gamalytic=<url> tracker=steamdb=<url>`. Kinds are in `doit help`. A site that does not have the game gets no link.
+4. Write what the game is, from the store page: `doit game set "<title>" developer="<name>" publisher="<name>" release=<YYYY-MM-DD> stage=<unreleased|demo|early-access|released> platforms=pc,switch description="<two or three lines>" hook="<one sentence: what sets it apart>" genres=a,b keywords=a,b scale=<solo,indie,triple-i,aa,aaa> modes=single-player,co-op look="<2D or 3D, art style, camera>"`.
+5. Write how it did, from the trackers: `doit game set "<title>" price=<usd> launch_price=<usd> reviews=<n> rating=<percent positive> rating_label="<Very Positive>" metacritic=<n> opencritic=<n> sales=<copies> revenue=<usd> sales_source=<tracker kind> peak_players=<n> followers=<n> playtime=<median hours>`. `sales` and `revenue` are refused without `sales_source`. Leave a key out when no tracker gives it; the page then shows the reviews estimate.
+6. Write how it got there, each from a source: `doit game set "<title>" team="<size>" dev_time="<years>" demo=<yes|no> festivals="<names>" early_access="<length>" languages=<n> worked="<the marketing beat that moved it>" sources=<url>,<url>`.
+7. Mark comparisons: `doit profiles` lists Tabu's games, then `doit game comp "<title>" <game> "<reason in one line: the shared genre, scale or audience>"`. `doit game comp "<title>" <game> --remove` drops one.
+8. Close each entry with `doit game set "<title>" checked=<today>`. Finish with `doit games --no-facts` to confirm the batch is gone from it, and report how many were researched, which sites had no page for which game, and which numbers were left empty.
+
+## Type and score a covered game
+
+The contact rating (`Design.md`, Marketing, step 7) reads two things from a covered game: its types and six player-type scores. Both are judged from the store page read in the run above, never from memory. The commands that write them arrive with EPIC-033 (T-033.6); until then this section is the guide to score by.
+
+**Types.** One or two from `GameTypes.md` in the Polyspice Marketing docs. Take the type that says what the player does most of the time. Add a second only when the game is as much that as the first. A type that is not in the list is never written.
+
+**Scores.** Six whole numbers from 0 to 3. Score the game as it is sold today, and take the lower number when two fit. All six are written, also the zeros.
+
+| Score | 0 | 1 | 2 | 3 | Low and high example |
+|---|---|---|---|---|---|
+| achiever | Nothing to finish: a toy or a sandbox | Goals the player may ignore | Goals carry the game: levels, quests, unlocks | Mastery is the point: difficulty tiers, scores, full clears | Sandcastle 0, Balatro 3 |
+| explorer | Everything is shown from the start | A few unlocks or hidden things | Finding places, secrets or systems is a main draw | Discovery is the game | Book Nook 0, Blue Prince 3 |
+| socialiser | Played alone, nothing shared | Friendships with characters, or sharing outside play | Optional co-op, or a community inside the game | Built around playing together | Balatro 0, Among Us 3 |
+| killer | No other player to beat | Leaderboards or other indirect rivalry | Optional play against other players | Built around beating other players | Winter Burrow 0, ARC Raiders 3 |
+| pressure | Nothing can go wrong: no fail state, no timer | Gentle: a mistake costs little | A real threat or a clock, with an easy setting | Punishing: losing progress is normal | Woodo 0, Darkest Dungeon 3 |
+| creation | Nothing is built or made | Light customising | Building or making is a main part of play | Building is the game, or it has tools to make and share content | Balatro 0, Minecraft 3 |
+
+Achiever, explorer, socialiser and killer are Bartle's player types. Socialiser and killer are about other players, so most single-player games score 0 or 1 on both. Pressure and creation are Doit's own.
+
 ## Create and fill a campaign from a release or an event
 
 1. Find the occasion. A release: the project's profile (`doit profiles`) gives stage and release date. An event: `doit festivals --fits <game> --deadline-within 60` lists open events with days left; take its id.

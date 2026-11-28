@@ -1,6 +1,8 @@
 // SqliteContacts: the ContactSource port on `marketing.db` in the app's data folder.
 // The database handle and its schema come from `MarketingDb`. A festival's event is a row in `events`.
 
+import { entryKey } from "../domain/gameEntries.js";
+
 const split = v => (v ? v.split(",") : []);
 const toEvent = r => ({
   year: r.year, starts: r.starts, ends: r.ends, deadline: r.deadline, cost: r.cost, where: r.place,
@@ -20,15 +22,19 @@ export class SqliteContacts {
       for (const r of this.db.prepare(sql).all()) (m.get(key(r)) ?? m.set(key(r), []).get(key(r))).push(r);
       return m;
     };
-    const channels = by("SELECT contact_id, kind, url FROM channels ORDER BY position");
+    const channels = by("SELECT contact_id, kind, url, followers, active, dead FROM channels ORDER BY position");
     const fit = by("SELECT contact_id, game, reason FROM fit ORDER BY game");
+    const games = by("SELECT contact_id, title, scales, kind, date, source, genres FROM games ORDER BY date DESC, title");
+    const entries = new Map(this.db.prepare("SELECT key, scales, genres FROM game_entries").all().map(e => [e.key, e]));
     const touches = by("SELECT contact_id, date, kind, game, note FROM touches ORDER BY date DESC, id DESC");
     const events = new Map(this.db.prepare("SELECT * FROM events").all().map(r => [r.contact_id, toEvent(r)]));
     return this.db.prepare("SELECT * FROM contacts ORDER BY id").all().map(r => ({
       id: r.id, name: r.name, types: r.types.split(","), topic: r.topic, email: r.email, reach: r.reach,
       genres: split(r.genres), about: r.about, notes: r.notes, special: r.special, status: r.status, next: r.next,
-      channels: (channels.get(r.id) ?? []).map(({ kind, url }) => ({ kind, url })),
+      reddit: r.reddit, scales: split(r.scales), scaleNote: r.scale_note, checked: r.checked,
+      channels: (channels.get(r.id) ?? []).map(({ kind, url, followers, active, dead }) => ({ kind, url, followers, active, dead })),
       fit: (fit.get(r.id) ?? []).map(({ game, reason }) => ({ game, reason })),
+      games: (games.get(r.id) ?? []).map(g => { const e = entries.get(entryKey(g.title)) ?? g; return { title: g.title, scales: split(e.scales), kind: g.kind, date: g.date, source: g.source, genres: split(e.genres) }; }),
       touches: (touches.get(r.id) ?? []).map(({ date, kind, game, note }) => ({ date, kind, game, note })),
       event: events.get(r.id) ?? null,
     }));
@@ -38,8 +44,8 @@ export class SqliteContacts {
 
   insert(c) {
     return this.store.atomic(() => {
-      const r = this.db.prepare("INSERT INTO contacts (name, types, topic, email, reach, genres, about, notes, status, next, special) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.genres.join(","), c.about, c.notes, c.status, c.next, c.special ?? "");
+      const r = this.db.prepare("INSERT INTO contacts (name, types, topic, email, reach, genres, about, notes, status, next, special, reddit, scales, scale_note, checked) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.genres.join(","), c.about, c.notes, c.status, c.next, c.special ?? "", c.reddit ?? "", (c.scales ?? []).join(","), c.scaleNote ?? "", c.checked ?? "");
       const id = Number(r.lastInsertRowid);
       this.#channels(id, c.channels);
       this.#event(id, c.event);
@@ -50,8 +56,8 @@ export class SqliteContacts {
   /** Replaces the contact's fields and channels; fit and touches stay. */
   update(id, c) {
     this.store.atomic(() => {
-      this.db.prepare("UPDATE contacts SET name = ?, types = ?, topic = ?, email = ?, reach = ?, genres = ?, about = ?, notes = ?, status = ?, next = ?, special = ? WHERE id = ?")
-        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.genres.join(","), c.about, c.notes, c.status, c.next, c.special ?? "", id);
+      this.db.prepare("UPDATE contacts SET name = ?, types = ?, topic = ?, email = ?, reach = ?, genres = ?, about = ?, notes = ?, status = ?, next = ?, special = ?, reddit = ?, scales = ?, scale_note = ?, checked = ? WHERE id = ?")
+        .run(c.name, c.types.join(","), c.topic, c.email, c.reach, c.genres.join(","), c.about, c.notes, c.status, c.next, c.special ?? "", c.reddit ?? "", (c.scales ?? []).join(","), c.scaleNote ?? "", c.checked ?? "", id);
       this.db.prepare("DELETE FROM channels WHERE contact_id = ?").run(id);
       this.#channels(id, c.channels);
       this.#event(id, c.event);
@@ -62,6 +68,25 @@ export class SqliteContacts {
     this.db.prepare("INSERT INTO fit (contact_id, game, reason) VALUES (?, ?, ?) ON CONFLICT (contact_id, game) DO UPDATE SET reason = excluded.reason")
       .run(id, game, reason);
   }
+
+  /** Adds the covered game, or updates the one with that title (any case); its entry takes the scales, and the genres when given, or is created. */
+  setGame(id, g) {
+    this.store.atomic(() => {
+      this.#coverage(id, g);
+      const key = entryKey(g.title);
+      const known = this.db.prepare("SELECT key FROM game_entries WHERE key = ?").get(key);
+      if (!known) this.db.prepare("INSERT INTO game_entries (key, title, scales, genres) VALUES (?, ?, ?, ?)").run(key, g.title, g.scales.join(","), g.genres.join(","));
+      else if (g.genres.length) this.db.prepare("UPDATE game_entries SET scales = ?, genres = ? WHERE key = ?").run(g.scales.join(","), g.genres.join(","), key);
+      else this.db.prepare("UPDATE game_entries SET scales = ? WHERE key = ?").run(g.scales.join(","), key);
+    });
+  }
+
+  #coverage(id, g) {
+    this.db.prepare("INSERT INTO games (contact_id, title, scales, kind, date, source, genres) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT (contact_id, title) DO UPDATE SET title = excluded.title, scales = excluded.scales, kind = excluded.kind, date = excluded.date, source = excluded.source, genres = excluded.genres")
+      .run(id, g.title, g.scales.join(","), g.kind, g.date, g.source, g.genres.join(","));
+  }
+
+  removeGame(id, title) { this.db.prepare("DELETE FROM games WHERE contact_id = ? AND title = ?").run(id, title); }
 
   removeFit(id, game) { this.db.prepare("DELETE FROM fit WHERE contact_id = ? AND game = ?").run(id, game); }
 
@@ -79,7 +104,7 @@ export class SqliteContacts {
   }
 
   #channels(id, list) {
-    const add = this.db.prepare("INSERT INTO channels (contact_id, position, kind, url) VALUES (?, ?, ?, ?)");
-    list.forEach((ch, i) => add.run(id, i, ch.kind, ch.url));
+    const add = this.db.prepare("INSERT INTO channels (contact_id, position, kind, url, followers, active, dead) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    list.forEach((ch, i) => add.run(id, i, ch.kind, ch.url, ch.followers ?? null, ch.active ?? "", ch.dead ?? ""));
   }
 }

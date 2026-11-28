@@ -18,8 +18,9 @@
 .ep-prog .bar { width: 140px }
 .ep-lead { font-size: 1.25em; margin: 12px 0 4px }
 .ep-why { margin: 0 0 12px }
-.ep-facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 12px 0 }
-.ep-facts dt { opacity: .7 } .ep-facts dd { margin: 0 }
+.ep-facts { display: grid; grid-template-columns: 8em minmax(0, 1fr); max-width: 78ch; margin: 14px 0; border-top: 1px dashed var(--line) }
+.ep-facts dt, .ep-facts dd { padding: 8px 0; border-bottom: 1px dashed var(--line); line-height: 1.55 }
+.ep-facts dt { opacity: .7 } .ep-facts dd { margin: 0; overflow-wrap: anywhere }
 .ep-facts .link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit }
 
 /* Epic page lists: findings, tasks table, test plan, folded end sections */
@@ -36,7 +37,7 @@
 .ep-detail { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0 }
 .ep-detail dt { opacity: .7 } .ep-detail dd { margin: 0 }
 .ep-tasks, .ep-plan { width: 100%; border-collapse: collapse }
-.ep-tasks th { text-align: left; font-weight: normal; opacity: .6; font-size: .85em }
+.ep-tasks th { text-align: left; font-weight: normal; color: var(--muted); font-size: .85em }
 .ep-tasks td, .ep-plan td { padding: 6px 8px 6px 0; border-bottom: 1px dashed var(--line); vertical-align: top }
 .ep-trow { cursor: pointer } .ep-trow:hover { background: var(--fill) } .ep-trow.muted { opacity: .55 }
 .ep-tier { opacity: .65 }
@@ -44,7 +45,8 @@
 /* Task page properties box */
 .props-head { margin: 12px 0 0; opacity: .8; font-size: 13px }
 .props .kv { margin-top: 6px }
-.props .seg { display: flex; width: 100% } .props .seg button { flex: 1 }
+.props .seg { display: flex; width: 35% } .props .seg button { flex: 1 }
+.props .kv input[type=text], .props .kv input[list] { width: 35% }
 .props .seg button[aria-pressed="true"] { background: var(--select); color: var(--on-select) }
 .props select, .props input[type=date] { min-width: 150px }
 .kv dt.off, .kv dt.off + dd { opacity: .55 }
@@ -64,3 +66,15 @@ button.pcard { cursor: pointer }
 .pp-row .bar { width: 80px; flex: none } .pp-row .bar + span { min-width: 3em }
 .pp-row.sub { padding-left: 24px }
 .pp-docs { display: flex; gap: 8px; flex-wrap: wrap }
+
+/* Reading text on the epic page: one size, room between paragraphs and list items, a reading width */
+.epic-page { max-width: 78ch }
+.epic-page .doc { line-height: 1.65 }
+.epic-page .doc p { margin: 0 0 1em }
+.epic-page .doc ul, .epic-page .doc ol { padding-left: 1.3em; margin: 0 0 1em }
+.epic-page .doc li { margin: 0 0 .6em; padding-left: .2em }
+.epic-page .doc li > ul, .epic-page .doc li > ol { margin: .6em 0 0 }
+.epic-page .doc h2 { margin: 1.8em 0 .6em }
+.epic-page .doc code { font-size: 1em; padding: 0 3px }
+.epic-page .ep-lead, .epic-page .ep-why { max-width: 78ch; line-height: 1.5 }
+.epic-page .ep-why { margin: .6em 0 1em }

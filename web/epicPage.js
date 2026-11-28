@@ -1,7 +1,7 @@
 // The epic page: status, progress and counts, the In short block and the facts grid, from the epic's text and tasks.
 
 import { esc, S } from "./state.js";
-import { renderMarkdown } from "./markdown.js";
+import { renderMarkdown, inline } from "./markdown.js";
 import { parseEpicDoc } from "./epicDoc.js";
 import { whoChip } from "./chips.js";
 import { findingsBlock, tasksTable, testPlan, endSection, isEndSection, md } from "./epicParts.js";
@@ -15,8 +15,8 @@ const mine = (e, tasks) => (tasks || []).filter(t => t.project === e.project && 
 /** "after .n" for a designer task an open task of the epic blocks, else "". */
 const afterOf = (t, open) => { const b = open.find(x => x.blocks === t.id); return b ? ` after .${num(b)}` : ""; };
 
-/** A fact's value with each epic id turned into a button that opens that epic. */
-const factValue = (e, v) => esc(v).replace(/EPIC-\d+/g, id => `<button class="link" data-open-epic="${esc(e.project)}/${id}">${id}</button>`);
+/** A fact's value as inline markdown (code, bold, links), each epic id turned into a button that opens that epic. */
+const factValue = (e, v) => inline(v).replace(/EPIC-\d+/g, id => `<button class="link" data-open-epic="${esc(e.project)}/${id}">${id}</button>`);
 
 function header(e, d, tasks) {
   const open = tasks.filter(isOpen), done = tasks.length - open.length;

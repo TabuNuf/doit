@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { Board } from "./domain/board.js";
 import { ContactBook } from "./domain/contactBook.js";
+import { GameCatalog } from "./domain/gameCatalog.js";
 import { Mailroom } from "./domain/mailroom.js";
 import { ActivityLog } from "./domain/activity.js";
 import { DocsLibrary } from "./domain/docs.js";
@@ -16,6 +17,7 @@ import { ActivityFile } from "./store/activityFile.js";
 import { SettingsFile } from "./store/settings.js";
 import { MarketingDb } from "./store/marketingDb.js";
 import { SqliteContacts } from "./store/sqliteContacts.js";
+import { SqliteGames } from "./store/sqliteGames.js";
 import { SqliteDrafts } from "./store/sqliteDrafts.js";
 import { TemplateShelf } from "./store/templateShelf.js";
 import { MailAccount } from "./store/mailAccount.js";
@@ -59,12 +61,17 @@ export function makeMailroom({ home = dataDir(), now, db, book, ports = {} }) {
   });
 }
 
-/** The contact book and the mailroom, sharing one `marketing.db`. */
+/** The games catalog over the same `db` and `book` as the contacts: entries from `marketing.db`, coverage and profiles from the book. */
+export function makeGames({ db, book }) {
+  return new GameCatalog(new SqliteGames(db), book);
+}
+
+/** The contact book, the mailroom and the games catalog, sharing one `marketing.db`. */
 export function makeMarketing(options = {}) {
   const home = options.home ?? dataDir();
   const db = new MarketingDb(home);
   const book = makeContacts({ ...options, home, db });
-  return { book, mailroom: makeMailroom({ ...options, home, db, book }) };
+  return { book, mailroom: makeMailroom({ ...options, home, db, book }), games: makeGames({ db, book }) };
 }
 
 /** Outreach over the board and the book, listening for the board's done facts. */
@@ -79,9 +86,9 @@ export function makeCli(options = {}) {
   const log = makeActivity(options);
   const board = makeBoard({ ...options, log });
   const readText = file => fs.readFileSync(file, "utf8");
-  const { book, mailroom } = makeMarketing(options);
+  const { book, mailroom, games } = makeMarketing(options);
   const outreach = makeOutreach({ board, book, now: options.now, home: options.home });
-  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now, outreach), book, readText, mailroom, outreach);
+  return new Cli(board, options.out || process.stdout, options.err || process.stderr, new ClaudeView(board, log, options.now, outreach), book, readText, mailroom, outreach, games);
 }
 
 export function makeServer(options = {}) {
@@ -90,7 +97,7 @@ export function makeServer(options = {}) {
   const board = makeBoard({ ...options, log });
   const home = options.home ?? dataDir();
   const changes = new ChangeWatcher(new SettingsFile(home), new EpicWorktrees(), home);
-  const { book, mailroom } = makeMarketing({ ...options, home });
+  const { book, mailroom, games } = makeMarketing({ ...options, home });
   const outreach = makeOutreach({ board, book, now: options.now, home });
-  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home, board }), new ClaudeView(board, log, options.now, outreach), changes, book, mailroom, outreach);
+  return new HttpServer(board, webDir, options.commit ?? null, makeDocs({ home, board }), new ClaudeView(board, log, options.now, outreach), changes, book, mailroom, outreach, games);
 }

@@ -40,6 +40,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .logo img { display: block; }
 .projects { display: flex; gap: 4px; flex-wrap: wrap; }
 .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel); border-radius: 2px; padding: 3px 10px; font-size: 13px; }
+/* detail.css loads later and sets .chip to inline-block, which drops the gap; restate it for the top bar. */
+.projects .chip { display: inline-flex; align-items: center; gap: 6px; }
 .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .projmenu { position: relative; }
 .projpop { left: 0; right: auto; width: auto; min-width: 240px; max-height: 70vh; overflow-y: auto; gap: 2px; padding: 6px; }
@@ -125,7 +127,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .pill.ai { border-style: dashed; }
 .pill.bug { border-color: var(--warn); color: var(--warn); }
 .pill.due { font-family: var(--mono); }
-.pill.fit { border-color: var(--accent); color: var(--accent); }
+.pill.fit, .pill.comp { border-color: var(--accent); color: var(--accent); }
 .pill.late { background: var(--warn); color: var(--on-warn); border-color: var(--warn); }
 .grip { width: 10px; height: 16px; cursor: grab; opacity: .55; background-image: radial-gradient(var(--ink) 1.1px, transparent 1.3px); background-size: 5px 5px; }
 .row:hover .grip { opacity: 1; }
@@ -257,6 +259,11 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .mk-links a { color: var(--accent); }
 .mk-ch { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
 .mk-ch input { flex: 1; min-width: 8em; font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 2px; background: var(--bg); color: var(--ink); }
+.mk-ch input.mk-chn { flex: 0 0 7em; min-width: 0; }
+.mk-ch input[type=date] { flex: 0 0 9.5em; }
+.mk-ch.dead input, .mk-ch.dead select { opacity: .5; text-decoration: line-through; }
+.mk-parked { margin-top: 12px; border-top: 1px dashed var(--line); }
+.mk-parked > button.sec-h { width: 100%; background: none; border: 0; color: var(--ink); cursor: pointer; text-align: left; font: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
 .mk-touch { margin-top: 8px; }
 .mk-draft { border: 1px solid var(--line); border-radius: 2px; padding: 8px; margin-bottom: 10px; }
 .mk-draft input { width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 5px 8px; background: var(--bg); color: var(--ink); }
@@ -273,8 +280,8 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .ps-form { flex-direction: column; align-items: stretch; border-radius: 0; }
 .ps-form button[type=submit] { align-self: flex-start; }
 .ps-note { font-size: 12px; }
-.mk-cols { grid-template-columns: minmax(8em, 2fr) minmax(5em, 1fr) 4.5em 5.5em 6.5em 6.5em; font-size: 13px; }
-.mk-cols > * { min-width: 0; overflow-wrap: anywhere; }
+.mk-cols, .gm-cols { font-size: 13px; }
+.mk-cols > *, .gm-cols > * { min-width: 0; overflow-wrap: anywhere; }
 .mk-head { display: grid; gap: 8px; padding: 4px 8px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel); }
 .pill.special { border-color: var(--accent); color: var(--accent); }
 .mk-col { border: 0; background: none; padding: 0; text-align: left; font: inherit; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); cursor: pointer; }
@@ -293,3 +300,11 @@ th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: v
 .kv input[type=text], .kv input[list] { width: 100%; box-sizing: border-box; border: 1px solid var(--line); border-radius: 2px; padding: 2px 6px; background: var(--panel); font-size: 13px; }
 .mk-evgame { display: flex; flex-direction: column; gap: 3px; margin-top: 10px; font-size: 12px; color: var(--muted); }
 .mk-for-row { flex-direction: row; flex-wrap: wrap; gap: 4px 14px; } .mk-for { display: inline-flex; align-items: center; gap: 6px; }
+.mk-links button.link, .mk-links button[data-contact] { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; font: inherit; text-align: left; }
+.col-first { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.col-btn { border: 0; background: none; padding: 0 3px; font-size: 13px; line-height: 1; color: var(--muted); border-radius: 2px; }
+.col-btn:hover { color: var(--ink); }
+.ep-tasks th.col-first { position: relative; white-space: nowrap; }
+.col-menu { position: absolute; left: 4px; top: 100%; z-index: 20; display: flex; flex-direction: column; gap: 2px; min-width: 12em; padding: 6px 8px; background: var(--panel); border: 1px solid var(--accent); border-radius: 6px; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--ink); font-weight: normal; opacity: 1; }
+.col-opt { display: flex; align-items: center; gap: 6px; padding: 2px 0; cursor: pointer; }
+.col-opt:has(input:disabled) { color: var(--muted); cursor: default; }

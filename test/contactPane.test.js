@@ -24,7 +24,7 @@ test("a channel is added, edited and removed in the pane, an About text saved, a
   assert.match(html, /id="mk-about"/);
 
   c = await send(channelAdd(c, "twitch", " twitch.tv/ada "));
-  assert.deepEqual(stored().channels, [{ kind: "youtube", url: "https://youtube.com/@ada" }, { kind: "twitch", url: "twitch.tv/ada" }]);
+  assert.deepEqual(stored().channels, [{ kind: "youtube", url: "https://youtube.com/@ada", followers: null, active: "", dead: "" }, { kind: "twitch", url: "twitch.tv/ada", followers: null, active: "", dead: "" }]);
 
   assert.equal(editRequest({ id: "mk-chu-1", value: "twitch.tv/ada" }, c), null, "nothing new");
   c = await send(editRequest({ id: "mk-chu-1", value: "https://twitch.tv/adaplays" }, c));
@@ -34,7 +34,7 @@ test("a channel is added, edited and removed in the pane, an About text saved, a
 
   assert.equal(channelAdd(c, "x", "  "), null, "an empty URL sends nothing");
   c = await send(channelRemove(c, 1));
-  assert.deepEqual(stored().channels, [{ kind: "website", url: "https://youtube.com/@ada" }]);
+  assert.deepEqual(stored().channels, [{ kind: "website", url: "https://youtube.com/@ada", followers: null, active: "", dead: "" }]);
 
   c = await send(editRequest({ id: "mk-about", value: "Cozy co-op streamer, 5k on Twitch." }, c));
   assert.equal(stored().about, "Cozy co-op streamer, 5k on Twitch.");

@@ -6,10 +6,11 @@ import { channelsBlock, channelEdit } from "./contactChannels.js";
 import { historyList, lastContactOf } from "./contactHistory.js";
 import { specialMark } from "./contactColumns.js";
 import { gamesBlock } from "./contactGames.js";
+import { coveredBlock } from "./contactCovered.js";
 
 export { channelHref } from "./contactChannels.js";
 
-export const STATUSES = ["active", "dormant", "archived"];
+export const STATUSES = ["active", "dormant", "parked", "archived"];
 export const TOUCH_KINDS = ["mail", "reply", "video"];
 
 const opt = (v, l, sel) => `<option value="${esc(v)}" ${sel === v ? "selected" : ""}>${esc(l)}</option>`;
@@ -41,10 +42,15 @@ export function detailPane(c, profiles, touchOpen, now, log = null, fitOpen = fa
       <dt>Last contact</dt><dd>${lastContactOf(c, log) || "No contact yet"}</dd>
       <dt>Special</dt><dd><input type="text" id="mk-special" value="${esc(c.special ?? "")}" aria-label="Special relationship: a one-line reason" placeholder="A friend, a past collaborator"></dd>
       <dt>Email</dt><dd>${c.email ? esc(c.email) : "-"}</dd>
+      <dt>Scales</dt><dd><input type="text" id="mk-scales" value="${esc((c.scales ?? []).join(", "))}" aria-label="Scales the creator covers: solo, indie, triple-i, aa, aaa" placeholder="indie, aa"></dd>
+      <dt>Scale note</dt><dd><input type="text" id="mk-scalenote" value="${esc(c.scaleNote ?? "")}" aria-label="Scale note: the evidence for the scales" placeholder="5 of the last 20 uploads indie"></dd>
+      <dt>Checked</dt><dd><input type="date" id="mk-checked" value="${esc(c.checked ?? "")}" aria-label="Date the creator was last researched"></dd>
+      <dt>Reddit</dt><dd><input type="text" id="mk-reddit" value="${esc(c.reddit ?? "")}" aria-label="Reddit: subreddit or user URL" placeholder="https://www.reddit.com/r/..."></dd>
       <dt>Genres</dt><dd><input type="text" id="mk-genres" value="${esc((c.genres ?? []).join(", "))}" aria-label="Genres, separated by commas" placeholder="Indie, Horror"></dd>
     </dl>
     ${channelsBlock(c.channels)}
     ${gamesBlock(c, profiles, fitOpen)}
+    ${coveredBlock(c)}
     <div class="sect">About</div>
     <textarea id="mk-about" class="desc-in" aria-label="About: who the contact is and what they cover" placeholder="Who they are and what they cover.">${esc(c.about ?? "")}</textarea>
     <div class="sect">Notes<span id="saved"></span></div>
@@ -60,6 +66,10 @@ export function editRequest(el, c) {
   if (el.id === "mk-reach-n" && (el.value === "" ? null : Number(el.value)) !== c.reach) return { method: "PATCH", path, body: { reach: el.value === "" ? null : Number(el.value) } };
   if (el.id === "mk-genres") { const genres = el.value.split(",").map(g => g.trim()).filter(Boolean); if (genres.join(",") !== (c.genres ?? []).join(",")) return { method: "PATCH", path, body: { genres } }; }
   if (el.id === "mk-special" && el.value.trim() !== (c.special ?? "")) return { method: "PATCH", path, body: { special: el.value } };
+  if (el.id === "mk-scales") { const scales = el.value.split(",").map(g => g.trim()).filter(Boolean); if (scales.join(",") !== (c.scales ?? []).join(",")) return { method: "PATCH", path, body: { scales } }; }
+  if (el.id === "mk-scalenote" && el.value.trim() !== (c.scaleNote ?? "")) return { method: "PATCH", path, body: { scaleNote: el.value } };
+  if (el.id === "mk-checked" && el.value !== (c.checked ?? "")) return { method: "PATCH", path, body: { checked: el.value } };
+  if (el.id === "mk-reddit" && el.value.trim() !== (c.reddit ?? "")) return { method: "PATCH", path, body: { reddit: el.value } };
   if (el.id === "mk-about" && el.value !== (c.about ?? "")) return { method: "PATCH", path, body: { about: el.value } };
   if (el.id.startsWith("mk-ch")) return channelEdit(el, c);
   if (el.id === "mk-notes" && el.value !== c.notes) return { method: "PATCH", path, body: { notes: el.value } };

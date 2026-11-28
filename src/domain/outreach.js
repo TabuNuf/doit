@@ -65,12 +65,16 @@ export class Outreach {
     const n = Number(limit);
     if (!Number.isInteger(n) || n < 1) throw new Error(`Limit must be a whole number, 1 or more: ${limit}`);
     const games = splitGames(epic.game);
+    const profiles = this.book.profiles();
     const picked = pickContacts({ contacts: this.book.list({}), games, until: this.#until(epic.event), taken: this.#taken(project, epicId), limit: n });
     const contacts = picked.map(c => {
       const fit = c.fit.find(f => games.includes(f.game));
       const about = (c.touches ?? []).filter(t => t.game === fit.game).map(t => t.date.slice(0, 10)).sort().pop() ?? "";
-      return { id: c.id, name: c.name, reach: c.reach ?? 0, game: fit.game, reason: fit.reason ?? "", lastAbout: about };
-    });
+      // Covered games whose genres overlap the game's profile: they rank the list and give a reason, never a gate.
+      const genres = new Set((profiles.find(p => p.game === fit.game)?.genres ?? []).map(g => g.toLowerCase()));
+      const similar = (c.games ?? []).filter(g => g.genres.some(x => genres.has(x.toLowerCase()))).map(g => g.title);
+      return { id: c.id, name: c.name, reach: c.reach ?? 0, game: fit.game, reason: fit.reason ?? "", lastAbout: about, similar };
+    }).sort((a, b) => b.similar.length - a.similar.length);
     const found = new Map();
     for (const game of games) {
       for (const f of this.book.festivals({ fits: game, open: true })) {

@@ -4,6 +4,7 @@ import { setRenderer, load } from "./state.js";
 import { render } from "./render.js";
 import { initResize } from "./resize.js";
 import "./events.js";
+import "./columnEvents.js";
 
 setRenderer(render);
 initResize();
