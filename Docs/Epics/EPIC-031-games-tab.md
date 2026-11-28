@@ -33,9 +33,11 @@ Design: Design.md, section Marketing, step 6 (Games)
 - [x] T-031.8 Game pane: every field editable, with Stores, Trackers and Covered by (done when: test/gameDetail.test.js passes: each field builds its PATCH, a store and a tracker are set and removed, Covered by lists each contact with kind, date and source link)
 - [x] T-031.9 Compare block and Comparable to in the game pane (done when: test/gameCompare.test.js passes: the block lists per profile the shared tags, scales and platforms, the form builds the comp request, Remove builds the delete)
 - [x] T-031.10 Links between a contact's covered games and the entries (done when: tests pass: a covered game in the contact pane carries the control that opens its entry in the Games tab, and a Covered by name opens the contact in the Contacts tab)
-- [ ] T-031.11 Check in play: the Games tab (done when: Tabu has tried the four items under Check in play in the epic and each works or has a bug task)
+- [x] T-031.11 Check in play: the Games tab (done when: Tabu has tried the four items under Check in play in the epic and each works or has a bug task)
 - [x] T-031.12 Game pane groups and filter labels follow the design (done when: tests pass: Price, Launch price and Playtime sit under Success, Demo and Languages under How it got there; the filters read Comparable to and Not researched)
 - [x] T-031.13 Research run: which sources can be read, in Marketing-Claude.md (done when: Marketing-Claude.md names what Steam, Gamalytic, SteamSpy, SteamCharts, SteamDB and VGChartz gave in the first run)
+- [x] T-031.14 Removing a covered game with % or / in its title fails: contactRoutes decodes a path the server already decoded (done when: A new test removes 100% Orange Juice and Fate/stay night through DELETE /api/contacts/:id/games/:title; npm test passes)
+- [x] T-031.15 Close audit: Architecture.md names the games catalog in the root line (done when: The root.js line says makeGames builds the GameCatalog over SqliteGames and the contact book on the shared MarketingDb)
 
 ## Test plan
 
@@ -69,4 +71,27 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
+Closed 2026-11-28. Development (494) and Audit (495) tests pass on main, after T-031.14. Read: the new modules whole (`gameEntries.js`, `gameCatalog.js`, `sqliteGames.js`, `gamesCli.js`, `parse.js`, `gameRoutes.js`, the six `web/game*.js` files) and the epic's changes to existing files, against `Architecture.md`, `Design.md` and `Core/03-Design.md`. No boundary rule is broken, no event carries a live object, and the class diagram matches the code.
+
+Fix now:
+
+- `src/server/contactRoutes.js` (bug, T-031.14): the server decodes a request path once and the fit and covered-game DELETE routes decoded their last part again, so removing a covered game with `%` in its title threw, and one with `/` matched no route. The route is from EPIC-030; the Games tab made such titles likely. Fixed with a test.
+- `Docs/Architecture.md`, `root.js` line (T-031.15): the games catalog was not named among what the root builds. Added.
+
+Fix before release (EPIC-022):
+
+- `web/contactColumns.js`, `web/gameColumns.js`, `web/marketingView.js`: the header sort, the ordering and the arrow-key step are each written twice. T-022.14.
+- `web/gameFilters.js`, `web/gameLinks.js`: the store list is written twice in `web/`, beside the stage, scale and tracker lists. T-022.15.
+- `src/cli/contactsCli.js`, `src/cli/gamesCli.js`: the `key=value` loop with its repeated-key refusal is written twice. T-022.16.
+- `src/domain/gameEntries.js`, `src/domain/contactImport.js`, `src/domain/gameCatalog.js`: two readers of `12k` and `1.2M`, and `line()` twice. T-022.17.
+- `web/state.js`: `entryKey` repeats the key rule of `domain/gameEntries.js`. T-022.18.
+- Comments on T-022.7 (`marketingView.js` is at 272 lines) and T-022.8 (more copies of the comma split).
+
+Deliberate, both already written into `Architecture.md` by T-031.1 and T-031.3, so no Departures row:
+
+- `SqliteContacts.setGame` writes `game_entries`, the table `SqliteGames` owns, so that a covered game and its entry land in one transaction. The rule that covering a game creates its entry therefore sits in the store.
+- A refused game value is a `ContactError`, since the server turns that error into its status.
+
 ## For the standard
+
+`App/README.md`, Pages over local files: a request path is decoded once, where the server reads it, and a route with a free-text last part matches the rest of the path; tests send a name with `%` and one with `/`. From T-031.14.
