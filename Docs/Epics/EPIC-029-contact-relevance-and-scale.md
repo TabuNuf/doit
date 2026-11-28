@@ -23,7 +23,9 @@ Design: Design.md, section Marketing (scale labels, relevant, parked, per-channe
 - [x] T-029.7 API routes for the new fields (done when: Route tests pass)
 - [x] T-029.8 Indie fit migration and relevance report (done when: Tests: dry run changes nothing; apply sets the fields and keeps other notes)
 - [x] T-029.9 Board: parked section, scale and channel fields (done when: Pure-function tests pass)
-- [ ] T-029.10 Check in play: parked section and contact pane (done when: Tabu confirms the board)
+- [x] T-029.10 Check in play: parked section and contact pane (done when: Tabu confirms the board)
+- [x] T-029.11 The mail sweep files a reply from a parked contact: Mailroom lists contacts without parked ones since T-029 (done when: A new test parks a contact, puts its reply in the inbox and sees it logged and moved; npm test passes)
+- [x] T-029.12 Close audit: Architecture.md names what EPIC-029 added to the CLI, the routes, the store, the profile shelf, the import and the page (done when: The ContactsCli, contactRoutes, SqliteContacts, ProfileShelf, ContactBook, contacts.js, contactImport and web lines name the commands, filters, fields and blocks the code has)
 
 ## Test plan
 
@@ -44,6 +46,27 @@ Decisions and deviations, newest first.
 
 ## Close audit
 
-Not closed: T-029.10 (Check in play) waits for Tabu. The Audit tests ran green on 2026-11-26.
+Closed 2026-11-28. Development (495) and Audit (496) tests pass on main. Read: the three task commits (`738295b`, `44e1eee`, `38c9704`) against `Architecture.md`, `Core/03-Design.md`, `App/README.md` and `Design.md`, section Marketing, each finding confirmed at HEAD. No guard test fails, no tier imports a forbidden one, and no event carries a live object.
+
+Fix now:
+
+- `src/domain/mailroom.js` (bug, T-029.11): since this epic a contact list without a status leaves parked contacts out, and the mail sweep called it that way, so a reply from a parked contact was not searched for, logged or moved. Fixed with a test.
+- `Docs/Architecture.md` (T-029.12): the module lines lacked what the epic added. `ContactsCli`: `profile add|set`, `contacts migrate-scale`, `--scale`, `--irrelevant`, `--parked`, `--all`. `contactRoutes`: the five new filters and four new fields. `SqliteContacts`: the four new columns. `ProfileShelf`: Scale. `ContactBook`: `setChannel`, `setProfile`, `migrateScale`, `relevant`. `contacts.js`: `countLabel`. `contactImport.js`: `reachOf`, `channelKind`, five more channel columns. The page: the Parked section, `parkedPath`, the followers and last-active inputs, the four new fields. Corrected.
+
+Fix before release (EPIC-022):
+
+- `src/cli/contactsCli.js`: it imports `reachOf` from the import mapper, past the `ContactBook` facade. By the Layers table this is a boundary break and so a fix-now; it is carried by T-022.17 instead, because the fix is that task's change (one count reader in `contacts.js`, the sheet bucket left in the mapper). Its unused imports go with it.
+- `src/domain/contactBook.js` (bug): `profile set` on a project with no Profile.md fails on its empty stage instead of saying to add one. T-022.22.
+- `web/marketingView.js` (bug): the arrow keys ignore the open Parked rows. T-022.23.
+- `src/domain/contacts.js`, `web/contactChannels.js`, `web/contactDetail.js`, `src/domain/contactBook.js`, `src/domain/contactImport.js`: channel kinds and statuses are listed in several places with no parity test. T-022.24.
+- `src/domain/contacts.js`, `src/store/profileShelf.js`: the `iii` alias is written twice. T-022.25.
+- `ContactBook.migrateScale`, `scaleNotes.js`, the CLI command and its help: a one-off kept as standing surface. T-022.26, which waits for Tabu's word that the migration has run.
+- Comments on T-022.12 (the event-is-never-relevant rule is written in the same two places), T-022.16 (the key lists are written three and four times) and T-022.17 (two writers of a short count).
+
+Left as it is: `profile set` re-checks the whole stored profile, so a Profile.md with a free-text Release line refuses any change until the line is a date. The message names the line.
+
+Deliberate: none.
 
 ## For the standard
+
+`Core/03-Design.md`, Code: a task that narrows what a query returns by default reads every caller of that query. From T-029.11.
